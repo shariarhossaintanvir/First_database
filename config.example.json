@@ -1,0 +1,16 @@
+{
+  "_comment": "Configuration Template (SAFE FOR GIT). Copy to config.local.json or local.config.json. Never commit actual private credentials or service accounts.",
+  "environment": "development",
+  "firebase": {
+    "projectId": "your-firebase-project-id",
+    "storageBucket": "your-firebase-project-id.firebasestorage.app"
+  },
+  "api": {
+    "baseUrl": "https://api.example.com",
+    "timeoutMs": 15000
+  },
+  "features": {
+    "enableAnalytics": false,
+    "enableCrashlytics": false
+  }
+}

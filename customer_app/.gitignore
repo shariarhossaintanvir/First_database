@@ -1,45 +1,142 @@
-# Miscellaneous
-*.class
-*.log
-*.pyc
-*.swp
-.DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
+# ==============================================================================
+# Customer App .gitignore
+# ==============================================================================
 
-# IntelliJ related
-*.iml
-*.ipr
-*.iws
-.idea/
+# ------------------------------------------------------------------------------
+# 🔐 Sensitive Configuration & Environment Files
+# ------------------------------------------------------------------------------
+*.env
+*.env.*
+.env
+.env.*
+!.env.example
+!.env.template
+config.local.*
+local.config.*
+*.secrets.*
+secrets/
+credentials/
+private/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
+# ------------------------------------------------------------------------------
+# 🔥 Firebase Sensitive Files & Credentials
+# ------------------------------------------------------------------------------
+# Firebase Admin SDK & Service Accounts (CRITICAL: NEVER COMMIT)
+*service-account*.json
+*serviceAccount*.json
+*service_account*.json
+*firebase-admin*.json
+*admin-sdk*.json
+firebase-credentials.json
+firebase-adminsdk*.json
 
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Firebase CLI caches & emulator debug logs
+.firebase/
+firebase-debug.log
+firebase-debug.*.log
+firestore-debug.log
+ui-debug.log
+
+# ------------------------------------------------------------------------------
+# 🛠️ Flutter & Dart Generated Files & Caches
+# ------------------------------------------------------------------------------
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
-/coverage/
+build/
+coverage/
+*.lcov
+*.g.dart
+*.freezed.dart
+**/doc/api/
+.last_build_id
+migrate_working_dir/
 
-# Symbolication related
+# Symbolication & Obfuscation
 app.*.symbols
-
-# Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
+# ------------------------------------------------------------------------------
+# 🔑 Android & iOS Keystores, Keys, & Local Secrets
+# ------------------------------------------------------------------------------
+/android/local.properties
+/android/key.properties
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/.gradle/
+/android/captures/
+/android/.cxx/
+*.keystore
+*.jks
+*.p12
+*.pfx
+*.key
+*.pem
+*.cer
+*.crt
+
+# iOS / macOS build artifacts & Pods
+/ios/Pods/
+/ios/.symlinks/
+/ios/Flutter/Flutter.framework
+/ios/Flutter/Flutter.podspec
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/app.flx
+/ios/Flutter/app.zip
+/ios/Flutter/flutter_assets/
+/ios/Flutter/.last_build_id
+/ios/ServiceDefinitions.json
+/ios/Runner/GeneratedPluginRegistrant.*
+
+/macos/Pods/
+/macos/.symlinks/
+/macos/Flutter/ephemeral/
+/macos/Flutter/GeneratedPluginRegistrant.*
+
+# Windows / Linux Ephemerals
+/windows/flutter/ephemeral/
+/linux/flutter/ephemeral/
+
+# ------------------------------------------------------------------------------
+# 💻 IDE, Editor & OS Machine-Specific Files
+# ------------------------------------------------------------------------------
+# JetBrains / IntelliJ / Android Studio
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+.fleet/
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# ------------------------------------------------------------------------------
+# 📦 Logs, Diagnostics & Temporary Files
+# ------------------------------------------------------------------------------
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*~
+debug/
+debug.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

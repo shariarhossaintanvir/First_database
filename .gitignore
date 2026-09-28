@@ -1,5 +1,5 @@
 # ==============================================================================
-# Admin App .gitignore
+# Root .gitignore - Multi-App Flutter & Firebase Project
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
@@ -30,7 +30,7 @@ private/
 firebase-credentials.json
 firebase-adminsdk*.json
 
-# Firebase CLI caches & emulator debug logs
+# Firebase CLI caches, emulator debug logs & active local configurations
 .firebase/
 firebase-debug.log
 firebase-debug.*.log
@@ -41,12 +41,16 @@ ui-debug.log
 # 🛠️ Flutter & Dart Generated Files & Caches
 # ------------------------------------------------------------------------------
 .dart_tool/
+**/.dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+**/.flutter-plugins-dependencies
 .pub-cache/
 .pub/
 build/
+**/build/
 coverage/
+**/coverage/
 *.lcov
 *.g.dart
 *.freezed.dart
@@ -59,16 +63,16 @@ app.*.symbols
 app.*.map.json
 
 # ------------------------------------------------------------------------------
-# 🔑 Android & iOS Keystores, Keys, & Local Secrets
+# 🔑 Android & iOS Keystores, Keys, & Local Platform Secrets
 # ------------------------------------------------------------------------------
-/android/local.properties
-/android/key.properties
-/android/app/debug
-/android/app/profile
-/android/app/release
-/android/.gradle/
-/android/captures/
-/android/.cxx/
+**/android/local.properties
+**/android/key.properties
+**/android/app/release/
+**/android/app/debug/
+**/android/app/profile/
+**/android/.gradle/
+**/android/captures/
+**/android/.cxx/
 *.keystore
 *.jks
 *.p12
@@ -78,34 +82,36 @@ app.*.map.json
 *.cer
 *.crt
 
-# iOS / macOS build artifacts & Pods
-/ios/Pods/
-/ios/.symlinks/
-/ios/Flutter/Flutter.framework
-/ios/Flutter/Flutter.podspec
-/ios/Flutter/Generated.xcconfig
-/ios/Flutter/app.flx
-/ios/Flutter/app.zip
-/ios/Flutter/flutter_assets/
-/ios/Flutter/.last_build_id
-/ios/ServiceDefinitions.json
-/ios/Runner/GeneratedPluginRegistrant.*
+# iOS / macOS build caches & Pods
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/app.flx
+**/ios/Flutter/app.zip
+**/ios/Flutter/flutter_assets/
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/.last_build_id
 
-/macos/Pods/
-/macos/.symlinks/
-/macos/Flutter/ephemeral/
-/macos/Flutter/GeneratedPluginRegistrant.*
+**/macos/Pods/
+**/macos/.symlinks/
+**/macos/Flutter/ephemeral/
+**/macos/Flutter/GeneratedPluginRegistrant.*
 
-# Windows / Linux Ephemerals
-/windows/flutter/ephemeral/
-/linux/flutter/ephemeral/
+# Windows / Linux desktop build ephemerals
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
 
 # ------------------------------------------------------------------------------
 # 💻 IDE, Editor & OS Machine-Specific Files
 # ------------------------------------------------------------------------------
 # JetBrains / IntelliJ / Android Studio
 .idea/
+**/.idea/
 *.iml
+**/*.iml
 *.ipr
 *.iws
 out/
@@ -113,6 +119,7 @@ out/
 
 # Visual Studio Code
 .vscode/
+**/.vscode/
 *.code-workspace
 
 # Operating System Files
@@ -130,6 +137,7 @@ $RECYCLE.BIN/
 # 📦 Logs, Diagnostics & Temporary Files
 # ------------------------------------------------------------------------------
 *.log
+**/*.log
 *.tmp
 *.temp
 *.bak
