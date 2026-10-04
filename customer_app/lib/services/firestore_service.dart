@@ -10,8 +10,9 @@ class FirestoreService {
 
   CollectionReference get _categoriesCol => _firestore.collection('categories');
 
+  /// Stream categories with query limit to prevent unconstrained data download
   Stream<List<CategoryModel>> getCategoriesStream() {
-    return _categoriesCol.snapshots().map((snapshot) {
+    return _categoriesCol.limit(50).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         return CategoryModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
@@ -22,17 +23,24 @@ class FirestoreService {
 
   CollectionReference get _productsCol => _firestore.collection('products');
 
+  /// Stream products with descending ordering and query limit
   Stream<List<ProductModel>> getProductsStream() {
-    return _productsCol.orderBy('createdAt', descending: true).snapshots().map((snapshot) {
+    return _productsCol
+        .orderBy('createdAt', descending: true)
+        .limit(50)
+        .snapshots()
+        .map((snapshot) {
       return snapshot.docs.map((doc) {
         return ProductModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
     });
   }
 
+  /// Stream products by category with query limit
   Stream<List<ProductModel>> getProductsByCategory(String category) {
     return _productsCol
         .where('category', isEqualTo: category)
+        .limit(50)
         .snapshots()
         .map((snapshot) {
       return snapshot.docs.map((doc) {
@@ -45,35 +53,19 @@ class FirestoreService {
 
   CollectionReference get _ordersCol => _firestore.collection('orders');
 
-  /// Places a customer order in Firestore
+  /// Places a customer order in Firestore with initial 'Pending' status.
+  /// Note: Inventory management/deduction is strictly handled by trusted server-side
+  /// Cloud Functions to enforce least-privilege (customers cannot write to products).
   Future<String> placeOrder(OrderModel order) async {
-    // Add order to orders collection
     DocumentReference docRef = await _ordersCol.add(order.toMap());
-
-    // Deduct stock for each item safely
-    for (var item in order.items) {
-      try {
-        DocumentReference productRef = _productsCol.doc(item.productId);
-        await _firestore.runTransaction((transaction) async {
-          DocumentSnapshot snap = await transaction.get(productRef);
-          if (snap.exists) {
-            final currentStock = (snap.get('stock') as num?)?.toInt() ?? 0;
-            final newStock = (currentStock - item.quantity).clamp(0, 999999);
-            transaction.update(productRef, {'stock': newStock});
-          }
-        });
-      } catch (e) {
-        // Continue if stock update fails
-      }
-    }
-
     return docRef.id;
   }
 
-  /// Stream current customer orders
+  /// Stream current customer orders scoped strictly to the authenticated user ID with query limit
   Stream<List<OrderModel>> getCustomerOrdersStream(String userId) {
     return _ordersCol
         .where('userId', isEqualTo: userId)
+        .limit(50)
         .snapshots()
         .map((snapshot) {
       var orders = snapshot.docs.map((doc) {
@@ -81,13 +73,6 @@ class FirestoreService {
       }).toList();
       orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return orders;
-    });
-  }
-
-  /// Cancel order
-  Future<void> cancelOrder(String orderId) async {
-    await _ordersCol.doc(orderId).update({
-      'status': 'Cancelled',
     });
   }
 }

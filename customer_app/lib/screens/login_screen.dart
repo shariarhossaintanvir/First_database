@@ -36,24 +36,7 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _handleDemoCustomerLogin() async {
-    setState(() => _errorMessage = null);
-    final auth = Provider.of<AuthService>(context, listen: false);
 
-    // Try signing in with demo customer, or register if not existing
-    var error = await auth.signIn('customer@ecommerce.com', 'password123');
-    if (error != null && mounted) {
-      error = await auth.register(
-        name: 'Demo Customer',
-        email: 'customer@ecommerce.com',
-        password: 'password123',
-      );
-    }
-
-    if (error != null && mounted) {
-      setState(() => _errorMessage = error);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -177,17 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 14),
 
-                    // Quick Demo Customer Login
-                    OutlinedButton.icon(
-                      onPressed: auth.isLoading ? null : _handleDemoCustomerLogin,
-                      icon: const Icon(Icons.flash_on, color: Colors.amber),
-                      label: const Text('1-Click Demo Customer Login'),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+
 
                     // Don't have account
                     Row(

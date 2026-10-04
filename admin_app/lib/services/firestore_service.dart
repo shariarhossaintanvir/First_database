@@ -10,8 +10,9 @@ class FirestoreService {
 
   CollectionReference get _categoriesCol => _firestore.collection('categories');
 
+  /// Stream categories with query limit to prevent unconstrained reads
   Stream<List<CategoryModel>> getCategoriesStream() {
-    return _categoriesCol.snapshots().map((snapshot) {
+    return _categoriesCol.limit(50).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         return CategoryModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
@@ -51,8 +52,9 @@ class FirestoreService {
 
   CollectionReference get _productsCol => _firestore.collection('products');
 
+  /// Stream products with descending ordering and query limit
   Stream<List<ProductModel>> getProductsStream() {
-    return _productsCol.orderBy('createdAt', descending: true).snapshots().map((snapshot) {
+    return _productsCol.orderBy('createdAt', descending: true).limit(100).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         return ProductModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
@@ -75,15 +77,21 @@ class FirestoreService {
 
   CollectionReference get _ordersCol => _firestore.collection('orders');
 
+  /// Stream orders with descending ordering and query limit
   Stream<List<OrderModel>> getOrdersStream() {
-    return _ordersCol.orderBy('createdAt', descending: true).snapshots().map((snapshot) {
+    return _ordersCol.orderBy('createdAt', descending: true).limit(100).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
         return OrderModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
       }).toList();
     });
   }
 
+  /// Update order status with validation against allowed state values
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
+    const allowedStatuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+    if (!allowedStatuses.contains(newStatus)) {
+      throw ArgumentError('Invalid order status: $newStatus');
+    }
     await _ordersCol.doc(orderId).update({
       'status': newStatus,
     });

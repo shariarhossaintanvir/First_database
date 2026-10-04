@@ -11,8 +11,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController(text: 'admin@ecommerce.com');
-  final _passwordController = TextEditingController(text: 'password123');
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
   String? _errorMessage;
 
@@ -45,16 +45,15 @@ class _LoginScreenState extends State<LoginScreen> {
     final error = await authService.setupDefaultAdmin();
     if (error != null && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Setup note: $error')),
+        SnackBar(content: Text('Setup status: $error')),
       );
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Admin account ready! Logging in...'),
+          content: Text('Admin account initialized. Please enter your credentials to login.'),
           backgroundColor: Colors.green,
         ),
       );
-      _handleLogin();
     }
   }
 
@@ -221,7 +220,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Default: admin@ecommerce.com / password123',
+                        'Authorized administrative personnel only.',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
                       ),

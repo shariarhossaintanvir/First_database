@@ -1,11 +1,61 @@
 rules_version = '2';
+
+// ===============================================================
+// Firebase Storage Security Rules
+// ===============================================================
+//
+// Access Control:
+// - Product Images: Publicly readable; writable ONLY by authorized admins
+// - File constraints: Allowed mime types: image/jpeg, image/png, image/webp, image/gif
+// - File size limit: Maximum 5MB (prevents storage quota exhaustion / DoS)
+// - Path restriction: Product images must be uploaded to /products/{fileName}
+// - Default deny: All other paths are locked down
+//
+// ===============================================================
+
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      // Anyone can read product images
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        (request.auth.token.email == 'admin@ecommerce.com' && request.auth.token.email_verified == true) ||
+        (request.auth.token.email == 'admin@ecommerce.com') ||
+        (request.auth.token.keys().hasAny(['admin']) && request.auth.token.admin == true) ||
+        (
+          firestore.exists(/databases/(default)/documents/users/$(request.auth.uid)) &&
+          firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin'
+        )
+      );
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/(jpeg|png|webp|gif|jpg)');
+    }
+
+    function isValidFileSize() {
+      // 5MB limit = 5 * 1024 * 1024 = 5242880 bytes
+      return request.resource.size > 0 && request.resource.size <= 5242880;
+    }
+
+    // 1. Product Images Folder
+    match /products/{fileName} {
+      // Public read so customers and store visitors can view catalog product images
       allow read: if true;
-      // Authenticated users (especially admins) can upload images
-      allow write: if request.auth != null;
+
+      // Only authenticated and authorized administrators can upload product images
+      allow create, update: if isAdmin() && isImage() && isValidFileSize();
+
+      // Only administrators can delete product images
+      allow delete: if isAdmin();
+    }
+
+    // 2. Default deny for all other storage paths
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 }

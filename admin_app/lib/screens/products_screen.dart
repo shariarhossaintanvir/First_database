@@ -86,7 +86,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   return const Center(child: CircularProgressIndicator());
                 }
                 if (snapshot.hasError) {
-                  return Center(child: Text('Error loading products: ${snapshot.error}'));
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Text('Unable to load products. Please check network connection or permissions.'),
+                    ),
+                  );
                 }
 
                 var products = snapshot.data ?? [];

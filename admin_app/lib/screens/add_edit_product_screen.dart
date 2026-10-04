@@ -195,7 +195,13 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.shopping_bag_outlined),
                       ),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Enter product title' : null,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Enter product title';
+                        final trimmed = v.trim();
+                        if (trimmed.length < 2) return 'Title must be at least 2 characters';
+                        if (trimmed.length > 150) return 'Title cannot exceed 150 characters';
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
 
@@ -234,7 +240,10 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                             ),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return 'Enter price';
-                              if (double.tryParse(v.trim()) == null) return 'Invalid number';
+                              final p = double.tryParse(v.trim());
+                              if (p == null) return 'Invalid number';
+                              if (p <= 0) return 'Price must be greater than 0';
+                              if (p > 1000000) return 'Price cannot exceed \$1,000,000';
                               return null;
                             },
                           ),
@@ -251,7 +260,10 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                             ),
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return 'Enter stock';
-                              if (int.tryParse(v.trim()) == null) return 'Invalid integer';
+                              final s = int.tryParse(v.trim());
+                              if (s == null) return 'Invalid integer';
+                              if (s < 0) return 'Stock cannot be negative';
+                              if (s > 1000000) return 'Stock cannot exceed 1,000,000';
                               return null;
                             },
                           ),
@@ -269,6 +281,12 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                         border: OutlineInputBorder(),
                         alignLabelWithHint: true,
                       ),
+                      validator: (v) {
+                        if (v != null && v.trim().length > 3000) {
+                          return 'Description cannot exceed 3,000 characters';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 20),
 

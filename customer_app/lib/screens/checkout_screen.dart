@@ -171,16 +171,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           labelText: 'Recipient Full Name *',
                           border: OutlineInputBorder(),
                         ),
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Enter recipient name' : null,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Enter recipient name';
+                          final trimmed = v.trim();
+                          if (trimmed.length < 2) return 'Name must be at least 2 characters';
+                          if (trimmed.length > 100) return 'Name cannot exceed 100 characters';
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
                         controller: _phoneController,
+                        keyboardType: TextInputType.phone,
                         decoration: const InputDecoration(
                           labelText: 'Phone Number *',
                           border: OutlineInputBorder(),
                         ),
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Enter phone number' : null,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Enter phone number';
+                          final phone = v.trim();
+                          if (phone.length < 5 || phone.length > 30) {
+                            return 'Phone number must be between 5 and 30 characters';
+                          }
+                          final phoneRegex = RegExp(r'^[0-9+\-()\s]+$');
+                          if (!phoneRegex.hasMatch(phone)) {
+                            return 'Enter a valid phone number';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 14),
                       TextFormField(
@@ -190,7 +208,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           labelText: 'Delivery Address *',
                           border: OutlineInputBorder(),
                         ),
-                        validator: (v) => v == null || v.trim().isEmpty ? 'Enter delivery address' : null,
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return 'Enter delivery address';
+                          final trimmed = v.trim();
+                          if (trimmed.length < 5) return 'Address must be at least 5 characters';
+                          if (trimmed.length > 500) return 'Address cannot exceed 500 characters';
+                          return null;
+                        },
                       ),
                     ],
                   ),
