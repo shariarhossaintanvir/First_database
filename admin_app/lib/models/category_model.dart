@@ -12,12 +12,7 @@ class CategoryModel {
   });
 
   Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      'description': description,
-      'icon': icon,
-    };
+    return {'id': id, 'name': name, 'description': description, 'icon': icon};
   }
 
   factory CategoryModel.fromMap(Map<String, dynamic> map, String docId) {

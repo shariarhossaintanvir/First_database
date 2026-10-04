@@ -28,9 +28,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   void initState() {
     super.initState();
     final auth = Provider.of<AuthService>(context, listen: false);
-    _nameController = TextEditingController(text: auth.currentUser?.displayName ?? '');
+    _nameController = TextEditingController(
+      text: auth.currentUser?.displayName ?? '',
+    );
     _phoneController = TextEditingController(text: '+1 (555) 234-5678');
-    _addressController = TextEditingController(text: '742 Evergreen Terrace, Springfield');
+    _addressController = TextEditingController(
+      text: '742 Evergreen Terrace, Springfield',
+    );
   }
 
   @override
@@ -48,9 +52,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final cart = Provider.of<CartProvider>(context, listen: false);
 
     if (cart.itemList.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Your cart is empty!')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Your cart is empty!')));
       return;
     }
 
@@ -89,15 +93,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => OrderSuccessScreen(orderId: orderId)),
+          MaterialPageRoute(
+            builder: (_) => OrderSuccessScreen(orderId: orderId),
+          ),
         );
       }
     } catch (e) {
       setState(() => _isPlacingOrder = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to place order: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to place order: $e')));
       }
     }
   }
@@ -108,15 +114,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('Checkout & Delivery'),
-      ),
+      appBar: AppBar(title: const Text('Checkout & Delivery')),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -4)),
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
           ],
         ),
         child: SafeArea(
@@ -126,17 +134,25 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               backgroundColor: Colors.blue.shade600,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
             child: _isPlacingOrder
                 ? const SizedBox(
                     width: 22,
                     height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : Text(
                     'Place Order • \$${cart.totalAmount.toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
           ),
         ),
@@ -151,7 +167,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               // Shipping Address Section
               Card(
                 elevation: 1,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -161,7 +179,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         children: [
                           Icon(Icons.location_on_outlined, color: Colors.blue),
                           SizedBox(width: 8),
-                          Text('Shipping Information', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text(
+                            'Shipping Information',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -172,10 +196,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           border: OutlineInputBorder(),
                         ),
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Enter recipient name';
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Enter recipient name';
+                          }
                           final trimmed = v.trim();
-                          if (trimmed.length < 2) return 'Name must be at least 2 characters';
-                          if (trimmed.length > 100) return 'Name cannot exceed 100 characters';
+                          if (trimmed.length < 2) {
+                            return 'Name must be at least 2 characters';
+                          }
+                          if (trimmed.length > 100) {
+                            return 'Name cannot exceed 100 characters';
+                          }
                           return null;
                         },
                       ),
@@ -188,7 +218,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           border: OutlineInputBorder(),
                         ),
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Enter phone number';
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Enter phone number';
+                          }
                           final phone = v.trim();
                           if (phone.length < 5 || phone.length > 30) {
                             return 'Phone number must be between 5 and 30 characters';
@@ -209,10 +241,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           border: OutlineInputBorder(),
                         ),
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Enter delivery address';
+                          if (v == null || v.trim().isEmpty) {
+                            return 'Enter delivery address';
+                          }
                           final trimmed = v.trim();
-                          if (trimmed.length < 5) return 'Address must be at least 5 characters';
-                          if (trimmed.length > 500) return 'Address cannot exceed 500 characters';
+                          if (trimmed.length < 5) {
+                            return 'Address must be at least 5 characters';
+                          }
+                          if (trimmed.length > 500) {
+                            return 'Address cannot exceed 500 characters';
+                          }
                           return null;
                         },
                       ),
@@ -225,7 +263,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               // Payment Method Section
               Card(
                 elevation: 1,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -235,7 +275,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         children: [
                           Icon(Icons.payment, color: Colors.blue),
                           SizedBox(width: 8),
-                          Text('Payment Method', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          Text(
+                            'Payment Method',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 12),
@@ -261,7 +307,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               // Order Summary Card
               Card(
                 elevation: 1,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
@@ -269,7 +317,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     children: [
                       Text(
                         'Order Summary (${cart.itemCount} items)',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                       const Divider(height: 20),
                       ...cart.itemList.map((item) {
@@ -295,17 +346,33 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text('Delivery Shipping:'),
-                          Text('FREE', style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold)),
+                          Text(
+                            'FREE',
+                            style: TextStyle(
+                              color: Colors.green.shade700,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Total Amount:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                          const Text(
+                            'Total Amount:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
                           Text(
                             '\$${cart.totalAmount.toStringAsFixed(2)}',
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F172A)),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: Color(0xFF0F172A),
+                            ),
                           ),
                         ],
                       ),
@@ -339,7 +406,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             color: isSelected ? Colors.blue : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
           ),
-          color: isSelected ? Colors.blue.shade50.withValues(alpha: 0.3) : Colors.transparent,
+          color: isSelected
+              ? Colors.blue.shade50.withValues(alpha: 0.3)
+              : Colors.transparent,
         ),
         child: Row(
           children: [
@@ -349,8 +418,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.w500)),
-                  Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
                 ],
               ),
             ),

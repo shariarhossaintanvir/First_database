@@ -14,13 +14,18 @@ class FirestoreService {
   Stream<List<CategoryModel>> getCategoriesStream() {
     return _categoriesCol.limit(50).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        return CategoryModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+        return CategoryModel.fromMap(
+          doc.data() as Map<String, dynamic>,
+          doc.id,
+        );
       }).toList();
     });
   }
 
   Future<void> addCategory(CategoryModel category) async {
-    await _categoriesCol.doc(category.id.isEmpty ? null : category.id).set(category.toMap());
+    await _categoriesCol
+        .doc(category.id.isEmpty ? null : category.id)
+        .set(category.toMap());
   }
 
   Future<void> updateCategory(CategoryModel category) async {
@@ -35,11 +40,36 @@ class FirestoreService {
     final snapshot = await _categoriesCol.limit(1).get();
     if (snapshot.docs.isEmpty) {
       final defaultCategories = [
-        CategoryModel(id: 'electronics', name: 'Electronics', description: 'Gadgets & devices', icon: 'devices'),
-        CategoryModel(id: 'fashion', name: 'Fashion & Apparel', description: 'Clothing & style', icon: 'checkroom'),
-        CategoryModel(id: 'home', name: 'Home & Living', description: 'Furniture & home decor', icon: 'chair'),
-        CategoryModel(id: 'beauty', name: 'Beauty & Health', description: 'Skincare & wellness', icon: 'spa'),
-        CategoryModel(id: 'sports', name: 'Sports & Outdoors', description: 'Fitness gear & equipment', icon: 'sports_basketball'),
+        CategoryModel(
+          id: 'electronics',
+          name: 'Electronics',
+          description: 'Gadgets & devices',
+          icon: 'devices',
+        ),
+        CategoryModel(
+          id: 'fashion',
+          name: 'Fashion & Apparel',
+          description: 'Clothing & style',
+          icon: 'checkroom',
+        ),
+        CategoryModel(
+          id: 'home',
+          name: 'Home & Living',
+          description: 'Furniture & home decor',
+          icon: 'chair',
+        ),
+        CategoryModel(
+          id: 'beauty',
+          name: 'Beauty & Health',
+          description: 'Skincare & wellness',
+          icon: 'spa',
+        ),
+        CategoryModel(
+          id: 'sports',
+          name: 'Sports & Outdoors',
+          description: 'Fitness gear & equipment',
+          icon: 'sports_basketball',
+        ),
       ];
 
       for (var cat in defaultCategories) {
@@ -54,11 +84,18 @@ class FirestoreService {
 
   /// Stream products with descending ordering and query limit
   Stream<List<ProductModel>> getProductsStream() {
-    return _productsCol.orderBy('createdAt', descending: true).limit(100).snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return ProductModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-      }).toList();
-    });
+    return _productsCol
+        .orderBy('createdAt', descending: true)
+        .limit(100)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return ProductModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            );
+          }).toList();
+        });
   }
 
   Future<void> addProduct(ProductModel product) async {
@@ -79,21 +116,32 @@ class FirestoreService {
 
   /// Stream orders with descending ordering and query limit
   Stream<List<OrderModel>> getOrdersStream() {
-    return _ordersCol.orderBy('createdAt', descending: true).limit(100).snapshots().map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return OrderModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-      }).toList();
-    });
+    return _ordersCol
+        .orderBy('createdAt', descending: true)
+        .limit(100)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return OrderModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            );
+          }).toList();
+        });
   }
 
   /// Update order status with validation against allowed state values
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
-    const allowedStatuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+    const allowedStatuses = [
+      'Pending',
+      'Processing',
+      'Shipped',
+      'Delivered',
+      'Cancelled',
+    ];
     if (!allowedStatuses.contains(newStatus)) {
       throw ArgumentError('Invalid order status: $newStatus');
     }
-    await _ordersCol.doc(orderId).update({
-      'status': newStatus,
-    });
+    await _ordersCol.doc(orderId).update({'status': newStatus});
   }
 }

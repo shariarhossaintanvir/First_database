@@ -11,7 +11,8 @@ class OrdersScreen extends StatefulWidget {
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderStateMixin {
+class _OrdersScreenState extends State<OrdersScreen>
+    with SingleTickerProviderStateMixin {
   final FirestoreService _firestoreService = FirestoreService();
   late TabController _tabController;
 
@@ -72,7 +73,35 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error loading orders: ${snapshot.error}'));
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.assignment_outlined,
+                      size: 48,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      'Unable to load orders',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      'Please verify your connection and administrator permissions.',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
 
           final allOrders = snapshot.data ?? [];
@@ -82,18 +111,29 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
             children: _tabs.map((tab) {
               final filteredOrders = tab == 'All'
                   ? allOrders
-                  : allOrders.where((o) => o.status.toLowerCase() == tab.toLowerCase()).toList();
+                  : allOrders
+                        .where(
+                          (o) => o.status.toLowerCase() == tab.toLowerCase(),
+                        )
+                        .toList();
 
               if (filteredOrders.isEmpty) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey.shade400),
+                      Icon(
+                        Icons.receipt_long_outlined,
+                        size: 64,
+                        color: Colors.grey.shade400,
+                      ),
                       const SizedBox(height: 12),
                       Text(
                         'No $tab orders found',
-                        style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey.shade600,
+                        ),
                       ),
                     ],
                   ),
@@ -106,18 +146,24 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 separatorBuilder: (ctx, idx) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final order = filteredOrders[index];
-                  final formattedDate = DateFormat('MMM dd, yyyy - hh:mm a').format(order.createdAt);
+                  final formattedDate = DateFormat(
+                    'MMM dd, yyyy - hh:mm a',
+                  ).format(order.createdAt);
                   final color = _getStatusColor(order.status);
 
                   return Card(
                     elevation: 1,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: InkWell(
                       borderRadius: BorderRadius.circular(12),
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => OrderDetailScreen(order: order)),
+                          MaterialPageRoute(
+                            builder: (_) => OrderDetailScreen(order: order),
+                          ),
                         );
                       },
                       child: Padding(
@@ -130,10 +176,16 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                               children: [
                                 Text(
                                   'Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: color.withValues(alpha: 0.15),
                                     borderRadius: BorderRadius.circular(12),
@@ -141,15 +193,30 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                   ),
                                   child: Text(
                                     order.status,
-                                    style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
+                                    style: TextStyle(
+                                      color: color,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
                             const SizedBox(height: 8),
-                            Text('Customer: ${order.customerName}', style: const TextStyle(fontWeight: FontWeight.w500)),
+                            Text(
+                              'Customer: ${order.customerName}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                             const SizedBox(height: 4),
-                            Text('Date: $formattedDate', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                            Text(
+                              'Date: $formattedDate',
+                              style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 13,
+                              ),
+                            ),
                             const Divider(height: 20),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -160,7 +227,11 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                                 ),
                                 Text(
                                   'Total: \$${order.totalAmount.toStringAsFixed(2)}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A)),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Color(0xFF0F172A),
+                                  ),
                                 ),
                               ],
                             ),

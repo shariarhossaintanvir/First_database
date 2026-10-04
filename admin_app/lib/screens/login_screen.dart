@@ -41,16 +41,18 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleQuickSetup() async {
     setState(() => _errorMessage = null);
     final authService = Provider.of<AuthService>(context, listen: false);
-    
+
     final error = await authService.setupDefaultAdmin();
     if (error != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Setup status: $error')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Setup status: $error')));
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Admin account initialized. Please enter your credentials to login.'),
+          content: Text(
+            'Admin account initialized. Please enter your credentials to login.',
+          ),
           backgroundColor: Colors.green,
         ),
       );
@@ -72,9 +74,14 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Card(
               elevation: 4,
               shadowColor: Colors.black12,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 40.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 32.0,
+                  vertical: 40.0,
+                ),
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -85,7 +92,9 @@ class _LoginScreenState extends State<LoginScreen> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.1,
+                          ),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -124,12 +133,19 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                              Icon(
+                                Icons.error_outline,
+                                color: Colors.red.shade700,
+                                size: 20,
+                              ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   _errorMessage!,
-                                  style: TextStyle(color: Colors.red.shade800, fontSize: 13),
+                                  style: TextStyle(
+                                    color: Colors.red.shade800,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ),
                             ],
@@ -146,7 +162,9 @@ class _LoginScreenState extends State<LoginScreen> {
                           labelText: 'Admin Email',
                           hintText: 'admin@ecommerce.com',
                           prefixIcon: const Icon(Icons.email_outlined),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -166,13 +184,19 @@ class _LoginScreenState extends State<LoginScreen> {
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                              _obscurePassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                             ),
                             onPressed: () {
-                              setState(() => _obscurePassword = !_obscurePassword);
+                              setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              );
                             },
                           ),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().length < 6) {
@@ -190,39 +214,54 @@ class _LoginScreenState extends State<LoginScreen> {
                           backgroundColor: const Color(0xFF1E293B),
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                           elevation: 0,
                         ),
                         child: authService.isLoading
                             ? const SizedBox(
                                 height: 20,
                                 width: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
                               )
                             : const Text(
                                 'Sign In to Admin Portal',
-                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                       ),
                       const SizedBox(height: 16),
 
                       // Helper Quick Setup / Seed Button
                       OutlinedButton.icon(
-                        onPressed: authService.isLoading ? null : _handleQuickSetup,
+                        onPressed: authService.isLoading
+                            ? null
+                            : _handleQuickSetup,
                         icon: const Icon(Icons.auto_fix_high, size: 18),
                         label: const Text('Initialize Admin Account (1-Click)'),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: const Color(0xFF2563EB),
                           side: const BorderSide(color: Color(0xFF93C5FD)),
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
                       const Text(
                         'Authorized administrative personnel only.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF94A3B8),
+                        ),
                       ),
                     ],
                   ),

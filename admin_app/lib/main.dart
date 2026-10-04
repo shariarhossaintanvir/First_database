@@ -11,16 +11,20 @@ import 'screens/dashboard_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize Firebase App Check for admin portal protection against bots and automated abuse
   try {
     await FirebaseAppCheck.instance.activate(
-      providerWeb: ReCaptchaV3Provider('6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'),
-      providerAndroid: kDebugMode ? const AndroidDebugProvider() : const AndroidPlayIntegrityProvider(),
-      providerApple: kDebugMode ? const AppleDebugProvider() : const AppleDeviceCheckProvider(),
+      providerWeb: ReCaptchaV3Provider(
+        '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+      ),
+      providerAndroid: kDebugMode
+          ? const AndroidDebugProvider()
+          : const AndroidPlayIntegrityProvider(),
+      providerApple: kDebugMode
+          ? const AppleDebugProvider()
+          : const AppleDeviceCheckProvider(),
     );
   } catch (e) {
     if (kDebugMode) {
@@ -37,9 +41,7 @@ class AdminEcommerceApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthService()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => AuthService())],
       child: MaterialApp(
         title: 'Admin E-Commerce Portal',
         debugShowCheckedModeBanner: false,
@@ -59,7 +61,9 @@ class AdminEcommerceApp extends StatelessWidget {
           cardTheme: CardThemeData(
             color: Colors.white,
             surfaceTintColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ),
         home: const AuthGate(),
@@ -91,7 +95,10 @@ class AuthGate extends StatelessWidget {
 
         // Server-side & Firestore role-based gate verification
         return FutureBuilder<DocumentSnapshot>(
-          future: FirebaseFirestore.instance.collection('users').doc(user.uid).get(),
+          future: FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get(),
           builder: (context, userDocSnap) {
             if (userDocSnap.connectionState == ConnectionState.waiting) {
               return const Scaffold(
@@ -135,13 +142,19 @@ class AuthGate extends StatelessWidget {
                       constraints: const BoxConstraints(maxWidth: 440),
                       child: Card(
                         elevation: 3,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(32.0),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.gpp_bad, size: 64, color: Colors.red),
+                              const Icon(
+                                Icons.gpp_bad,
+                                size: 64,
+                                color: Colors.red,
+                              ),
                               const SizedBox(height: 16),
                               const Text(
                                 'Access Denied',
@@ -155,7 +168,10 @@ class AuthGate extends StatelessWidget {
                               Text(
                                 'The account "${user.email}" does not have administrator privileges to access this system.',
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(color: Color(0xFF64748B), fontSize: 14),
+                                style: const TextStyle(
+                                  color: Color(0xFF64748B),
+                                  fontSize: 14,
+                                ),
                               ),
                               const SizedBox(height: 24),
                               ElevatedButton.icon(
@@ -165,8 +181,13 @@ class AuthGate extends StatelessWidget {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF0F172A),
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
                                 ),
                               ),
                             ],

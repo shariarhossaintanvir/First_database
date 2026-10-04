@@ -51,7 +51,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFC),
       appBar: AppBar(
-        title: const Text('Admin Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Admin Dashboard',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: const Color(0xFF0F172A),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -84,7 +87,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   const CircleAvatar(
                     radius: 28,
                     backgroundColor: Color(0xFF334155),
-                    child: Icon(Icons.admin_panel_settings, size: 32, color: Colors.white),
+                    child: Icon(
+                      Icons.admin_panel_settings,
+                      size: 32,
+                      color: Colors.white,
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -93,12 +100,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       children: [
                         const Text(
                           'Welcome, Administrator',
-                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          authService.currentUser?.email ?? 'admin@ecommerce.com',
-                          style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 13),
+                          authService.currentUser?.email ??
+                              'admin@ecommerce.com',
+                          style: const TextStyle(
+                            color: Color(0xFF94A3B8),
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
@@ -145,7 +160,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   children: [
                                     _buildMetricCard(
                                       title: 'Revenue',
-                                      value: '\$${totalRevenue.toStringAsFixed(0)}',
+                                      value:
+                                          '\$${totalRevenue.toStringAsFixed(0)}',
                                       icon: Icons.attach_money,
                                       color: const Color(0xFF10B981),
                                     ),
@@ -184,7 +200,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
             // Quick Actions & Navigation
             const Text(
               'Quick Navigation',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0F172A),
+              ),
             ),
             const SizedBox(height: 12),
             Row(
@@ -196,7 +216,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.shopping_bag_outlined,
                     color: Colors.blue,
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const ProductsScreen()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ProductsScreen(),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -208,7 +233,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.category_outlined,
                     color: Colors.teal,
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const CategoriesScreen()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CategoriesScreen(),
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -220,7 +250,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.local_shipping_outlined,
                     color: Colors.purple,
                     onTap: () {
-                      Navigator.push(context, MaterialPageRoute(builder: (_) => const OrdersScreen()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const OrdersScreen()),
+                      );
                     },
                   ),
                 ),
@@ -234,11 +267,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 const Text(
                   'Recent Orders',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0F172A),
+                  ),
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const OrdersScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const OrdersScreen()),
+                    );
                   },
                   child: const Text('View All Orders'),
                 ),
@@ -256,7 +296,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 final orders = snapshot.data ?? [];
                 if (orders.isEmpty) {
                   return Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     child: const Padding(
                       padding: EdgeInsets.all(32),
                       child: Center(
@@ -279,17 +321,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   separatorBuilder: (ctx, idx) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final o = recentOrders[index];
-                    final dateStr = DateFormat('MMM dd, hh:mm a').format(o.createdAt);
+                    final dateStr = DateFormat(
+                      'MMM dd, hh:mm a',
+                    ).format(o.createdAt);
                     final color = _getStatusColor(o.status);
 
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: ListTile(
                         onTap: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => OrderDetailScreen(order: o)),
+                            MaterialPageRoute(
+                              builder: (_) => OrderDetailScreen(order: o),
+                            ),
                           );
                         },
                         leading: CircleAvatar(
@@ -305,20 +353,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: color.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
                                 o.status,
-                                style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 11),
+                                style: TextStyle(
+                                  color: color,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Text(
                               '\$${o.totalAmount.toStringAsFixed(2)}',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
                             ),
                           ],
                         ),
@@ -347,7 +405,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: const [
-          BoxShadow(color: Color(0x05000000), blurRadius: 4, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color(0x05000000),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: Column(
@@ -357,7 +419,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13, fontWeight: FontWeight.w500)),
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
@@ -370,7 +439,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
           Text(
             value,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+            style: const TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0F172A),
+            ),
           ),
         ],
       ),
@@ -402,9 +475,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Icon(icon, color: color, size: 24),
             ),
             const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            Text(
+              title,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
             const SizedBox(height: 2),
-            Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 11), textAlign: TextAlign.center),
+            Text(
+              subtitle,
+              style: const TextStyle(color: Colors.grey, fontSize: 11),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ),

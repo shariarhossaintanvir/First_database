@@ -26,7 +26,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
               await _firestoreService.deleteProduct(product.id);
               if (context.mounted) Navigator.pop(context);
@@ -41,9 +44,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Product Inventory'),
-      ),
+      appBar: AppBar(title: const Text('Product Inventory')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.push(
@@ -69,11 +70,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         onPressed: () => setState(() => _searchQuery = ''),
                       )
                     : null,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 filled: true,
                 fillColor: Colors.grey.shade50,
               ),
-              onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
+              onChanged: (val) =>
+                  setState(() => _searchQuery = val.trim().toLowerCase()),
             ),
           ),
 
@@ -89,7 +93,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   return const Center(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
-                      child: Text('Unable to load products. Please check network connection or permissions.'),
+                      child: Text(
+                        'Unable to load products. Please check network connection or permissions.',
+                      ),
                     ),
                   );
                 }
@@ -109,18 +115,29 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey),
+                        const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 64,
+                          color: Colors.grey,
+                        ),
                         const SizedBox(height: 16),
                         Text(
-                          _searchQuery.isNotEmpty ? 'No products match your search' : 'No products in store yet',
-                          style: const TextStyle(fontSize: 16, color: Colors.grey),
+                          _searchQuery.isNotEmpty
+                              ? 'No products match your search'
+                              : 'No products in store yet',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         ElevatedButton.icon(
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const AddEditProductScreen()),
+                              MaterialPageRoute(
+                                builder: (_) => const AddEditProductScreen(),
+                              ),
                             );
                           },
                           icon: const Icon(Icons.add),
@@ -140,7 +157,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
                     return Card(
                       elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Row(
@@ -156,7 +175,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                 child: Image.network(
                                   p.imageUrl,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (ctx, err, stack) => const Icon(Icons.image_not_supported, color: Colors.grey),
+                                  errorBuilder: (ctx, err, stack) => const Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                               ),
                             ),
@@ -171,20 +193,32 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                     p.title,
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
                                   ),
                                   const SizedBox(height: 4),
                                   Row(
                                     children: [
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: Colors.blue.shade50,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Text(
                                           p.category,
-                                          style: TextStyle(fontSize: 11, color: Colors.blue.shade800, fontWeight: FontWeight.w600),
+                                          style: TextStyle(
+                                            fontSize: 11,
+                                            color: Colors.blue.shade800,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -192,7 +226,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         'Stock: ${p.stock}',
                                         style: TextStyle(
                                           fontSize: 12,
-                                          color: p.stock > 0 ? Colors.green.shade700 : Colors.red,
+                                          color: p.stock > 0
+                                              ? Colors.green.shade700
+                                              : Colors.red,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -201,7 +237,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   const SizedBox(height: 4),
                                   Text(
                                     '\$${p.price.toStringAsFixed(2)}',
-                                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF0F172A)),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                      color: Color(0xFF0F172A),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -209,16 +249,25 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
                             // Actions
                             IconButton(
-                              icon: const Icon(Icons.edit, color: Colors.indigo),
+                              icon: const Icon(
+                                Icons.edit,
+                                color: Colors.indigo,
+                              ),
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (_) => AddEditProductScreen(product: p)),
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        AddEditProductScreen(product: p),
+                                  ),
                                 );
                               },
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                color: Colors.red,
+                              ),
                               onPressed: () => _confirmDelete(p),
                             ),
                           ],

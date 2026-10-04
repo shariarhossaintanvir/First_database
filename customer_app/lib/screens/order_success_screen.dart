@@ -26,24 +26,39 @@ class OrderSuccessScreen extends StatelessWidget {
                     color: Colors.green.shade50,
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.check_circle_rounded, size: 72, color: Colors.green.shade600),
+                  child: Icon(
+                    Icons.check_circle_rounded,
+                    size: 72,
+                    color: Colors.green.shade600,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
               const Text(
                 'Order Placed Successfully!',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0F172A),
+                ),
               ),
               const SizedBox(height: 10),
               Text(
                 'Thank you for your purchase. We have received your order and are processing it.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600, height: 1.4),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  height: 1.4,
+                ),
               ),
               const SizedBox(height: 20),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFF8FAFC),
                   borderRadius: BorderRadius.circular(12),
@@ -52,10 +67,16 @@ class OrderSuccessScreen extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Order Reference: ', style: TextStyle(color: Colors.grey)),
+                    const Text(
+                      'Order Reference: ',
+                      style: TextStyle(color: Colors.grey),
+                    ),
                     SelectableText(
                       '#${orderId.length > 10 ? orderId.substring(0, 10) : orderId}',
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
                     ),
                   ],
                 ),
@@ -71,9 +92,14 @@ class OrderSuccessScreen extends StatelessWidget {
                   backgroundColor: Colors.blue.shade600,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: const Text('Back to Home', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Back to Home',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
               ),
               const SizedBox(height: 12),
             ],

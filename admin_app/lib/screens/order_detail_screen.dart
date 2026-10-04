@@ -67,20 +67,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     } catch (e) {
       setState(() => _isUpdating = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error updating status: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating status: $e')));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final formattedDate = DateFormat('MMM dd, yyyy - hh:mm a').format(widget.order.createdAt);
+    final formattedDate = DateFormat(
+      'MMM dd, yyyy - hh:mm a',
+    ).format(widget.order.createdAt);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Order #${widget.order.id.length > 8 ? widget.order.id.substring(0, 8) : widget.order.id}'),
+        title: Text(
+          'Order #${widget.order.id.length > 8 ? widget.order.id.substring(0, 8) : widget.order.id}',
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -90,7 +94,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             // Status & Action Card
             Card(
               elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -101,14 +107,24 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       children: [
                         const Text(
                           'Order Status',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(_currentStatus).withValues(alpha: 0.15),
+                            color: _getStatusColor(
+                              _currentStatus,
+                            ).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: _getStatusColor(_currentStatus)),
+                            border: Border.all(
+                              color: _getStatusColor(_currentStatus),
+                            ),
                           ),
                           child: Text(
                             _currentStatus,
@@ -122,9 +138,15 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    Text('Placed on: $formattedDate', style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                    Text(
+                      'Placed on: $formattedDate',
+                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                    ),
                     const Divider(height: 24),
-                    const Text('Update Status:', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const Text(
+                      'Update Status:',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
                     const SizedBox(height: 8),
                     _isUpdating
                         ? const Center(child: CircularProgressIndicator())
@@ -136,10 +158,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               return ChoiceChip(
                                 label: Text(status),
                                 selected: isSelected,
-                                selectedColor: _getStatusColor(status).withValues(alpha: 0.25),
+                                selectedColor: _getStatusColor(
+                                  status,
+                                ).withValues(alpha: 0.25),
                                 labelStyle: TextStyle(
-                                  color: isSelected ? _getStatusColor(status) : Colors.black87,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  color: isSelected
+                                      ? _getStatusColor(status)
+                                      : Colors.black87,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
                                 ),
                                 onSelected: (selected) {
                                   if (selected && status != _currentStatus) {
@@ -158,7 +186,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             // Customer Details Card
             Card(
               elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -166,16 +196,37 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   children: [
                     const Text(
                       'Customer Information',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     const Divider(height: 20),
-                    _buildInfoRow(Icons.person_outline, 'Name', widget.order.customerName),
+                    _buildInfoRow(
+                      Icons.person_outline,
+                      'Name',
+                      widget.order.customerName,
+                    ),
                     const SizedBox(height: 8),
-                    _buildInfoRow(Icons.email_outlined, 'Email', widget.order.customerEmail),
+                    _buildInfoRow(
+                      Icons.email_outlined,
+                      'Email',
+                      widget.order.customerEmail,
+                    ),
                     const SizedBox(height: 8),
-                    _buildInfoRow(Icons.phone_outlined, 'Phone', widget.order.customerPhone.isNotEmpty ? widget.order.customerPhone : 'N/A'),
+                    _buildInfoRow(
+                      Icons.phone_outlined,
+                      'Phone',
+                      widget.order.customerPhone.isNotEmpty
+                          ? widget.order.customerPhone
+                          : 'N/A',
+                    ),
                     const SizedBox(height: 8),
-                    _buildInfoRow(Icons.location_on_outlined, 'Address', widget.order.customerAddress),
+                    _buildInfoRow(
+                      Icons.location_on_outlined,
+                      'Address',
+                      widget.order.customerAddress,
+                    ),
                   ],
                 ),
               ),
@@ -185,7 +236,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             // Items Card
             Card(
               elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -193,7 +246,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   children: [
                     Text(
                       'Ordered Items (${widget.order.items.length})',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     const Divider(height: 20),
                     ListView.separated(
@@ -214,7 +270,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 child: Image.network(
                                   item.imageUrl,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (ctx, err, stack) => const Icon(Icons.image_not_supported, color: Colors.grey),
+                                  errorBuilder: (ctx, err, stack) => const Icon(
+                                    Icons.image_not_supported,
+                                    color: Colors.grey,
+                                  ),
                                 ),
                               ),
                             ),
@@ -223,17 +282,28 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(item.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+                                  Text(
+                                    item.title,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                   Text(
                                     '\$${item.price.toStringAsFixed(2)} x ${item.quantity}',
-                                    style: const TextStyle(color: Colors.grey, fontSize: 13),
+                                    style: const TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 13,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                             Text(
                               '\$${(item.price * item.quantity).toStringAsFixed(2)}',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
                             ),
                           ],
                         );
@@ -243,10 +313,20 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total Amount', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const Text(
+                          'Total Amount',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
                         Text(
                           '\$${widget.order.totalAmount.toStringAsFixed(2)}',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F172A)),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: Color(0xFF0F172A),
+                          ),
                         ),
                       ],
                     ),
@@ -268,10 +348,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         const SizedBox(width: 10),
         SizedBox(
           width: 70,
-          child: Text('$label:', style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.w500)),
+          child: Text(
+            '$label:',
+            style: const TextStyle(
+              color: Colors.grey,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
         ),
         Expanded(
-          child: Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+          child: Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
         ),
       ],
     );

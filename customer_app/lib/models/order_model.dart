@@ -45,7 +45,8 @@ class OrderModel {
   final String customerAddress;
   final List<OrderItemModel> items;
   final double totalAmount;
-  final String status; // 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'
+  final String
+  status; // 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'
   final DateTime createdAt;
 
   OrderModel({

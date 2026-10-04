@@ -9,9 +9,11 @@ class CartProvider extends ChangeNotifier {
 
   List<CartItemModel> get itemList => _items.values.toList();
 
-  int get itemCount => _items.values.fold(0, (sum, item) => sum + item.quantity);
+  int get itemCount =>
+      _items.values.fold(0, (sum, item) => sum + item.quantity);
 
-  double get totalAmount => _items.values.fold(0.0, (sum, item) => sum + item.totalPrice);
+  double get totalAmount =>
+      _items.values.fold(0.0, (sum, item) => sum + item.totalPrice);
 
   bool isInCart(String productId) => _items.containsKey(productId);
 
@@ -21,10 +23,7 @@ class CartProvider extends ChangeNotifier {
     if (_items.containsKey(product.id)) {
       _items[product.id]!.quantity += quantity;
     } else {
-      _items[product.id] = CartItemModel(
-        product: product,
-        quantity: quantity,
-      );
+      _items[product.id] = CartItemModel(product: product, quantity: quantity);
     }
     notifyListeners();
   }

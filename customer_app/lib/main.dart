@@ -11,16 +11,20 @@ import 'screens/main_navigation_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // Initialize Firebase App Check to reduce automated abuse and unauthorized clients
   try {
     await FirebaseAppCheck.instance.activate(
-      providerWeb: ReCaptchaV3Provider('6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'),
-      providerAndroid: kDebugMode ? const AndroidDebugProvider() : const AndroidPlayIntegrityProvider(),
-      providerApple: kDebugMode ? const AppleDebugProvider() : const AppleDeviceCheckProvider(),
+      providerWeb: ReCaptchaV3Provider(
+        '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
+      ),
+      providerAndroid: kDebugMode
+          ? const AndroidDebugProvider()
+          : const AndroidPlayIntegrityProvider(),
+      providerApple: kDebugMode
+          ? const AppleDebugProvider()
+          : const AppleDeviceCheckProvider(),
     );
   } catch (e) {
     if (kDebugMode) {
@@ -60,7 +64,9 @@ class CustomerEcommerceApp extends StatelessWidget {
           cardTheme: CardThemeData(
             color: Colors.white,
             surfaceTintColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         ),
         home: const AuthGate(),

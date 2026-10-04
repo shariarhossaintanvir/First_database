@@ -35,7 +35,10 @@ class AuthService extends ChangeNotifier {
       }
 
       // Check users collection
-      DocumentSnapshot userDoc = await _firestore.collection('users').doc(uid).get();
+      DocumentSnapshot userDoc = await _firestore
+          .collection('users')
+          .doc(uid)
+          .get();
 
       bool isAdmin = false;
       if (userDoc.exists) {
@@ -78,7 +81,10 @@ class AuthService extends ChangeNotifier {
   }
 
   /// Quick helper to provision or register the default admin account: admin@ecommerce.com / admin123
-  Future<String?> setupDefaultAdmin({String email = 'admin@ecommerce.com', String password = 'password123'}) async {
+  Future<String?> setupDefaultAdmin({
+    String email = 'admin@ecommerce.com',
+    String password = 'password123',
+  }) async {
     _setLoading(true);
     try {
       UserCredential cred;

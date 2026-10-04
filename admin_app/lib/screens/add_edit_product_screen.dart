@@ -32,12 +32,36 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
 
   // Preset sample images for quick testing
   final List<Map<String, String>> _sampleImages = [
-    {'name': 'Laptop', 'url': 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&q=80'},
-    {'name': 'Headphones', 'url': 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80'},
-    {'name': 'Smartwatch', 'url': 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80'},
-    {'name': 'Sneakers', 'url': 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80'},
-    {'name': 'Camera', 'url': 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&q=80'},
-    {'name': 'Backpack', 'url': 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80'},
+    {
+      'name': 'Laptop',
+      'url':
+          'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=600&q=80',
+    },
+    {
+      'name': 'Headphones',
+      'url':
+          'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80',
+    },
+    {
+      'name': 'Smartwatch',
+      'url':
+          'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80',
+    },
+    {
+      'name': 'Sneakers',
+      'url':
+          'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80',
+    },
+    {
+      'name': 'Camera',
+      'url':
+          'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=600&q=80',
+    },
+    {
+      'name': 'Backpack',
+      'url':
+          'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=600&q=80',
+    },
   ];
 
   @override
@@ -46,8 +70,12 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     final p = widget.product;
     _titleController = TextEditingController(text: p?.title ?? '');
     _descController = TextEditingController(text: p?.description ?? '');
-    _priceController = TextEditingController(text: p != null ? p.price.toStringAsFixed(2) : '');
-    _stockController = TextEditingController(text: p != null ? p.stock.toString() : '10');
+    _priceController = TextEditingController(
+      text: p != null ? p.price.toStringAsFixed(2) : '',
+    );
+    _stockController = TextEditingController(
+      text: p != null ? p.stock.toString() : '10',
+    );
     _imageUrlController = TextEditingController(text: p?.imageUrl ?? '');
     _selectedCategory = p?.category;
 
@@ -104,7 +132,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Storage upload note: $e. You can also paste an image URL directly.'),
+            content: Text(
+              'Storage upload note: $e. You can also paste an image URL directly.',
+            ),
             backgroundColor: Colors.orange,
           ),
         );
@@ -116,9 +146,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedCategory == null || _selectedCategory!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a category')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a category')));
       return;
     }
 
@@ -163,9 +193,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving product: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving product: $e')));
       }
     }
   }
@@ -196,10 +226,16 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                         prefixIcon: Icon(Icons.shopping_bag_outlined),
                       ),
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Enter product title';
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Enter product title';
+                        }
                         final trimmed = v.trim();
-                        if (trimmed.length < 2) return 'Title must be at least 2 characters';
-                        if (trimmed.length > 150) return 'Title cannot exceed 150 characters';
+                        if (trimmed.length < 2) {
+                          return 'Title must be at least 2 characters';
+                        }
+                        if (trimmed.length > 150) {
+                          return 'Title cannot exceed 150 characters';
+                        }
                         return null;
                       },
                     ),
@@ -232,18 +268,28 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _priceController,
-                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
                             decoration: const InputDecoration(
                               labelText: 'Price (\$) *',
                               border: OutlineInputBorder(),
                               prefixIcon: Icon(Icons.attach_money),
                             ),
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return 'Enter price';
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Enter price';
+                              }
                               final p = double.tryParse(v.trim());
-                              if (p == null) return 'Invalid number';
-                              if (p <= 0) return 'Price must be greater than 0';
-                              if (p > 1000000) return 'Price cannot exceed \$1,000,000';
+                              if (p == null) {
+                                return 'Invalid number';
+                              }
+                              if (p <= 0) {
+                                return 'Price must be greater than 0';
+                              }
+                              if (p > 1000000) {
+                                return 'Price cannot exceed \$1,000,000';
+                              }
                               return null;
                             },
                           ),
@@ -259,11 +305,19 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                               prefixIcon: Icon(Icons.inventory_2_outlined),
                             ),
                             validator: (v) {
-                              if (v == null || v.trim().isEmpty) return 'Enter stock';
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Enter stock';
+                              }
                               final s = int.tryParse(v.trim());
-                              if (s == null) return 'Invalid integer';
-                              if (s < 0) return 'Stock cannot be negative';
-                              if (s > 1000000) return 'Stock cannot exceed 1,000,000';
+                              if (s == null) {
+                                return 'Invalid integer';
+                              }
+                              if (s < 0) {
+                                return 'Stock cannot be negative';
+                              }
+                              if (s > 1000000) {
+                                return 'Stock cannot exceed 1,000,000';
+                              }
                               return null;
                             },
                           ),
@@ -292,7 +346,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
 
                     // Image Section
                     Card(
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       color: Colors.grey.shade50,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
@@ -301,7 +357,10 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                           children: [
                             const Text(
                               'Product Image',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                             const SizedBox(height: 12),
 
@@ -311,34 +370,53 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                                 height: 180,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.grey.shade300),
+                                  border: Border.all(
+                                    color: Colors.grey.shade300,
+                                  ),
                                 ),
                                 clipBehavior: Clip.antiAlias,
                                 child: Image.network(
                                   _imageUrlController.text.trim(),
                                   fit: BoxFit.cover,
-                                  errorBuilder: (ctx, err, stack) => const Center(
-                                    child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
-                                  ),
+                                  errorBuilder: (ctx, err, stack) =>
+                                      const Center(
+                                        child: Icon(
+                                          Icons.broken_image,
+                                          size: 48,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
                                 ),
                               ),
-                            if (_imageUrlController.text.trim().isNotEmpty) const SizedBox(height: 12),
+                            if (_imageUrlController.text.trim().isNotEmpty)
+                              const SizedBox(height: 12),
 
                             // Upload Button
                             ElevatedButton.icon(
-                              onPressed: _isUploadingImage ? null : _pickAndUploadImage,
+                              onPressed: _isUploadingImage
+                                  ? null
+                                  : _pickAndUploadImage,
                               icon: _isUploadingImage
                                   ? const SizedBox(
                                       width: 18,
                                       height: 18,
-                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
                                     )
                                   : const Icon(Icons.cloud_upload_outlined),
-                              label: Text(_isUploadingImage ? 'Uploading Image...' : 'Pick & Upload to Firebase Storage'),
+                              label: Text(
+                                _isUploadingImage
+                                    ? 'Uploading Image...'
+                                    : 'Pick & Upload to Firebase Storage',
+                              ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.indigo,
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 12),
@@ -359,14 +437,23 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                             const SizedBox(height: 10),
 
                             // Preset images chips
-                            const Text('Quick Presets:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                            const Text(
+                              'Quick Presets:',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
                             const SizedBox(height: 6),
                             Wrap(
                               spacing: 8,
                               runSpacing: 4,
                               children: _sampleImages.map((s) {
                                 return ActionChip(
-                                  label: Text(s['name']!, style: const TextStyle(fontSize: 12)),
+                                  label: Text(
+                                    s['name']!,
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
                                   onPressed: () {
                                     setState(() {
                                       _imageUrlController.text = s['url']!;
@@ -388,11 +475,18 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                         backgroundColor: const Color(0xFF0F172A),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       child: Text(
-                        isEditing ? 'Save Product Changes' : 'Publish Product to Store',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        isEditing
+                            ? 'Save Product Changes'
+                            : 'Publish Product to Store',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],

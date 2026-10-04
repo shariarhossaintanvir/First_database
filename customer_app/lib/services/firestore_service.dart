@@ -14,7 +14,10 @@ class FirestoreService {
   Stream<List<CategoryModel>> getCategoriesStream() {
     return _categoriesCol.limit(50).snapshots().map((snapshot) {
       return snapshot.docs.map((doc) {
-        return CategoryModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
+        return CategoryModel.fromMap(
+          doc.data() as Map<String, dynamic>,
+          doc.id,
+        );
       }).toList();
     });
   }
@@ -30,10 +33,13 @@ class FirestoreService {
         .limit(50)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return ProductModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            return ProductModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            );
+          }).toList();
+        });
   }
 
   /// Stream products by category with query limit
@@ -43,10 +49,13 @@ class FirestoreService {
         .limit(50)
         .snapshots()
         .map((snapshot) {
-      return snapshot.docs.map((doc) {
-        return ProductModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-      }).toList();
-    });
+          return snapshot.docs.map((doc) {
+            return ProductModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            );
+          }).toList();
+        });
   }
 
   // ---------------- ORDERS ---------------- //
@@ -68,11 +77,22 @@ class FirestoreService {
         .limit(50)
         .snapshots()
         .map((snapshot) {
-      var orders = snapshot.docs.map((doc) {
-        return OrderModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
-      }).toList();
-      orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      return orders;
+          var orders = snapshot.docs.map((doc) {
+            return OrderModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            );
+          }).toList();
+          orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+          return orders;
+        });
+  }
+
+  /// Stream a single order by ID for real-time order status tracking
+  Stream<OrderModel?> getOrderStream(String orderId) {
+    return _ordersCol.doc(orderId).snapshots().map((doc) {
+      if (!doc.exists || doc.data() == null) return null;
+      return OrderModel.fromMap(doc.data() as Map<String, dynamic>, doc.id);
     });
   }
 }

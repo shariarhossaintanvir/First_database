@@ -29,14 +29,15 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() => _errorMessage = null);
 
     final auth = Provider.of<AuthService>(context, listen: false);
-    final error = await auth.signIn(_emailController.text, _passwordController.text);
+    final error = await auth.signIn(
+      _emailController.text,
+      _passwordController.text,
+    );
 
     if (error != null && mounted) {
       setState(() => _errorMessage = error);
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -64,14 +65,22 @@ class _LoginScreenState extends State<LoginScreen> {
                           color: Colors.blue.shade50,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.shopping_bag_rounded, size: 48, color: Colors.blue.shade600),
+                        child: Icon(
+                          Icons.shopping_bag_rounded,
+                          size: 48,
+                          color: Colors.blue.shade600,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),
                     const Text(
                       'Welcome Back',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Color(0xFF0F172A)),
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF0F172A),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     const Text(
@@ -92,12 +101,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+                            Icon(
+                              Icons.error_outline,
+                              color: Colors.red.shade700,
+                              size: 20,
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _errorMessage!,
-                                style: TextStyle(color: Colors.red.shade800, fontSize: 13),
+                                style: TextStyle(
+                                  color: Colors.red.shade800,
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
                           ],
@@ -114,9 +130,13 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: 'Email Address',
                         hintText: 'you@example.com',
                         prefixIcon: const Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      validator: (v) => v == null || v.trim().isEmpty ? 'Please enter your email' : null,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Please enter your email'
+                          : null,
                     ),
                     const SizedBox(height: 18),
 
@@ -128,12 +148,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
-                          icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                         ),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      validator: (v) => v == null || v.trim().length < 6 ? 'Password must be at least 6 characters' : null,
+                      validator: (v) => v == null || v.trim().length < 6
+                          ? 'Password must be at least 6 characters'
+                          : null,
                     ),
                     const SizedBox(height: 24),
 
@@ -144,34 +174,45 @@ class _LoginScreenState extends State<LoginScreen> {
                         backgroundColor: Colors.blue.shade600,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         elevation: 0,
                       ),
                       child: auth.isLoading
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           : const Text(
                               'Sign In',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                     ),
                     const SizedBox(height: 14),
-
-
 
                     // Don't have account
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text("Don't have an account? ", style: TextStyle(color: Color(0xFF64748B))),
+                        const Text(
+                          "Don't have an account? ",
+                          style: TextStyle(color: Color(0xFF64748B)),
+                        ),
                         GestureDetector(
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                              MaterialPageRoute(
+                                builder: (_) => const RegisterScreen(),
+                              ),
                             );
                           },
                           child: Text(

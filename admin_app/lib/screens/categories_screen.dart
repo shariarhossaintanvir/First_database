@@ -20,7 +20,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   void _showAddEditDialog([CategoryModel? category]) {
     final nameController = TextEditingController(text: category?.name ?? '');
-    final descController = TextEditingController(text: category?.description ?? '');
+    final descController = TextEditingController(
+      text: category?.description ?? '',
+    );
     final idController = TextEditingController(text: category?.id ?? '');
     final isEditing = category != null;
 
@@ -28,7 +30,9 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Text(isEditing ? 'Edit Category' : 'Add New Category'),
           content: SingleChildScrollView(
             child: Column(
@@ -77,8 +81,8 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 final id = isEditing
                     ? category.id
                     : (idController.text.trim().isNotEmpty
-                        ? idController.text.trim().toLowerCase()
-                        : name.toLowerCase().replaceAll(' ', '_'));
+                          ? idController.text.trim().toLowerCase()
+                          : name.toLowerCase().replaceAll(' ', '_'));
 
                 final newCat = CategoryModel(
                   id: id,
@@ -108,14 +112,19 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Category'),
-        content: Text('Are you sure you want to delete "${category.name}"? Products in this category may be affected.'),
+        content: Text(
+          'Are you sure you want to delete "${category.name}"? Products in this category may be affected.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () async {
               await _firestoreService.deleteCategory(category.id);
               if (context.mounted) Navigator.pop(context);
@@ -159,7 +168,31 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.category_outlined, size: 48, color: Colors.grey),
+                    SizedBox(height: 12),
+                    Text(
+                      'Unable to load categories',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
+                    SizedBox(height: 6),
+                    Text(
+                      'Please verify your admin permissions or network connection.',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+              ),
+            );
           }
 
           final categories = snapshot.data ?? [];
@@ -168,12 +201,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.category_outlined, size: 64, color: Colors.grey),
+                  const Icon(
+                    Icons.category_outlined,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(height: 16),
-                  const Text('No categories found', style: TextStyle(fontSize: 18, color: Colors.grey)),
+                  const Text(
+                    'No categories found',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
                   const SizedBox(height: 12),
                   ElevatedButton(
-                    onPressed: () => _firestoreService.seedDefaultCategoriesIfEmpty(),
+                    onPressed: () =>
+                        _firestoreService.seedDefaultCategoriesIfEmpty(),
                     child: const Text('Load Default Categories'),
                   ),
                 ],
@@ -188,17 +229,27 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             itemBuilder: (context, index) {
               final cat = categories[index];
               return Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 elevation: 1,
                 child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   leading: CircleAvatar(
                     backgroundColor: Colors.blue.shade50,
                     child: Icon(Icons.category, color: Colors.blue.shade700),
                   ),
-                  title: Text(cat.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  title: Text(
+                    cat.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   subtitle: Text(
-                    cat.description.isNotEmpty ? cat.description : 'ID: ${cat.id}',
+                    cat.description.isNotEmpty
+                        ? cat.description
+                        : 'ID: ${cat.id}',
                     style: const TextStyle(color: Colors.grey),
                   ),
                   trailing: Row(
@@ -209,7 +260,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                         onPressed: () => _showAddEditDialog(cat),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
                         onPressed: () => _confirmDelete(cat),
                       ),
                     ],
