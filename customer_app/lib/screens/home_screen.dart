@@ -481,7 +481,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ),
                                       InkWell(
-                                        onTap: p.stock <= 0
+                                        onTap: (p.stock <= 0 || !p.isAvailable)
                                             ? null
                                             : () {
                                                 cart.addItem(p);
@@ -502,7 +502,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         child: Container(
                                           padding: const EdgeInsets.all(6),
                                           decoration: BoxDecoration(
-                                            color: p.stock > 0
+                                            color: (p.stock > 0 && p.isAvailable)
                                                 ? Colors.blue.shade50
                                                 : Colors.grey.shade100,
                                             shape: BoxShape.circle,
@@ -510,7 +510,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           child: Icon(
                                             Icons.add_shopping_cart,
                                             size: 16,
-                                            color: p.stock > 0
+                                            color: (p.stock > 0 && p.isAvailable)
                                                 ? Colors.blue.shade700
                                                 : Colors.grey,
                                           ),

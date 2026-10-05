@@ -28,6 +28,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
   String? _selectedCategory;
   bool _isLoading = false;
   bool _isUploadingImage = false;
+  bool _isAvailable = true;
   List<CategoryModel> _categories = [];
 
   // Preset sample images for quick testing
@@ -78,6 +79,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     );
     _imageUrlController = TextEditingController(text: p?.imageUrl ?? '');
     _selectedCategory = p?.category;
+    _isAvailable = p?.isAvailable ?? true;
 
     _loadCategories();
   }
@@ -112,7 +114,10 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
 
       setState(() => _isUploadingImage = true);
 
-      final downloadUrl = await _storageService.uploadProductImage(file);
+      final downloadUrl = await _storageService.uploadProductImage(
+        file,
+        productId: widget.product?.id,
+      );
 
       setState(() {
         _imageUrlController.text = downloadUrl;
@@ -171,7 +176,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
           imageUrl: imageUrl,
           category: _selectedCategory!,
           stock: stock,
+          isAvailable: _isAvailable,
           createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
         );
         await _firestoreService.addProduct(newProduct);
       } else {
@@ -183,6 +190,8 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
           imageUrl: imageUrl,
           category: _selectedCategory!,
           stock: stock,
+          isAvailable: _isAvailable,
+          updatedAt: DateTime.now(),
         );
         await _firestoreService.updateProduct(updatedProduct);
       }
@@ -341,6 +350,33 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                         }
                         return null;
                       },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Availability Toggle
+                    Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        side: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      child: SwitchListTile(
+                        title: const Text(
+                          'Available for Purchase',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          _isAvailable
+                              ? 'Customers can view and order this product'
+                              : 'Hidden / Disabled for checkout in Customer App',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: _isAvailable ? Colors.green.shade700 : Colors.red,
+                          ),
+                        ),
+                        value: _isAvailable,
+                        onChanged: (val) => setState(() => _isAvailable = val),
+                      ),
                     ),
                     const SizedBox(height: 20),
 

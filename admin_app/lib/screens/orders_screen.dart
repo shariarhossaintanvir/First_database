@@ -19,6 +19,7 @@ class _OrdersScreenState extends State<OrdersScreen>
   final List<String> _tabs = [
     'All',
     'Pending',
+    'Confirmed',
     'Processing',
     'Shipped',
     'Delivered',
@@ -41,6 +42,8 @@ class _OrdersScreenState extends State<OrdersScreen>
     switch (status) {
       case 'Pending':
         return Colors.orange;
+      case 'Confirmed':
+        return Colors.teal;
       case 'Processing':
         return Colors.blue;
       case 'Shipped':

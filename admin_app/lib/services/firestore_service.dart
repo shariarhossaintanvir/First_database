@@ -106,6 +106,26 @@ class FirestoreService {
     await _productsCol.doc(product.id).update(product.toMap());
   }
 
+  Future<void> updateProductStock(String productId, int newStock) async {
+    if (newStock < 0 || newStock > 1000000) {
+      throw ArgumentError('Stock must be between 0 and 1,000,000');
+    }
+    await _productsCol.doc(productId).update({
+      'stock': newStock,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Future<void> toggleProductAvailability(
+    String productId,
+    bool isAvailable,
+  ) async {
+    await _productsCol.doc(productId).update({
+      'isAvailable': isAvailable,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   Future<void> deleteProduct(String productId) async {
     await _productsCol.doc(productId).delete();
   }
@@ -134,6 +154,7 @@ class FirestoreService {
   Future<void> updateOrderStatus(String orderId, String newStatus) async {
     const allowedStatuses = [
       'Pending',
+      'Confirmed',
       'Processing',
       'Shipped',
       'Delivered',
@@ -142,6 +163,9 @@ class FirestoreService {
     if (!allowedStatuses.contains(newStatus)) {
       throw ArgumentError('Invalid order status: $newStatus');
     }
-    await _ordersCol.doc(orderId).update({'status': newStatus});
+    await _ordersCol.doc(orderId).update({
+      'status': newStatus,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
   }
 }

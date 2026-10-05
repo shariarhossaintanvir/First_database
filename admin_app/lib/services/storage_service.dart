@@ -27,7 +27,7 @@ class StorageService {
   }
 
   /// Uploads image bytes to Firebase Storage with strict client-side validation
-  Future<String> uploadProductImage(XFile file) async {
+  Future<String> uploadProductImage(XFile file, {String? productId}) async {
     // 1. File size validation
     final length = await file.length();
     if (length <= 0) {
@@ -56,8 +56,9 @@ class StorageService {
     // 4. Sanitize file name to prevent directory traversal or special characters
     Uint8List data = await file.readAsBytes();
     String safeBaseName = file.name.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
-    String fileName =
-        'products/${DateTime.now().millisecondsSinceEpoch}_$safeBaseName';
+    String fileName = (productId != null && productId.isNotEmpty)
+        ? 'product_images/$productId/${DateTime.now().millisecondsSinceEpoch}_$safeBaseName'
+        : 'products/${DateTime.now().millisecondsSinceEpoch}_$safeBaseName';
 
     SettableMetadata metadata = SettableMetadata(contentType: contentType);
 
@@ -65,5 +66,16 @@ class StorageService {
     UploadTask uploadTask = ref.putData(data, metadata);
     TaskSnapshot snapshot = await uploadTask;
     return await snapshot.ref.getDownloadURL();
+  }
+
+  /// Deletes a product image from Firebase Storage
+  Future<void> deleteProductImage(String imageUrl) async {
+    if (imageUrl.isEmpty || !imageUrl.startsWith('https://')) return;
+    try {
+      Reference ref = _storage.refFromURL(imageUrl);
+      await ref.delete();
+    } catch (_) {
+      // Gracefully ignore if the image was an external URL or already deleted
+    }
   }
 }

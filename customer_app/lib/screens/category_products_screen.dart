@@ -150,17 +150,46 @@ class CategoryProductsScreen extends StatelessWidget {
                     children: [
                       // Product Image
                       Expanded(
-                        child: Container(
-                          width: double.infinity,
-                          color: Colors.grey.shade100,
-                          child: Image.network(
-                            p.imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, stack) => const Icon(
-                              Icons.image_not_supported,
-                              color: Colors.grey,
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: double.infinity,
+                              color: Colors.grey.shade100,
+                              child: Image.network(
+                                p.imageUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder: (ctx, err, stack) => const Icon(
+                                  Icons.image_not_supported,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             ),
-                          ),
+                            if (!p.isAvailable || p.stock <= 0)
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(
+                                      alpha: 0.7,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    !p.isAvailable ? 'Unavailable' : 'Out of Stock',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                       Padding(
@@ -190,7 +219,7 @@ class CategoryProductsScreen extends StatelessWidget {
                                   ),
                                 ),
                                 InkWell(
-                                  onTap: p.stock <= 0
+                                  onTap: (p.stock <= 0 || !p.isAvailable)
                                       ? null
                                       : () {
                                           cart.addItem(p);
@@ -211,7 +240,7 @@ class CategoryProductsScreen extends StatelessWidget {
                                   child: Container(
                                     padding: const EdgeInsets.all(6),
                                     decoration: BoxDecoration(
-                                      color: p.stock > 0
+                                      color: (p.stock > 0 && p.isAvailable)
                                           ? Colors.blue.shade50
                                           : Colors.grey.shade100,
                                       shape: BoxShape.circle,
@@ -219,7 +248,7 @@ class CategoryProductsScreen extends StatelessWidget {
                                     child: Icon(
                                       Icons.add_shopping_cart,
                                       size: 16,
-                                      color: p.stock > 0
+                                      color: (p.stock > 0 && p.isAvailable)
                                           ? Colors.blue.shade700
                                           : Colors.grey,
                                     ),

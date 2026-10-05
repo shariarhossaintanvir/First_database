@@ -41,6 +41,55 @@ class _ProductsScreenState extends State<ProductsScreen> {
     );
   }
 
+  void _showStockDialog(ProductModel product) {
+    final stockController =
+        TextEditingController(text: product.stock.toString());
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Update Stock: ${product.title}'),
+        content: TextField(
+          controller: stockController,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          decoration: const InputDecoration(
+            labelText: 'New Stock Units',
+            border: OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final newStock = int.tryParse(stockController.text.trim());
+              if (newStock == null || newStock < 0 || newStock > 1000000) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Invalid stock value (0 - 1,000,000 allowed)',
+                    ),
+                  ),
+                );
+                return;
+              }
+              await _firestoreService.updateProductStock(product.id, newStock);
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Stock updated to $newStock')),
+                );
+              }
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -199,7 +248,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Row(
+                                  Wrap(
+                                    spacing: 6,
+                                    runSpacing: 4,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.symmetric(
@@ -208,9 +261,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                         ),
                                         decoration: BoxDecoration(
                                           color: Colors.blue.shade50,
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(6),
                                         ),
                                         child: Text(
                                           p.category,
@@ -221,15 +273,101 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Stock: ${p.stock}',
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          color: p.stock > 0
-                                              ? Colors.green.shade700
-                                              : Colors.red,
-                                          fontWeight: FontWeight.w600,
+                                      InkWell(
+                                        onTap: () => _showStockDialog(p),
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: p.stock > 0
+                                                ? Colors.green.shade50
+                                                : Colors.red.shade50,
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                            border: Border.all(
+                                              color: p.stock > 0
+                                                  ? Colors.green.shade200
+                                                  : Colors.red.shade200,
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Text(
+                                                'Stock: ${p.stock}',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  color: p.stock > 0
+                                                      ? Colors.green.shade800
+                                                      : Colors.red.shade800,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 2),
+                                              Icon(
+                                                Icons.edit,
+                                                size: 10,
+                                                color: p.stock > 0
+                                                    ? Colors.green.shade700
+                                                    : Colors.red.shade700,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      InkWell(
+                                        onTap: () async {
+                                          final newAvail = !p.isAvailable;
+                                          await _firestoreService
+                                              .toggleProductAvailability(
+                                                p.id,
+                                                newAvail,
+                                              );
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  newAvail
+                                                      ? '"${p.title}" is now Available'
+                                                      : '"${p.title}" is now Unavailable',
+                                                ),
+                                                duration: const Duration(
+                                                  seconds: 1,
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: p.isAvailable
+                                                ? Colors.teal.shade50
+                                                : Colors.grey.shade200,
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            p.isAvailable
+                                                ? 'Active'
+                                                : 'Inactive',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: p.isAvailable
+                                                  ? Colors.teal.shade800
+                                                  : Colors.grey.shade700,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ],

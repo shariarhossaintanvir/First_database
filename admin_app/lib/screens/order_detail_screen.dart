@@ -19,6 +19,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
   final List<String> _statusOptions = [
     'Pending',
+    'Confirmed',
     'Processing',
     'Shipped',
     'Delivered',
@@ -35,6 +36,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     switch (status) {
       case 'Pending':
         return Colors.orange;
+      case 'Confirmed':
+        return Colors.teal;
       case 'Processing':
         return Colors.blue;
       case 'Shipped':
@@ -226,6 +229,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       Icons.location_on_outlined,
                       'Address',
                       widget.order.customerAddress,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      Icons.payment,
+                      'Payment',
+                      widget.order.paymentMethod,
                     ),
                   ],
                 ),

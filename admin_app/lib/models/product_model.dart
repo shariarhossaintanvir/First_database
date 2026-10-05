@@ -8,7 +8,9 @@ class ProductModel {
   final String imageUrl;
   final String category;
   final int stock;
+  final bool isAvailable;
   final DateTime createdAt;
+  final DateTime? updatedAt;
 
   ProductModel({
     required this.id,
@@ -18,18 +20,30 @@ class ProductModel {
     required this.imageUrl,
     required this.category,
     required this.stock,
+    this.isAvailable = true,
     required this.createdAt,
+    this.updatedAt,
   });
+
+  /// Alias for compatibility
+  String get name => title;
+  String get categoryId => category;
 
   Map<String, dynamic> toMap() {
     return {
       'title': title,
+      'name': title,
       'description': description,
       'price': price,
       'imageUrl': imageUrl,
       'category': category,
+      'categoryId': category,
       'stock': stock,
+      'isAvailable': isAvailable,
       'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': updatedAt != null
+          ? Timestamp.fromDate(updatedAt!)
+          : Timestamp.fromDate(createdAt),
     };
   }
 
@@ -41,15 +55,22 @@ class ProductModel {
       parsedDate = DateTime.now();
     }
 
+    DateTime? parsedUpdateDate;
+    if (map['updatedAt'] is Timestamp) {
+      parsedUpdateDate = (map['updatedAt'] as Timestamp).toDate();
+    }
+
     return ProductModel(
       id: docId,
-      title: map['title'] ?? '',
+      title: map['title'] ?? map['name'] ?? '',
       description: map['description'] ?? '',
       price: (map['price'] as num?)?.toDouble() ?? 0.0,
       imageUrl: map['imageUrl'] ?? '',
-      category: map['category'] ?? '',
+      category: map['category'] ?? map['categoryId'] ?? '',
       stock: (map['stock'] as num?)?.toInt() ?? 0,
+      isAvailable: map['isAvailable'] as bool? ?? true,
       createdAt: parsedDate,
+      updatedAt: parsedUpdateDate,
     );
   }
 
@@ -61,7 +82,9 @@ class ProductModel {
     String? imageUrl,
     String? category,
     int? stock,
+    bool? isAvailable,
     DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return ProductModel(
       id: id ?? this.id,
@@ -71,7 +94,9 @@ class ProductModel {
       imageUrl: imageUrl ?? this.imageUrl,
       category: category ?? this.category,
       stock: stock ?? this.stock,
+      isAvailable: isAvailable ?? this.isAvailable,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

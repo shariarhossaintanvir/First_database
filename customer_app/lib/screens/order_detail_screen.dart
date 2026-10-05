@@ -19,6 +19,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     switch (status) {
       case 'Pending':
         return Colors.orange;
+      case 'Confirmed':
+        return Colors.teal;
       case 'Processing':
         return Colors.blue;
       case 'Shipped':
@@ -36,12 +38,14 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     switch (status) {
       case 'Pending':
         return 0;
-      case 'Processing':
+      case 'Confirmed':
         return 1;
-      case 'Shipped':
+      case 'Processing':
         return 2;
-      case 'Delivered':
+      case 'Shipped':
         return 3;
+      case 'Delivered':
+        return 4;
       default:
         return -1;
     }
@@ -167,16 +171,18 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             ),
                           )
                         else ...[
-                          // 4 Progress Steps
+                          // 5 Progress Steps
                           Row(
                             children: [
                               _buildStepIndicator('Placed', 0, activeStep),
                               _buildStepLine(0 < activeStep),
-                              _buildStepIndicator('Processing', 1, activeStep),
+                              _buildStepIndicator('Confirmed', 1, activeStep),
                               _buildStepLine(1 < activeStep),
-                              _buildStepIndicator('Shipped', 2, activeStep),
+                              _buildStepIndicator('Processing', 2, activeStep),
                               _buildStepLine(2 < activeStep),
-                              _buildStepIndicator('Delivered', 3, activeStep),
+                              _buildStepIndicator('Shipped', 3, activeStep),
+                              _buildStepLine(3 < activeStep),
+                              _buildStepIndicator('Delivered', 4, activeStep),
                             ],
                           ),
                         ],

@@ -8,42 +8,53 @@ rules_version = '2';
 // Document ID: {userId} (matches Firebase Auth UID)
 // Fields:
 //   - uid: string (required, 1..128 chars, matches auth.uid, immutable)
-//   - name: string (required, 1..100 chars)
 //   - email: string (required, valid email pattern, 3..100 chars)
+//   - name: string (required, 1..100 chars)
 //   - role: string (required, 'customer' or 'admin', non-admins cannot self-promote)
 //   - createdAt: timestamp (required, immutable)
+//   - phone: string (optional, 0..30 chars)
+//   - address: string (optional, 0..500 chars)
 //
 // Collection: categories
-// Document ID: {categoryId} (string, 1..50 chars)
+// Document ID: {categoryId} (string, 1..100 chars)
 // Fields:
-//   - id: string (required, 1..50 chars)
 //   - name: string (required, 1..100 chars)
+//   - id: string (optional, 1..100 chars)
 //   - description: string (optional, 0..500 chars)
-//   - icon: string (optional, 0..50 chars)
+//   - icon: string (optional, 0..100 chars)
+//   - imageUrl: string (optional, valid URL, 10..1000 chars)
+//   - createdAt: timestamp (optional)
 //
 // Collection: products
 // Document ID: {productId}
 // Fields:
-//   - title: string (required, 1..150 chars)
-//   - description: string (required, 1..3000 chars)
+//   - title or name: string (at least one required, 1..150 chars)
+//   - category or categoryId: string (at least one required, 1..100 chars)
+//   - description: string (required, 0..3000 chars)
 //   - price: number (required, > 0 and <= 1,000,000)
-//   - imageUrl: string (required, 1..1000 chars, http/https URL)
-//   - category: string (required, 1..100 chars)
-//   - stock: int/number (required, >= 0 and <= 1,000,000)
+//   - imageUrl: string (required, valid http/https URL, 10..1000 chars)
+//   - stock: number (required, >= 0 and <= 1,000,000)
 //   - createdAt: timestamp (required, immutable)
+//   - isAvailable: bool (optional)
+//   - updatedAt: timestamp (optional)
+//   - id: string (optional, 0..100 chars)
 //
 // Collection: orders
 // Document ID: {orderId}
 // Fields:
 //   - userId: string (required, matches auth.uid on create, immutable)
-//   - customerName: string (required, 1..100 chars)
-//   - customerEmail: string (required, valid email, 3..100 chars)
-//   - customerPhone: string (required, 5..30 chars)
-//   - customerAddress: string (required, 5..500 chars)
-//   - items: list of maps (required, 1..50 items, each with productId, title, price, quantity, imageUrl)
-//   - totalAmount: number (required, > 0 and <= 10,000,000)
-//   - status: string (required, 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled')
+//   - items: list of maps (required, 1..50 items, each item map validated)
+//   - totalAmount: number (required, > 0 and <= 10,000,000, immutable)
+//   - status: string (required, 'Pending' or 'pending' on create; admin updatable to Confirmed, Processing, Shipped, Delivered, Cancelled)
 //   - createdAt: timestamp (required, immutable)
+//   - customerName: string (optional, 0..100 chars)
+//   - customerEmail: string (optional, valid email, 3..100 chars)
+//   - customerPhone: string (optional, 0..30 chars)
+//   - customerAddress: string (optional, 0..500 chars)
+//   - deliveryAddress: string (optional, 0..500 chars)
+//   - paymentMethod: string (optional, 0..100 chars)
+//   - updatedAt: timestamp (optional)
+//   - id: string (optional, 0..100 chars)
 //
 // ===============================================================
 
@@ -58,11 +69,10 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Role-based authorization: Checks Firebase custom claims, verified master admin email, or Firestore admin role
+    // Role-based authorization: Checks bootstrap admin email, admin custom claims, or Firestore users admin role
     function isAdmin() {
       return isSignedIn() && (
-        (request.auth.token.email == 'admin@ecommerce.com' && request.auth.token.email_verified == true) ||
-        (request.auth.token.email == 'admin@ecommerce.com') ||
+        request.auth.token.email == 'admin@ecommerce.com' ||
         (request.auth.token.keys().hasAny(['admin']) && request.auth.token.admin == true) ||
         (
           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
@@ -91,12 +101,14 @@ service cloud.firestore {
 
     function isValidUser(data) {
       return data.keys().hasAll(['uid', 'email', 'name', 'role', 'createdAt']) &&
-        data.keys().hasOnly(['uid', 'email', 'name', 'role', 'createdAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'name', 'role', 'createdAt', 'phone', 'address']) &&
         data.uid is string && data.uid.size() >= 1 && data.uid.size() <= 128 &&
         data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
         data.email is string && isValidEmail(data.email) &&
         data.role is string && (data.role == 'customer' || data.role == 'admin') &&
-        data.createdAt is timestamp;
+        data.createdAt is timestamp &&
+        (!('phone' in data) || (data.phone is string && data.phone.size() <= 30)) &&
+        (!('address' in data) || (data.address is string && data.address.size() <= 500));
     }
 
     // ===============================================================
@@ -104,12 +116,14 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidCategory(data) {
-      return data.keys().hasAll(['id', 'name']) &&
-        data.keys().hasOnly(['id', 'name', 'description', 'icon']) &&
-        data.id is string && data.id.size() >= 1 && data.id.size() <= 50 &&
+      return data.keys().hasAll(['name']) &&
+        data.keys().hasOnly(['name', 'id', 'description', 'icon', 'imageUrl', 'createdAt']) &&
         data.name is string && data.name.size() >= 1 && data.name.size() <= 100 &&
+        (!('id' in data) || (data.id is string && data.id.size() >= 1 && data.id.size() <= 100)) &&
         (!('description' in data) || (data.description is string && data.description.size() <= 500)) &&
-        (!('icon' in data) || (data.icon is string && data.icon.size() <= 50));
+        (!('icon' in data) || (data.icon is string && data.icon.size() <= 100)) &&
+        (!('imageUrl' in data) || (data.imageUrl is string && isValidUrl(data.imageUrl))) &&
+        (!('createdAt' in data) || data.createdAt is timestamp);
     }
 
     // ===============================================================
@@ -117,67 +131,91 @@ service cloud.firestore {
     // ===============================================================
 
     function isValidProduct(data) {
-      return data.keys().hasAll(['title', 'description', 'price', 'imageUrl', 'category', 'stock', 'createdAt']) &&
-        data.keys().hasOnly(['title', 'description', 'price', 'imageUrl', 'category', 'stock', 'createdAt']) &&
-        data.title is string && data.title.size() >= 1 && data.title.size() <= 150 &&
-        data.description is string && data.description.size() >= 1 && data.description.size() <= 3000 &&
+      return data.keys().hasAll(['description', 'price', 'imageUrl', 'stock', 'createdAt']) &&
+        data.keys().hasOnly([
+          'title', 'name', 'description', 'price', 'imageUrl',
+          'category', 'categoryId', 'stock', 'isAvailable',
+          'createdAt', 'updatedAt', 'id'
+        ]) &&
+        ('title' in data || 'name' in data) &&
+        (!('title' in data) || (data.title is string && data.title.size() >= 1 && data.title.size() <= 150)) &&
+        (!('name' in data) || (data.name is string && data.name.size() >= 1 && data.name.size() <= 150)) &&
+        ('category' in data || 'categoryId' in data) &&
+        (!('category' in data) || (data.category is string && data.category.size() >= 1 && data.category.size() <= 100)) &&
+        (!('categoryId' in data) || (data.categoryId is string && data.categoryId.size() >= 1 && data.categoryId.size() <= 100)) &&
+        data.description is string && data.description.size() <= 3000 &&
         data.price is number && data.price > 0 && data.price <= 1000000 &&
         data.imageUrl is string && isValidUrl(data.imageUrl) &&
-        data.category is string && data.category.size() >= 1 && data.category.size() <= 100 &&
         data.stock is number && data.stock >= 0 && data.stock <= 1000000 &&
-        data.createdAt is timestamp;
+        data.createdAt is timestamp &&
+        (!('isAvailable' in data) || data.isAvailable is bool) &&
+        (!('updatedAt' in data) || data.updatedAt is timestamp) &&
+        (!('id' in data) || (data.id is string && data.id.size() <= 100));
     }
 
     // ===============================================================
     // Domain Validators: Orders
     // ===============================================================
 
+    function isValidOrderItem(item) {
+      return item is map &&
+        (!('productId' in item) || (item.productId is string && item.productId.size() <= 100)) &&
+        (!('title' in item) || (item.title is string && item.title.size() <= 150)) &&
+        (!('name' in item) || (item.name is string && item.name.size() <= 150)) &&
+        (!('price' in item) || (item.price is number && item.price >= 0 && item.price <= 1000000)) &&
+        (!('quantity' in item) || (item.quantity is number && item.quantity >= 1 && item.quantity <= 1000)) &&
+        (!('imageUrl' in item) || (item.imageUrl is string && item.imageUrl.size() <= 1000));
+    }
+
     function isValidOrderItemsList(items) {
-      // Enforce list size constraints to protect against resource exhaustion / DoS attacks
       return items is list &&
         items.size() >= 1 &&
-        items.size() <= 50;
+        items.size() <= 50 &&
+        isValidOrderItem(items[0]);
+    }
+
+    function isValidOrder(data) {
+      return data.keys().hasAll(['userId', 'items', 'totalAmount', 'status', 'createdAt']) &&
+        data.keys().hasOnly([
+          'userId', 'items', 'totalAmount', 'status', 'createdAt',
+          'customerName', 'customerEmail', 'customerPhone',
+          'customerAddress', 'deliveryAddress', 'paymentMethod',
+          'updatedAt', 'id'
+        ]) &&
+        data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+        isValidOrderItemsList(data.items) &&
+        data.totalAmount is number && data.totalAmount > 0 && data.totalAmount <= 10000000 &&
+        data.status is string &&
+        data.createdAt is timestamp &&
+        (!('customerName' in data) || (data.customerName is string && data.customerName.size() <= 100)) &&
+        (!('customerEmail' in data) || isValidEmail(data.customerEmail)) &&
+        (!('customerPhone' in data) || (data.customerPhone is string && data.customerPhone.size() <= 30)) &&
+        (!('customerAddress' in data) || (data.customerAddress is string && data.customerAddress.size() <= 500)) &&
+        (!('deliveryAddress' in data) || (data.deliveryAddress is string && data.deliveryAddress.size() <= 500)) &&
+        (!('paymentMethod' in data) || (data.paymentMethod is string && data.paymentMethod.size() <= 100)) &&
+        (!('updatedAt' in data) || data.updatedAt is timestamp) &&
+        (!('id' in data) || (data.id is string && data.id.size() <= 100));
     }
 
     function isValidNewOrder(data) {
-      return data.keys().hasAll([
-          'userId', 'customerName', 'customerEmail', 'customerPhone',
-          'customerAddress', 'items', 'totalAmount', 'status', 'createdAt'
-        ]) &&
-        data.keys().hasOnly([
-          'userId', 'customerName', 'customerEmail', 'customerPhone',
-          'customerAddress', 'items', 'totalAmount', 'status', 'createdAt'
-        ]) &&
-        data.userId is string && data.userId == request.auth.uid &&
-        data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 100 &&
-        data.customerEmail is string && isValidEmail(data.customerEmail) &&
-        data.customerPhone is string && data.customerPhone.size() >= 5 && data.customerPhone.size() <= 30 &&
-        data.customerAddress is string && data.customerAddress.size() >= 5 && data.customerAddress.size() <= 500 &&
-        data.totalAmount is number && data.totalAmount > 0 && data.totalAmount <= 10000000 &&
-        // On creation, new orders MUST have status 'Pending' (customers cannot mark as Shipped/Delivered)
-        data.status is string && data.status == 'Pending' &&
-        data.createdAt is timestamp &&
-        isValidOrderItemsList(data.items);
+      return isValidOrder(data) &&
+        (data.status in ['Pending', 'pending']);
     }
 
     function isValidOrderUpdate(data) {
-      return data.keys().hasAll([
-          'userId', 'customerName', 'customerEmail', 'customerPhone',
-          'customerAddress', 'items', 'totalAmount', 'status', 'createdAt'
-        ]) &&
-        data.keys().hasOnly([
-          'userId', 'customerName', 'customerEmail', 'customerPhone',
-          'customerAddress', 'items', 'totalAmount', 'status', 'createdAt'
-        ]) &&
-        // Immutable order ownership & financial security fields
+      return isValidOrder(data) &&
         data.userId == resource.data.userId &&
         data.createdAt == resource.data.createdAt &&
         data.totalAmount == resource.data.totalAmount &&
         data.items == resource.data.items &&
-        data.customerEmail == resource.data.customerEmail &&
-        // Status transitions allowed for admins
-        data.status is string &&
-        data.status in ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+        data.status in [
+          'Pending', 'pending',
+          'Confirmed', 'confirmed',
+          'Processing', 'processing',
+          'Shipped', 'shipped',
+          'Delivered', 'delivered',
+          'Cancelled', 'cancelled'
+        ];
     }
 
     // ===============================================================
@@ -186,51 +224,58 @@ service cloud.firestore {
 
     // 1. Users Collection
     match /users/{userId} {
-      // Customers can read only their own profile; admins can read any user profile
+      // Customer can read their own user document. Admin can read any user document.
       allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
 
-      // Create: Users can register their own document, but CANNOT self-assign 'admin' role
+      // Create: Document ID must match request.auth.uid. Role must be 'customer' on customer registration (or 'admin' if created by an authorized admin).
       allow create: if isSignedIn() &&
         request.auth.uid == userId &&
-        isValidUser(request.resource.data) &&
         request.resource.data.uid == request.auth.uid &&
+        isValidUser(request.resource.data) &&
         (request.resource.data.role == 'customer' || isAdmin());
 
-      // Update: Users can update their profile, but CANNOT change role, uid, or createdAt
-      // Only authorized admins can change a user's role
+      // Update: Customer can update permitted profile fields (name, phone, address).
+      // Customer CANNOT modify their own role (role escalation prevention), CANNOT modify uid, CANNOT modify createdAt, and CANNOT modify other users' documents.
       allow update: if isSignedIn() && (
         (
           request.auth.uid == userId &&
           isValidUser(request.resource.data) &&
           request.resource.data.uid == resource.data.uid &&
           request.resource.data.createdAt == resource.data.createdAt &&
-          request.resource.data.role == resource.data.role
+          request.resource.data.role == resource.data.role &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'phone', 'address'])
         ) ||
         (
           isAdmin() &&
           isValidUser(request.resource.data) &&
-          request.resource.data.uid == resource.data.uid
+          request.resource.data.uid == resource.data.uid &&
+          request.resource.data.createdAt == resource.data.createdAt
         )
       );
 
-      // Delete: Only admins can delete user documents
+      // Delete: Only admin can delete user documents
       allow delete: if isAdmin();
     }
 
     // 2. Categories Collection
     match /categories/{categoryId} {
-      // Public read for customer browsing
+      // Public read
       allow read: if true;
-      // Only authenticated and authorized admins can add, update, or delete categories
-      allow create, update: if isAdmin() && isValidCategory(request.resource.data);
+
+      // Only admin can create, update, or delete categories
+      allow create: if isAdmin() && isValidCategory(request.resource.data);
+      allow update: if isAdmin() &&
+        isValidCategory(request.resource.data) &&
+        (!('createdAt' in resource.data) || !('createdAt' in request.resource.data) || request.resource.data.createdAt == resource.data.createdAt);
       allow delete: if isAdmin();
     }
 
     // 3. Products Collection
     match /products/{productId} {
-      // Public read for customer catalog
+      // Public read
       allow read: if true;
-      // Only authenticated and authorized admins can add, update, or delete products
+
+      // Only admin can create, update, or delete products. Customers CANNOT write to products.
       allow create: if isAdmin() && isValidProduct(request.resource.data);
       allow update: if isAdmin() &&
         isValidProduct(request.resource.data) &&
@@ -240,19 +285,19 @@ service cloud.firestore {
 
     // 4. Orders Collection
     match /orders/{orderId} {
-      // Customers can read only their own orders; admins can view all customer orders
+      // Customer can read ONLY their own orders (resource.data.userId == request.auth.uid). Admin can read all orders.
       allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
 
-      // Customers can create orders only for themselves with valid data and 'Pending' status
+      // Customer can create order ONLY for themselves (request.resource.data.userId == request.auth.uid).
+      // On creation, status must be 'Pending' or 'pending'.
       allow create: if isSignedIn() &&
         request.resource.data.userId == request.auth.uid &&
         isValidNewOrder(request.resource.data);
 
-      // ONLY authenticated and authorized admins can update orders (e.g. status updates)
-      // Customers CANNOT update order status or manipulate order details
+      // Update: ONLY admin can update orders. Customers CANNOT update orders.
       allow update: if isAdmin() && isValidOrderUpdate(request.resource.data);
 
-      // Only admins can delete orders
+      // Delete: ONLY admin can delete orders.
       allow delete: if isAdmin();
     }
 

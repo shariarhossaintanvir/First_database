@@ -21,6 +21,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final cart = Provider.of<CartProvider>(context);
     final p = widget.product;
     final isOutOfStock = p.stock <= 0;
+    final isUnavailable = !p.isAvailable || isOutOfStock;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -113,7 +114,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               // Add to Cart Button
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: isOutOfStock
+                  onPressed: isUnavailable
                       ? null
                       : () {
                           cart.addItem(p, quantity: _quantity);
@@ -139,7 +140,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           );
                         },
                   icon: const Icon(Icons.add_shopping_cart),
-                  label: Text(isOutOfStock ? 'Out of Stock' : 'Add to Cart'),
+                  label: Text(
+                    !p.isAvailable
+                        ? 'Currently Unavailable'
+                        : (isOutOfStock ? 'Out of Stock' : 'Add to Cart'),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue.shade600,
                     foregroundColor: Colors.white,
@@ -210,19 +215,25 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: isOutOfStock
-                              ? Colors.red.shade50
-                              : Colors.green.shade50,
+                          color: !p.isAvailable
+                              ? Colors.grey.shade100
+                              : (isOutOfStock
+                                  ? Colors.red.shade50
+                                  : Colors.green.shade50),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          isOutOfStock
-                              ? 'Out of Stock'
-                              : 'In Stock (${p.stock} units)',
+                          !p.isAvailable
+                              ? 'Unavailable'
+                              : (isOutOfStock
+                                  ? 'Out of Stock'
+                                  : 'In Stock (${p.stock} units)'),
                           style: TextStyle(
-                            color: isOutOfStock
-                                ? Colors.red.shade800
-                                : Colors.green.shade800,
+                            color: !p.isAvailable
+                                ? Colors.grey.shade800
+                                : (isOutOfStock
+                                    ? Colors.red.shade800
+                                    : Colors.green.shade800),
                             fontWeight: FontWeight.bold,
                             fontSize: 12,
                           ),

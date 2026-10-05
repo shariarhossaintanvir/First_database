@@ -36,11 +36,12 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  /// Register customer with Name, Email, Password
+  /// Register customer with Name, Email, Password, and optional phone
   Future<String?> register({
     required String name,
     required String email,
     required String password,
+    String? phone,
   }) async {
     _setLoading(true);
     try {
@@ -59,6 +60,7 @@ class AuthService extends ChangeNotifier {
         'uid': uid,
         'name': name.trim(),
         'email': email.trim(),
+        'phone': phone?.trim() ?? '',
         'role': 'customer',
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -68,6 +70,44 @@ class AuthService extends ChangeNotifier {
     } on FirebaseAuthException catch (e) {
       _setLoading(false);
       return e.message ?? 'Registration failed.';
+    } catch (e) {
+      _setLoading(false);
+      return 'Unexpected error: $e';
+    }
+  }
+
+  /// Update customer permitted profile fields (Name, Phone, Address)
+  Future<String?> updateProfile({
+    String? name,
+    String? phone,
+    String? address,
+  }) async {
+    final uid = _auth.currentUser?.uid;
+    if (uid == null) return 'No user signed in.';
+
+    _setLoading(true);
+    try {
+      final Map<String, dynamic> updates = {};
+      if (name != null && name.trim().isNotEmpty) {
+        updates['name'] = name.trim();
+        await _auth.currentUser?.updateDisplayName(name.trim());
+      }
+      if (phone != null) {
+        updates['phone'] = phone.trim();
+      }
+      if (address != null) {
+        updates['address'] = address.trim();
+      }
+
+      if (updates.isNotEmpty) {
+        await _firestore.collection('users').doc(uid).update(updates);
+      }
+
+      _setLoading(false);
+      return null;
+    } on FirebaseException catch (e) {
+      _setLoading(false);
+      return e.message ?? 'Failed to update profile.';
     } catch (e) {
       _setLoading(false);
       return 'Unexpected error: $e';

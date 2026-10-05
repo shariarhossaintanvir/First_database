@@ -31,6 +31,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     switch (status) {
       case 'Pending':
         return Colors.orange;
+      case 'Confirmed':
+        return Colors.teal;
       case 'Processing':
         return Colors.blue;
       case 'Shipped':

@@ -15,17 +15,25 @@ void main() async {
 
   // Initialize Firebase App Check to reduce automated abuse and unauthorized clients
   try {
-    await FirebaseAppCheck.instance.activate(
-      providerWeb: ReCaptchaV3Provider(
-        '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI',
-      ),
-      providerAndroid: kDebugMode
-          ? const AndroidDebugProvider()
-          : const AndroidPlayIntegrityProvider(),
-      providerApple: kDebugMode
-          ? const AppleDebugProvider()
-          : const AppleDeviceCheckProvider(),
-    );
+    if (kIsWeb) {
+      // On Web/localhost, activate only when a real reCAPTCHA v3 site key is provided via --dart-define=RECAPTCHA_V3_KEY=...
+      // Avoid placeholder keys which cause network fetch failures and block localhost development.
+      const String webRecaptchaKey = String.fromEnvironment('RECAPTCHA_V3_KEY');
+      if (webRecaptchaKey.isNotEmpty) {
+        await FirebaseAppCheck.instance.activate(
+          providerWeb: ReCaptchaV3Provider(webRecaptchaKey),
+        );
+      }
+    } else {
+      await FirebaseAppCheck.instance.activate(
+        providerAndroid: kDebugMode
+            ? const AndroidDebugProvider()
+            : const AndroidPlayIntegrityProvider(),
+        providerApple: kDebugMode
+            ? const AppleDebugProvider()
+            : const AppleDeviceCheckProvider(),
+      );
+    }
   } catch (e) {
     if (kDebugMode) {
       debugPrint('App Check initialization warning: $e');

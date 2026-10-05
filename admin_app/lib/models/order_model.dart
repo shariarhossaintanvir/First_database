@@ -43,11 +43,12 @@ class OrderModel {
   final String customerEmail;
   final String customerPhone;
   final String customerAddress;
+  final String paymentMethod;
   final List<OrderItemModel> items;
   final double totalAmount;
-  final String
-  status; // 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'
+  final String status; // 'Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'
   final DateTime createdAt;
+  final DateTime? updatedAt;
 
   OrderModel({
     required this.id,
@@ -56,11 +57,16 @@ class OrderModel {
     required this.customerEmail,
     required this.customerPhone,
     required this.customerAddress,
+    this.paymentMethod = 'Cash on Delivery',
     required this.items,
     required this.totalAmount,
     required this.status,
     required this.createdAt,
+    this.updatedAt,
   });
+
+  /// Alias for deliveryAddress
+  String get deliveryAddress => customerAddress;
 
   Map<String, dynamic> toMap() {
     return {
@@ -69,10 +75,15 @@ class OrderModel {
       'customerEmail': customerEmail,
       'customerPhone': customerPhone,
       'customerAddress': customerAddress,
+      'deliveryAddress': customerAddress,
+      'paymentMethod': paymentMethod,
       'items': items.map((item) => item.toMap()).toList(),
       'totalAmount': totalAmount,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': updatedAt != null
+          ? Timestamp.fromDate(updatedAt!)
+          : Timestamp.fromDate(createdAt),
     };
   }
 
@@ -82,6 +93,11 @@ class OrderModel {
       parsedDate = (map['createdAt'] as Timestamp).toDate();
     } else {
       parsedDate = DateTime.now();
+    }
+
+    DateTime? parsedUpdateDate;
+    if (map['updatedAt'] is Timestamp) {
+      parsedUpdateDate = (map['updatedAt'] as Timestamp).toDate();
     }
 
     var itemsRaw = map['items'] as List<dynamic>? ?? [];
@@ -95,11 +111,44 @@ class OrderModel {
       customerName: map['customerName'] ?? 'Customer',
       customerEmail: map['customerEmail'] ?? '',
       customerPhone: map['customerPhone'] ?? '',
-      customerAddress: map['customerAddress'] ?? '',
+      customerAddress:
+          map['customerAddress'] ?? map['deliveryAddress'] ?? '',
+      paymentMethod: map['paymentMethod'] ?? 'Cash on Delivery',
       items: parsedItems,
       totalAmount: (map['totalAmount'] as num?)?.toDouble() ?? 0.0,
       status: map['status'] ?? 'Pending',
       createdAt: parsedDate,
+      updatedAt: parsedUpdateDate,
+    );
+  }
+
+  OrderModel copyWith({
+    String? id,
+    String? userId,
+    String? customerName,
+    String? customerEmail,
+    String? customerPhone,
+    String? customerAddress,
+    String? paymentMethod,
+    List<OrderItemModel>? items,
+    double? totalAmount,
+    String? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return OrderModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      customerName: customerName ?? this.customerName,
+      customerEmail: customerEmail ?? this.customerEmail,
+      customerPhone: customerPhone ?? this.customerPhone,
+      customerAddress: customerAddress ?? this.customerAddress,
+      paymentMethod: paymentMethod ?? this.paymentMethod,
+      items: items ?? this.items,
+      totalAmount: totalAmount ?? this.totalAmount,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

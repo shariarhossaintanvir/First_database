@@ -79,6 +79,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         customerEmail: user.email ?? '',
         customerPhone: _phoneController.text.trim(),
         customerAddress: _addressController.text.trim(),
+        paymentMethod: _paymentMethod,
         items: orderItems,
         totalAmount: cart.totalAmount,
         status: 'Pending',
