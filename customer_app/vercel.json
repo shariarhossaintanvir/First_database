@@ -1,5 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "bash vercel-build.sh",
   "outputDirectory": "build/web",
   "cleanUrls": true,
   "rewrites": [
@@ -14,7 +15,7 @@
       "headers": [
         {
           "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin"
+          "value": "same-origin-allow-popups"
         },
         {
           "key": "Cross-Origin-Embedder-Policy",
