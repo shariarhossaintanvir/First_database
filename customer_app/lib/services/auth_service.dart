@@ -17,19 +17,81 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Map Firebase Authentication exception codes to user-friendly messages
+  static String mapFirebaseAuthError(dynamic exception) {
+    if (exception is FirebaseAuthException) {
+      switch (exception.code) {
+        case 'user-not-found':
+        case 'wrong-password':
+        case 'invalid-credential':
+        case 'invalid-login-credentials':
+          return 'Invalid email or password. Please verify your credentials and try again.';
+        case 'invalid-email':
+          return 'Please enter a valid email address.';
+        case 'user-disabled':
+          return 'This user account has been disabled. Please contact customer support.';
+        case 'too-many-requests':
+          return 'Too many failed login attempts. Access is temporarily paused for security. Please try again later.';
+        case 'operation-not-allowed':
+          return 'Email/password sign-in is not enabled in Firebase Console. Please enable it in Authentication > Sign-in method.';
+        case 'configuration-not-found':
+          return 'Firebase Authentication is not activated in the Firebase project. Please enable Authentication in the Firebase Console.';
+        case 'network-request-failed':
+          return 'Network connection error. Please check your internet connection and try again.';
+        case 'email-already-in-use':
+          return 'An account already exists with this email address. Please sign in or use a different email.';
+        case 'weak-password':
+          return 'Password is too weak. Please choose a password with at least 6 characters.';
+        default:
+          return exception.message ?? 'Authentication failed (${exception.code}). Please try again.';
+      }
+    }
+    return exception?.toString() ?? 'An unexpected authentication error occurred.';
+  }
+
   /// Sign in with email and password
   Future<String?> signIn(String email, String password) async {
+    final trimmedEmail = email.trim();
+    final trimmedPassword = password.trim();
+
+    if (trimmedEmail.isEmpty || trimmedPassword.isEmpty) {
+      return 'Please enter both email and password.';
+    }
+
     _setLoading(true);
     try {
-      await _auth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(),
+      UserCredential credential = await _auth.signInWithEmailAndPassword(
+        email: trimmedEmail,
+        password: trimmedPassword,
       );
+
+      // Self-heal: ensure user document exists in Firestore
+      final uid = credential.user?.uid;
+      if (uid != null) {
+        try {
+          final userDoc = await _firestore.collection('users').doc(uid).get();
+          if (!userDoc.exists) {
+            await _firestore.collection('users').doc(uid).set({
+              'uid': uid,
+              'name': credential.user?.displayName ?? 'Valued Customer',
+              'email': credential.user?.email ?? trimmedEmail,
+              'phone': '',
+              'role': 'customer',
+              'createdAt': FieldValue.serverTimestamp(),
+            });
+          }
+        } catch (firestoreError) {
+          if (kDebugMode) {
+            debugPrint('Firestore profile verification warning: $firestoreError');
+          }
+        }
+      }
+
       _setLoading(false);
       return null;
     } on FirebaseAuthException catch (e) {
       _setLoading(false);
-      return e.message ?? 'Login failed. Please check credentials.';
+      return mapFirebaseAuthError(e);
     } catch (e) {
       _setLoading(false);
       return 'Unexpected error: $e';
@@ -44,8 +106,9 @@ class AuthService extends ChangeNotifier {
     String? phone,
   }) async {
     _setLoading(true);
+    UserCredential? credential;
     try {
-      UserCredential credential = await _auth.createUserWithEmailAndPassword(
+      credential = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
       );
@@ -69,7 +132,36 @@ class AuthService extends ChangeNotifier {
       return null;
     } on FirebaseAuthException catch (e) {
       _setLoading(false);
-      return e.message ?? 'Registration failed.';
+      return mapFirebaseAuthError(e);
+    } catch (e) {
+      // Rollback newly created auth account if profile setup fails
+      if (credential?.user != null) {
+        try {
+          await credential!.user!.delete();
+        } catch (_) {
+          await _auth.signOut();
+        }
+      }
+      _setLoading(false);
+      return 'Registration profile creation failed: $e';
+    }
+  }
+
+  /// Send password reset email
+  Future<String?> sendPasswordResetEmail(String email) async {
+    final trimmedEmail = email.trim();
+    if (trimmedEmail.isEmpty) {
+      return 'Please enter your email address.';
+    }
+
+    _setLoading(true);
+    try {
+      await _auth.sendPasswordResetEmail(email: trimmedEmail);
+      _setLoading(false);
+      return null;
+    } on FirebaseAuthException catch (e) {
+      _setLoading(false);
+      return mapFirebaseAuthError(e);
     } catch (e) {
       _setLoading(false);
       return 'Unexpected error: $e';
@@ -82,25 +174,47 @@ class AuthService extends ChangeNotifier {
     String? phone,
     String? address,
   }) async {
-    final uid = _auth.currentUser?.uid;
-    if (uid == null) return 'No user signed in.';
+    final user = _auth.currentUser;
+    if (user == null) return 'No user signed in.';
+    final uid = user.uid;
 
     _setLoading(true);
     try {
-      final Map<String, dynamic> updates = {};
-      if (name != null && name.trim().isNotEmpty) {
-        updates['name'] = name.trim();
-        await _auth.currentUser?.updateDisplayName(name.trim());
-      }
-      if (phone != null) {
-        updates['phone'] = phone.trim();
-      }
-      if (address != null) {
-        updates['address'] = address.trim();
-      }
+      final docRef = _firestore.collection('users').doc(uid);
+      final docSnap = await docRef.get();
 
-      if (updates.isNotEmpty) {
-        await _firestore.collection('users').doc(uid).update(updates);
+      if (!docSnap.exists) {
+        // Document does not exist yet: create complete customer document
+        await docRef.set({
+          'uid': uid,
+          'name': name != null && name.trim().isNotEmpty
+              ? name.trim()
+              : (user.displayName ?? 'Valued Customer'),
+          'email': user.email ?? '',
+          'phone': phone?.trim() ?? '',
+          'address': address?.trim() ?? '',
+          'role': 'customer',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+        if (name != null && name.trim().isNotEmpty) {
+          await user.updateDisplayName(name.trim());
+        }
+      } else {
+        final Map<String, dynamic> updates = {};
+        if (name != null && name.trim().isNotEmpty) {
+          updates['name'] = name.trim();
+          await user.updateDisplayName(name.trim());
+        }
+        if (phone != null) {
+          updates['phone'] = phone.trim();
+        }
+        if (address != null) {
+          updates['address'] = address.trim();
+        }
+
+        if (updates.isNotEmpty) {
+          await docRef.update(updates);
+        }
       }
 
       _setLoading(false);

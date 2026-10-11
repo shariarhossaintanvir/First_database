@@ -51,7 +51,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (error != null && mounted) {
       setState(() => _errorMessage = error);
     } else if (mounted) {
-      Navigator.pop(context); // Return to auth gate / home
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
     }
   }
 

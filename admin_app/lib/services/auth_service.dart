@@ -17,13 +17,52 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Map Firebase Authentication exception codes to user-friendly messages
+  static String mapFirebaseAuthError(dynamic exception) {
+    if (exception is FirebaseAuthException) {
+      switch (exception.code) {
+        case 'user-not-found':
+        case 'wrong-password':
+        case 'invalid-credential':
+        case 'invalid-login-credentials':
+          return 'Invalid admin email or password. Please verify your credentials.';
+        case 'invalid-email':
+          return 'Please enter a valid administrator email address.';
+        case 'user-disabled':
+          return 'This administrator account has been disabled. Please contact system engineering.';
+        case 'too-many-requests':
+          return 'Too many failed login attempts. Access is temporarily locked. Please try again later.';
+        case 'operation-not-allowed':
+          return 'Email/password sign-in is not enabled in Firebase Console. Please enable it in Authentication > Sign-in method.';
+        case 'configuration-not-found':
+          return 'Firebase Authentication is not activated in the Firebase project. Please enable Authentication in the Firebase Console.';
+        case 'network-request-failed':
+          return 'Network connection error. Please check your internet connection and try again.';
+        case 'email-already-in-use':
+          return 'An account already exists with this email address.';
+        case 'weak-password':
+          return 'Password is too weak. Please choose a password with at least 6 characters.';
+        default:
+          return exception.message ?? 'Authentication failed (${exception.code}). Please try again.';
+      }
+    }
+    return exception?.toString() ?? 'An unexpected authentication error occurred.';
+  }
+
   /// Sign in admin with email & password and verify admin role
   Future<String?> signInAdmin(String email, String password) async {
+    final trimmedEmail = email.trim();
+    final trimmedPassword = password.trim();
+
+    if (trimmedEmail.isEmpty || trimmedPassword.isEmpty) {
+      return 'Please enter both admin email and password.';
+    }
+
     _setLoading(true);
     try {
       UserCredential credential = await _auth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(),
+        email: trimmedEmail,
+        password: trimmedPassword,
       );
 
       // Verify admin role in Firestore
@@ -51,7 +90,7 @@ class AuthService extends ChangeNotifier {
       // Fallback check for master admin email
       if (credential.user?.email?.toLowerCase() == 'admin@ecommerce.com') {
         isAdmin = true;
-        // Ensure firestore doc reflects admin
+        // Ensure firestore doc reflects admin without violating immutable createdAt
         if (!userDoc.exists) {
           await _firestore.collection('users').doc(uid).set({
             'uid': uid,
@@ -73,14 +112,14 @@ class AuthService extends ChangeNotifier {
       return null; // Success
     } on FirebaseAuthException catch (e) {
       _setLoading(false);
-      return e.message ?? 'Login failed. Please check credentials.';
+      return mapFirebaseAuthError(e);
     } catch (e) {
       _setLoading(false);
       return 'Unexpected error: $e';
     }
   }
 
-  /// Quick helper to provision or register the default admin account: admin@ecommerce.com / admin123
+  /// Quick helper to provision or register the default admin account: admin@ecommerce.com / password123
   Future<String?> setupDefaultAdmin({
     String email = 'admin@ecommerce.com',
     String password = 'password123',
@@ -106,22 +145,54 @@ class AuthService extends ChangeNotifier {
       }
 
       final uid = cred.user!.uid;
-      await _firestore.collection('users').doc(uid).set({
-        'uid': uid,
-        'email': email.trim(),
-        'name': 'System Administrator',
-        'role': 'admin',
-        'createdAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      final docRef = _firestore.collection('users').doc(uid);
+      final docSnap = await docRef.get();
+
+      if (!docSnap.exists) {
+        await docRef.set({
+          'uid': uid,
+          'email': email.trim(),
+          'name': 'System Administrator',
+          'role': 'admin',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      } else {
+        // Document exists: update role only, preserving immutable createdAt
+        final data = docSnap.data();
+        if (data?['role'] != 'admin') {
+          await docRef.update({'role': 'admin'});
+        }
+      }
 
       _setLoading(false);
       return null;
     } on FirebaseAuthException catch (e) {
       _setLoading(false);
-      return e.message;
+      return mapFirebaseAuthError(e);
     } catch (e) {
       _setLoading(false);
       return e.toString();
+    }
+  }
+
+  /// Send password reset email for admin
+  Future<String?> sendPasswordResetEmail(String email) async {
+    final trimmedEmail = email.trim();
+    if (trimmedEmail.isEmpty) {
+      return 'Please enter your email address.';
+    }
+
+    _setLoading(true);
+    try {
+      await _auth.sendPasswordResetEmail(email: trimmedEmail);
+      _setLoading(false);
+      return null;
+    } on FirebaseAuthException catch (e) {
+      _setLoading(false);
+      return mapFirebaseAuthError(e);
+    } catch (e) {
+      _setLoading(false);
+      return 'Unexpected error: $e';
     }
   }
 
