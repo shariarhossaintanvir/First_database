@@ -12,6 +12,7 @@ else
 fi
 
 export PATH="$FLUTTER_DIR/bin:$PATH"
+git config --global --add safe.directory "$FLUTTER_DIR" || true
 
 echo ">>> Flutter version:"
 flutter --version

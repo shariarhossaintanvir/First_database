@@ -9,6 +9,10 @@ import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'screens/login_screen.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/products_screen.dart';
+import 'screens/categories_screen.dart';
+import 'screens/orders_screen.dart';
+import 'screens/add_edit_product_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -75,14 +79,44 @@ class AdminEcommerceApp extends StatelessWidget {
             ),
           ),
         ),
-        home: const AuthGate(),
+        initialRoute: '/',
+        onGenerateRoute: (settings) {
+          Widget page;
+          switch (settings.name) {
+            case '/products':
+              page = const AuthGate(destination: ProductsScreen());
+              break;
+            case '/categories':
+              page = const AuthGate(destination: CategoriesScreen());
+              break;
+            case '/orders':
+              page = const AuthGate(destination: OrdersScreen());
+              break;
+            case '/add-product':
+              page = const AuthGate(destination: AddEditProductScreen());
+              break;
+            case '/login':
+              page = const LoginScreen();
+              break;
+            case '/':
+            case '/dashboard':
+            default:
+              page = const AuthGate(destination: DashboardScreen());
+              break;
+          }
+          return MaterialPageRoute(
+            builder: (_) => page,
+            settings: settings,
+          );
+        },
       ),
     );
   }
 }
 
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
+  final Widget? destination;
+  const AuthGate({super.key, this.destination});
 
   @override
   Widget build(BuildContext context) {
@@ -203,11 +237,6 @@ class AuthGate extends StatelessWidget {
               }
             }
 
-            // Fallback for master administrator email
-            if (user.email?.toLowerCase() == 'admin@ecommerce.com') {
-              isAdmin = true;
-            }
-
             // If non-admin user (e.g. customer) attempts to access admin portal
             if (!isAdmin) {
               return Scaffold(
@@ -277,7 +306,7 @@ class AuthGate extends StatelessWidget {
               );
             }
 
-            return const DashboardScreen();
+            return destination ?? const DashboardScreen();
           },
         );
       },

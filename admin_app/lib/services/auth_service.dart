@@ -73,7 +73,7 @@ class AuthService extends ChangeNotifier {
         return 'Authentication failed: No user found.';
       }
 
-      // Check users collection
+      // Check users collection for admin role
       DocumentSnapshot userDoc = await _firestore
           .collection('users')
           .doc(uid)
@@ -87,25 +87,10 @@ class AuthService extends ChangeNotifier {
         }
       }
 
-      // Fallback check for master admin email
-      if (credential.user?.email?.toLowerCase() == 'admin@ecommerce.com') {
-        isAdmin = true;
-        // Ensure firestore doc reflects admin without violating immutable createdAt
-        if (!userDoc.exists) {
-          await _firestore.collection('users').doc(uid).set({
-            'uid': uid,
-            'email': credential.user?.email,
-            'name': 'System Administrator',
-            'role': 'admin',
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-        }
-      }
-
       if (!isAdmin) {
         await _auth.signOut();
         _setLoading(false);
-        return 'Access Denied: You do not have administrator permissions.';
+        return 'Access Denied: The account "${credential.user?.email}" does not have administrator permissions.';
       }
 
       _setLoading(false);
