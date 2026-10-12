@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/order_model.dart';
 import '../services/firestore_service.dart';
+import '../theme/admin_theme.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final OrderModel order;
@@ -35,19 +36,19 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Pending':
-        return Colors.orange;
+        return AdminTheme.statusWarning;
       case 'Confirmed':
-        return Colors.teal;
+        return const Color(0xFF14B8A6);
       case 'Processing':
-        return Colors.blue;
+        return AdminTheme.statusInfo;
       case 'Shipped':
-        return Colors.purple;
+        return const Color(0xFFA855F7);
       case 'Delivered':
-        return Colors.green;
+        return AdminTheme.statusSuccess;
       case 'Cancelled':
-        return Colors.red;
+        return AdminTheme.statusError;
       default:
-        return Colors.grey;
+        return AdminTheme.textMuted;
     }
   }
 
@@ -63,7 +64,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Order status updated to $newStatus'),
-            backgroundColor: Colors.green,
+            backgroundColor: AdminTheme.surfaceElevated,
           ),
         );
       }
@@ -72,7 +73,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Error updating status: $e')));
+        ).showSnackBar(SnackBar(content: Text('Error updating status: $e'), backgroundColor: AdminTheme.statusError));
       }
     }
   }
@@ -80,28 +81,32 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final formattedDate = DateFormat(
-      'MMM dd, yyyy - hh:mm a',
+      'MMM dd, yyyy • hh:mm a',
     ).format(widget.order.createdAt);
+    final shortId = widget.order.id.length > 8 ? widget.order.id.substring(0, 8) : widget.order.id;
 
     return Scaffold(
+      backgroundColor: AdminTheme.bgWorkspace,
       appBar: AppBar(
-        title: Text(
-          'Order #${widget.order.id.length > 8 ? widget.order.id.substring(0, 8) : widget.order.id}',
-        ),
+        backgroundColor: AdminTheme.bgSidebar,
+        elevation: 0,
+        title: Text('Order #$shortId Details'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Status & Action Card
+            // Status & Fulfillment Action Card
             Card(
-              elevation: 2,
+              color: AdminTheme.surfaceCard,
+              elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
+                side: const BorderSide(color: AdminTheme.borderSubtle),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -109,24 +114,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Order Status',
+                          'Fulfillment Status',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 15,
+                            color: AdminTheme.textPrimary,
                           ),
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                            horizontal: 10,
+                            vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: _getStatusColor(
-                              _currentStatus,
-                            ).withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(20),
+                            color: _getStatusColor(_currentStatus).withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
                             border: Border.all(
-                              color: _getStatusColor(_currentStatus),
+                              color: _getStatusColor(_currentStatus).withValues(alpha: 0.3),
                             ),
                           ),
                           child: Text(
@@ -134,43 +138,55 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                             style: TextStyle(
                               color: _getStatusColor(_currentStatus),
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 6),
                     Text(
-                      'Placed on: $formattedDate',
-                      style: const TextStyle(color: Colors.grey, fontSize: 13),
+                      'Recorded: $formattedDate',
+                      style: const TextStyle(color: AdminTheme.textMuted, fontSize: 12),
                     ),
-                    const Divider(height: 24),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1, color: AdminTheme.borderSubtle),
+                    const SizedBox(height: 14),
                     const Text(
-                      'Update Status:',
-                      style: TextStyle(fontWeight: FontWeight.w600),
+                      'Transition Order Status:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                        color: AdminTheme.textSecondary,
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     _isUpdating
-                        ? const Center(child: CircularProgressIndicator())
+                        ? const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(12.0),
+                              child: CircularProgressIndicator(color: AdminTheme.accent),
+                            ),
+                          )
                         : Wrap(
                             spacing: 8,
                             runSpacing: 8,
                             children: _statusOptions.map((status) {
                               final isSelected = status == _currentStatus;
+                              final color = _getStatusColor(status);
+
                               return ChoiceChip(
                                 label: Text(status),
                                 selected: isSelected,
-                                selectedColor: _getStatusColor(
-                                  status,
-                                ).withValues(alpha: 0.25),
+                                selectedColor: color.withValues(alpha: 0.15),
+                                backgroundColor: AdminTheme.bgSidebar,
+                                side: BorderSide(
+                                  color: isSelected ? color : AdminTheme.borderSubtle,
+                                ),
                                 labelStyle: TextStyle(
-                                  color: isSelected
-                                      ? _getStatusColor(status)
-                                      : Colors.black87,
-                                  fontWeight: isSelected
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
+                                  color: isSelected ? color : AdminTheme.textSecondary,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                  fontSize: 12,
                                 ),
                                 onSelected: (selected) {
                                   if (selected && status != _currentStatus) {
@@ -188,54 +204,41 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
             // Customer Details Card
             Card(
-              elevation: 2,
+              color: AdminTheme.surfaceCard,
+              elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
+                side: const BorderSide(color: AdminTheme.borderSubtle),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Customer Information',
+                      'Customer & Delivery Information',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 15,
+                        color: AdminTheme.textPrimary,
                       ),
                     ),
-                    const Divider(height: 20),
-                    _buildInfoRow(
-                      Icons.person_outline,
-                      'Name',
-                      widget.order.customerName,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                      Icons.email_outlined,
-                      'Email',
-                      widget.order.customerEmail,
-                    ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1, color: AdminTheme.borderSubtle),
+                    const SizedBox(height: 14),
+                    _buildInfoRow(Icons.person_outline, 'Customer Name', widget.order.customerName),
+                    const SizedBox(height: 10),
+                    _buildInfoRow(Icons.email_outlined, 'Email Address', widget.order.customerEmail),
+                    const SizedBox(height: 10),
                     _buildInfoRow(
                       Icons.phone_outlined,
-                      'Phone',
-                      widget.order.customerPhone.isNotEmpty
-                          ? widget.order.customerPhone
-                          : 'N/A',
+                      'Contact Phone',
+                      widget.order.customerPhone.isNotEmpty ? widget.order.customerPhone : 'Not provided',
                     ),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                      Icons.location_on_outlined,
-                      'Address',
-                      widget.order.customerAddress,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                      Icons.payment,
-                      'Payment',
-                      widget.order.paymentMethod,
-                    ),
+                    const SizedBox(height: 10),
+                    _buildInfoRow(Icons.location_on_outlined, 'Delivery Address', widget.order.customerAddress),
+                    const SizedBox(height: 10),
+                    _buildInfoRow(Icons.payment_outlined, 'Payment Method', widget.order.paymentMethod),
                   ],
                 ),
               ),
@@ -244,49 +247,56 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
 
             // Items Card
             Card(
-              elevation: 2,
+              color: AdminTheme.surfaceCard,
+              elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
+                side: const BorderSide(color: AdminTheme.borderSubtle),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Ordered Items (${widget.order.items.length})',
+                      'Line Items (${widget.order.items.length})',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 15,
+                        color: AdminTheme.textPrimary,
                       ),
                     ),
-                    const Divider(height: 20),
+                    const SizedBox(height: 12),
+                    const Divider(height: 1, color: AdminTheme.borderSubtle),
+                    const SizedBox(height: 12),
                     ListView.separated(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       itemCount: widget.order.items.length,
-                      separatorBuilder: (ctx, idx) => const Divider(height: 16),
+                      separatorBuilder: (ctx, idx) => const Divider(height: 16, color: AdminTheme.borderSubtle),
                       itemBuilder: (context, index) {
                         final item = widget.order.items[index];
                         return Row(
                           children: [
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: BorderRadius.circular(6),
                               child: Container(
-                                width: 50,
-                                height: 50,
-                                color: Colors.grey.shade100,
+                                width: 52,
+                                height: 52,
+                                color: AdminTheme.bgSidebar,
+                                padding: const EdgeInsets.all(4),
                                 child: Image.network(
                                   item.imageUrl,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                   errorBuilder: (ctx, err, stack) => const Icon(
-                                    Icons.image_not_supported,
-                                    color: Colors.grey,
+                                    Icons.image_not_supported_outlined,
+                                    color: AdminTheme.textMuted,
+                                    size: 20,
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 14),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,46 +305,53 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                     item.title,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w600,
+                                      color: AdminTheme.textPrimary,
+                                      fontSize: 13,
                                     ),
                                   ),
+                                  const SizedBox(height: 2),
                                   Text(
-                                    '\$${item.price.toStringAsFixed(2)} x ${item.quantity}',
+                                    '৳ ${item.price.toStringAsFixed(0)} × ${item.quantity}',
                                     style: const TextStyle(
-                                      color: Colors.grey,
-                                      fontSize: 13,
+                                      color: AdminTheme.textMuted,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                             Text(
-                              '\$${(item.price * item.quantity).toStringAsFixed(2)}',
+                              '৳ ${(item.price * item.quantity).toStringAsFixed(0)}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 15,
+                                fontSize: 14,
+                                color: AdminTheme.textPrimary,
                               ),
                             ),
                           ],
                         );
                       },
                     ),
-                    const Divider(height: 24),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1, color: AdminTheme.borderSubtle),
+                    const SizedBox(height: 14),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         const Text(
-                          'Total Amount',
+                          'Total Order Value',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontSize: 15,
+                            color: AdminTheme.textPrimary,
                           ),
                         ),
                         Text(
-                          '\$${widget.order.totalAmount.toStringAsFixed(2)}',
+                          '৳ ${widget.order.totalAmount.toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
-                            color: Color(0xFF0F172A),
+                            color: AdminTheme.accent,
                           ),
                         ),
                       ],
@@ -353,22 +370,27 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.grey.shade600),
+        Icon(icon, size: 18, color: AdminTheme.accent),
         const SizedBox(width: 10),
         SizedBox(
-          width: 70,
+          width: 120,
           child: Text(
-            '$label:',
+            label,
             style: const TextStyle(
-              color: Colors.grey,
+              color: AdminTheme.textMuted,
               fontWeight: FontWeight.w500,
+              fontSize: 12,
             ),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.w600),
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              color: AdminTheme.textPrimary,
+              fontSize: 13,
+            ),
           ),
         ),
       ],

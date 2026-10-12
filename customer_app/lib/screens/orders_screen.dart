@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../models/order_model.dart';
+import '../theme/app_theme.dart';
 import 'order_detail_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -30,19 +31,19 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Pending':
-        return Colors.orange;
+        return AppTheme.statusWarning;
       case 'Confirmed':
-        return Colors.teal;
+        return const Color(0xFF14B8A6); // Teal
       case 'Processing':
-        return Colors.blue;
+        return AppTheme.statusInfo;
       case 'Shipped':
-        return Colors.purple;
+        return const Color(0xFFA855F7); // Purple
       case 'Delivered':
-        return Colors.green;
+        return AppTheme.statusSuccess;
       case 'Cancelled':
-        return Colors.red;
+        return AppTheme.statusError;
       default:
-        return Colors.grey;
+        return AppTheme.textMuted;
     }
   }
 
@@ -53,27 +54,47 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
     if (user == null) {
       return const Scaffold(
-        body: Center(child: Text('Please log in to view your orders')),
+        backgroundColor: AppTheme.bgPrimary,
+        body: Center(
+          child: Text(
+            'Please log in to view your orders',
+            style: TextStyle(color: AppTheme.textMuted),
+          ),
+        ),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(title: const Text('My Orders')),
+      backgroundColor: AppTheme.bgPrimary,
+      appBar: AppBar(
+        backgroundColor: AppTheme.bgPrimary,
+        elevation: 0,
+        title: const Text('My Orders'),
+      ),
       body: Column(
         children: [
           // Filter Chips
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             child: Row(
               children: _filters.map((f) {
                 final isSelected = _selectedStatus == f;
                 return Padding(
                   padding: const EdgeInsets.only(right: 8),
-                  child: FilterChip(
+                  child: ChoiceChip(
                     label: Text(f),
                     selected: isSelected,
+                    selectedColor: AppTheme.accentSubtle,
+                    backgroundColor: AppTheme.bgSecondary,
+                    side: BorderSide(
+                      color: isSelected ? AppTheme.accent : AppTheme.borderSubtle,
+                    ),
+                    labelStyle: TextStyle(
+                      color: isSelected ? AppTheme.accent : AppTheme.textSecondary,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                      fontSize: 12,
+                    ),
                     onSelected: (selected) {
                       setState(() => _selectedStatus = f);
                     },
@@ -89,7 +110,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
               stream: _firestoreService.getCustomerOrdersStream(user.uid),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppTheme.accent),
+                  );
                 }
                 if (snapshot.hasError) {
                   return const Center(
@@ -101,7 +124,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           Icon(
                             Icons.error_outline,
                             size: 48,
-                            color: Colors.orange,
+                            color: AppTheme.statusWarning,
                           ),
                           SizedBox(height: 12),
                           Text(
@@ -109,13 +132,13 @@ class _OrdersScreenState extends State<OrdersScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Color(0xFF1E293B),
+                              color: AppTheme.textPrimary,
                             ),
                           ),
                           SizedBox(height: 6),
                           Text(
                             'Please check your connection and try refreshing.',
-                            style: TextStyle(color: Colors.grey),
+                            style: TextStyle(color: AppTheme.textMuted),
                           ),
                         ],
                       ),
@@ -140,20 +163,34 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.shopping_bag_outlined,
-                          size: 70,
-                          color: Colors.grey.shade400,
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppTheme.surfaceCard,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppTheme.borderSubtle),
+                          ),
+                          child: const Icon(
+                            Icons.receipt_long_outlined,
+                            size: 48,
+                            color: AppTheme.textMuted,
+                          ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
                         Text(
                           _selectedStatus == 'All'
                               ? "You haven't placed any orders yet"
                               : "No $_selectedStatus orders found",
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 16,
-                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
                           ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Your completed orders will appear here.',
+                          style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
                         ),
                       ],
                     ),
@@ -172,9 +209,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     final color = _getStatusColor(order.status);
 
                     return Card(
-                      elevation: 1,
+                      color: AppTheme.surfaceCard,
+                      elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
+                        side: const BorderSide(color: AppTheme.borderSubtle),
                       ),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(12),
@@ -199,7 +238,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                     'Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id}',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                      fontSize: 15,
+                                      color: AppTheme.textPrimary,
                                     ),
                                   ),
                                   Container(
@@ -208,16 +248,16 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: color.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(color: color),
+                                      color: color.withValues(alpha: 0.12),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: color.withValues(alpha: 0.4)),
                                     ),
                                     child: Text(
                                       order.status,
                                       style: TextStyle(
                                         color: color,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 11,
                                       ),
                                     ),
                                   ),
@@ -227,25 +267,27 @@ class _OrdersScreenState extends State<OrdersScreen> {
                               Text(
                                 'Ordered on $dateStr',
                                 style: const TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 13,
+                                  color: AppTheme.textMuted,
+                                  fontSize: 12,
                                 ),
                               ),
-                              const Divider(height: 20),
+                              const SizedBox(height: 12),
+                              const Divider(height: 1, color: AppTheme.borderSubtle),
+                              const SizedBox(height: 12),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    '${order.items.length} items',
-                                    style: const TextStyle(color: Colors.grey),
+                                    '${order.items.length} ${order.items.length == 1 ? 'item' : 'items'}',
+                                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 13),
                                   ),
                                   Text(
-                                    '\$${order.totalAmount.toStringAsFixed(2)}',
+                                    '৳ ${order.totalAmount.toStringAsFixed(0)}',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
-                                      color: Color(0xFF0F172A),
+                                      color: AppTheme.accent,
                                     ),
                                   ),
                                 ],

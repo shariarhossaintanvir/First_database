@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/cart_provider.dart';
+import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'categories_screen.dart';
 import 'cart_screen.dart';
@@ -30,45 +31,62 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     final cart = Provider.of<CartProvider>(context);
 
     return Scaffold(
+      backgroundColor: AppTheme.bgPrimary,
       body: IndexedStack(index: _currentIndex, children: _screens),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
-        destinations: [
-          const NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.category_outlined),
-            selectedIcon: Icon(Icons.category),
-            label: 'Categories',
-          ),
-          NavigationDestination(
-            icon: Badge(
-              isLabelVisible: cart.itemCount > 0,
-              label: Text('${cart.itemCount}'),
-              child: const Icon(Icons.shopping_cart_outlined),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: AppTheme.borderSubtle, width: 1)),
+        ),
+        child: NavigationBar(
+          selectedIndex: _currentIndex,
+          backgroundColor: AppTheme.bgSecondary,
+          onDestinationSelected: (idx) => setState(() => _currentIndex = idx),
+          destinations: [
+            const NavigationDestination(
+              icon: Icon(Icons.home_outlined),
+              selectedIcon: Icon(Icons.home),
+              label: 'Home',
             ),
-            selectedIcon: Badge(
-              isLabelVisible: cart.itemCount > 0,
-              label: Text('${cart.itemCount}'),
-              child: const Icon(Icons.shopping_cart),
+            const NavigationDestination(
+              icon: Icon(Icons.category_outlined),
+              selectedIcon: Icon(Icons.category),
+              label: 'Categories',
             ),
-            label: 'Cart',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
-            label: 'Orders',
-          ),
-          const NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
+            NavigationDestination(
+              icon: Badge(
+                isLabelVisible: cart.itemCount > 0,
+                backgroundColor: AppTheme.accent,
+                textColor: AppTheme.bgPrimary,
+                label: Text(
+                  '${cart.itemCount}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                ),
+                child: const Icon(Icons.shopping_cart_outlined),
+              ),
+              selectedIcon: Badge(
+                isLabelVisible: cart.itemCount > 0,
+                backgroundColor: AppTheme.accent,
+                textColor: AppTheme.bgPrimary,
+                label: Text(
+                  '${cart.itemCount}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10),
+                ),
+                child: const Icon(Icons.shopping_cart),
+              ),
+              label: 'Cart',
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.receipt_long_outlined),
+              selectedIcon: Icon(Icons.receipt_long),
+              label: 'Orders',
+            ),
+            const NavigationDestination(
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
+          ],
+        ),
       ),
     );
   }

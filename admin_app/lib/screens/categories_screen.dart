@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/category_model.dart';
 import '../services/firestore_service.dart';
+import '../theme/admin_theme.dart';
+import '../widgets/admin_layout.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -30,10 +32,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
+          backgroundColor: AdminTheme.surfaceCard,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AdminTheme.borderSubtle),
           ),
-          title: Text(isEditing ? 'Edit Category' : 'Add New Category'),
+          title: Text(
+            isEditing ? 'Edit Category' : 'Add New Category',
+            style: const TextStyle(color: AdminTheme.textPrimary, fontWeight: FontWeight.bold),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -41,27 +48,27 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 if (!isEditing)
                   TextField(
                     controller: idController,
+                    style: const TextStyle(color: AdminTheme.textPrimary),
                     decoration: const InputDecoration(
                       labelText: 'Category Slug / ID (e.g. electronics)',
-                      hintText: 'lowercase_id',
-                      border: OutlineInputBorder(),
+                      hintText: 'lowercase_slug',
                     ),
                   ),
-                if (!isEditing) const SizedBox(height: 16),
+                if (!isEditing) const SizedBox(height: 14),
                 TextField(
                   controller: nameController,
+                  style: const TextStyle(color: AdminTheme.textPrimary),
                   decoration: const InputDecoration(
-                    labelText: 'Category Name',
-                    border: OutlineInputBorder(),
+                    labelText: 'Category Display Name',
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 TextField(
                   controller: descController,
                   maxLines: 2,
+                  style: const TextStyle(color: AdminTheme.textPrimary),
                   decoration: const InputDecoration(
-                    labelText: 'Description',
-                    border: OutlineInputBorder(),
+                    labelText: 'Category Description',
                   ),
                 ),
               ],
@@ -70,7 +77,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: AdminTheme.textMuted)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -111,18 +118,20 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Category'),
+        backgroundColor: AdminTheme.surfaceCard,
+        title: const Text('Delete Category', style: TextStyle(color: AdminTheme.textPrimary)),
         content: Text(
-          'Are you sure you want to delete "${category.name}"? Products in this category may be affected.',
+          'Are you sure you want to delete "${category.name}"? Products assigned to this category will lose category filtering.',
+          style: const TextStyle(color: AdminTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text('Cancel', style: TextStyle(color: AdminTheme.textMuted)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: AdminTheme.statusError,
               foregroundColor: Colors.white,
             ),
             onPressed: () async {
@@ -138,56 +147,62 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Category Management'),
-        actions: [
-          IconButton(
-            tooltip: 'Seed Default Categories',
-            icon: const Icon(Icons.refresh),
-            onPressed: () async {
-              await _firestoreService.seedDefaultCategoriesIfEmpty();
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Categories refreshed')),
-                );
-              }
-            },
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddEditDialog(),
-        icon: const Icon(Icons.add),
-        label: const Text('Add Category'),
-      ),
+    return AdminLayout(
+      title: 'Taxonomies & Categories',
+      currentRoute: '/categories',
+      actions: [
+        IconButton(
+          tooltip: 'Re-seed Defaults',
+          icon: const Icon(Icons.refresh, color: AdminTheme.textMuted),
+          onPressed: () async {
+            await _firestoreService.seedDefaultCategoriesIfEmpty();
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Categories verified and refreshed'),
+                  backgroundColor: AdminTheme.surfaceElevated,
+                ),
+              );
+            }
+          },
+        ),
+        const SizedBox(width: 8),
+        ElevatedButton.icon(
+          onPressed: () => _showAddEditDialog(),
+          icon: const Icon(Icons.add, size: 16),
+          label: const Text('New Category'),
+        ),
+      ],
       body: StreamBuilder<List<CategoryModel>>(
         stream: _firestoreService.getCategoriesStream(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: AdminTheme.accent),
+            );
           }
           if (snapshot.hasError) {
-            return const Center(
+            return Center(
               child: Padding(
-                padding: EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(24.0),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.category_outlined, size: 48, color: Colors.grey),
-                    SizedBox(height: 12),
-                    Text(
+                    const Icon(Icons.category_outlined, size: 48, color: AdminTheme.statusWarning),
+                    const SizedBox(height: 12),
+                    const Text(
                       'Unable to load categories',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: AdminTheme.textPrimary,
                       ),
                     ),
-                    SizedBox(height: 6),
+                    const SizedBox(height: 6),
                     Text(
-                      'Please verify your admin permissions or network connection.',
-                      style: TextStyle(color: Colors.grey),
+                      'Check admin permissions or connectivity: ${snapshot.error}',
+                      style: const TextStyle(color: AdminTheme.textMuted),
+                      textAlign: TextAlign.center,
                     ),
                   ],
                 ),
@@ -201,76 +216,104 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.category_outlined,
-                    size: 64,
-                    color: Colors.grey,
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: AdminTheme.surfaceCard,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AdminTheme.borderSubtle),
+                    ),
+                    child: const Icon(
+                      Icons.category_outlined,
+                      size: 48,
+                      color: AdminTheme.textMuted,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   const Text(
-                    'No categories found',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                    'No categories in store catalog',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AdminTheme.textPrimary,
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   ElevatedButton(
-                    onPressed: () =>
-                        _firestoreService.seedDefaultCategoriesIfEmpty(),
-                    child: const Text('Load Default Categories'),
+                    onPressed: () => _firestoreService.seedDefaultCategoriesIfEmpty(),
+                    child: const Text('Load Standard 5 Categories'),
                   ),
                 ],
               ),
             );
           }
 
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: categories.length,
-            separatorBuilder: (ctx, idx) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final cat = categories[index];
-              return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 1,
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue.shade50,
-                    child: Icon(Icons.category, color: Colors.blue.shade700),
-                  ),
-                  title: Text(
-                    cat.name,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    cat.description.isNotEmpty
-                        ? cat.description
-                        : 'ID: ${cat.id}',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.indigo),
-                        onPressed: () => _showAddEditDialog(cat),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Card(
+              color: AdminTheme.surfaceCard,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: const BorderSide(color: AdminTheme.borderSubtle),
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: categories.length,
+                separatorBuilder: (ctx, idx) => const Divider(height: 1, color: AdminTheme.borderSubtle),
+                itemBuilder: (context, index) {
+                  final cat = categories[index];
+                  return ListTile(
+                    hoverColor: AdminTheme.surfaceHover,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 8,
+                    ),
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AdminTheme.accentSubtle,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.delete_outline,
-                          color: Colors.red,
+                      child: const Icon(Icons.folder_outlined, color: AdminTheme.accent, size: 20),
+                    ),
+                    title: Text(
+                      cat.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: AdminTheme.textPrimary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        cat.description.isNotEmpty
+                            ? '${cat.description} • (ID: ${cat.id})'
+                            : 'Slug: ${cat.id}',
+                        style: const TextStyle(color: AdminTheme.textMuted, fontSize: 12),
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined, size: 18, color: AdminTheme.accent),
+                          tooltip: 'Edit Category',
+                          onPressed: () => _showAddEditDialog(cat),
                         ),
-                        onPressed: () => _confirmDelete(cat),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                        IconButton(
+                          icon: const Icon(Icons.delete_outline, size: 18, color: AdminTheme.statusError),
+                          tooltip: 'Delete Category',
+                          onPressed: () => _confirmDelete(cat),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
           );
         },
       ),

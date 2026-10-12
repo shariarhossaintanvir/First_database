@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 
 class OrderSuccessScreen extends StatelessWidget {
   final String orderId;
@@ -8,7 +9,7 @@ class OrderSuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.bgPrimary,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(28.0),
@@ -20,62 +21,62 @@ class OrderSuccessScreen extends StatelessWidget {
               // Success Icon Circle
               Center(
                 child: Container(
-                  width: 100,
-                  height: 100,
+                  width: 96,
+                  height: 96,
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
+                    color: AppTheme.statusSuccess.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
+                    border: Border.all(color: AppTheme.statusSuccess.withValues(alpha: 0.4)),
                   ),
-                  child: Icon(
-                    Icons.check_circle_rounded,
-                    size: 72,
-                    color: Colors.green.shade600,
+                  child: const Icon(
+                    Icons.check_circle_outline_rounded,
+                    size: 56,
+                    color: AppTheme.statusSuccess,
                   ),
                 ),
               ),
               const SizedBox(height: 24),
               const Text(
-                'Order Placed Successfully!',
+                'Order Confirmed!',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F172A),
+                  letterSpacing: -0.4,
+                  color: AppTheme.textPrimary,
                 ),
               ),
               const SizedBox(height: 10),
-              Text(
-                'Thank you for your purchase. We have received your order and are processing it.',
+              const Text(
+                'Thank you for your purchase. We have received your order and our fulfillment team has started processing.',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey.shade600,
-                  height: 1.4,
+                  color: AppTheme.textMuted,
+                  height: 1.5,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8FAFC),
+                  color: AppTheme.surfaceCard,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: AppTheme.borderSubtle),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
                       'Order Reference: ',
-                      style: TextStyle(color: Colors.grey),
+                      style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
                     ),
                     SelectableText(
                       '#${orderId.length > 10 ? orderId.substring(0, 10) : orderId}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
+                        color: AppTheme.accent,
+                        fontSize: 14,
                       ),
                     ),
                   ],
@@ -89,15 +90,15 @@ class OrderSuccessScreen extends StatelessWidget {
                   Navigator.popUntil(context, (route) => route.isFirst);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue.shade600,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AppTheme.accent,
+                  foregroundColor: AppTheme.bgPrimary,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 child: const Text(
-                  'Back to Home',
+                  'Continue Shopping',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../theme/admin_theme.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,14 +47,14 @@ class _LoginScreenState extends State<LoginScreen> {
     if (error != null && mounted) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Setup status: $error')));
+      ).showSnackBar(SnackBar(content: Text('Setup status: $error'), backgroundColor: AdminTheme.statusWarning));
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Admin account initialized. Please enter your credentials to login.',
+            'Master Admin initialized. Sign in using admin@ecommerce.com / password123',
           ),
-          backgroundColor: Colors.green,
+          backgroundColor: AdminTheme.surfaceElevated,
         ),
       );
     }
@@ -69,10 +70,15 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
+          backgroundColor: AdminTheme.surfaceCard,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
+            side: const BorderSide(color: AdminTheme.borderSubtle),
           ),
-          title: const Text('Admin Password Recovery'),
+          title: const Text(
+            'Administrator Password Recovery',
+            style: TextStyle(color: AdminTheme.textPrimary, fontWeight: FontWeight.bold),
+          ),
           content: Form(
             key: resetFormKey,
             child: Column(
@@ -80,18 +86,18 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Enter your administrator email to receive a password recovery link.',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+                  'Enter your registered administrator email to receive a password reset link.',
+                  style: TextStyle(fontSize: 13, color: AdminTheme.textSecondary),
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: resetEmailController,
                   keyboardType: TextInputType.emailAddress,
                   autofocus: true,
+                  style: const TextStyle(color: AdminTheme.textPrimary),
                   decoration: const InputDecoration(
                     labelText: 'Admin Email',
                     prefixIcon: Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) {
                     if (v == null || v.trim().isEmpty) {
@@ -109,12 +115,12 @@ class _LoginScreenState extends State<LoginScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: AdminTheme.textMuted)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E293B),
-                foregroundColor: Colors.white,
+                backgroundColor: AdminTheme.accent,
+                foregroundColor: AdminTheme.bgSidebar,
               ),
               onPressed: () async {
                 if (!resetFormKey.currentState!.validate()) return;
@@ -128,23 +134,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (err == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(
-                          'Password reset email sent to $email. Please check your inbox.',
-                        ),
-                        backgroundColor: Colors.green,
+                        content: Text('Password recovery link sent to $email.'),
+                        backgroundColor: AdminTheme.surfaceElevated,
                       ),
                     );
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(err),
-                        backgroundColor: Colors.red,
+                        backgroundColor: AdminTheme.statusError,
                       ),
                     );
                   }
                 }
               },
-              child: const Text('Send Reset Link'),
+              child: const Text('Send Recovery Link'),
             ),
           ],
         );
@@ -155,25 +159,25 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
-    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: AdminTheme.bgWorkspace,
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
             child: Card(
-              elevation: 4,
-              shadowColor: Colors.black12,
+              color: AdminTheme.surfaceCard,
+              elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(14),
+                side: const BorderSide(color: AdminTheme.borderSubtle),
               ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 32.0,
-                  vertical: 40.0,
+                  vertical: 36.0,
                 ),
                 child: Form(
                   key: _formKey,
@@ -182,35 +186,39 @@ class _LoginScreenState extends State<LoginScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Header Icon & Title
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withValues(
-                            alpha: 0.1,
+                      Center(
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: AdminTheme.accentSubtle,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AdminTheme.accent.withValues(alpha: 0.3)),
                           ),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.admin_panel_settings,
-                          size: 48,
-                          color: theme.colorScheme.primary,
+                          child: const Icon(
+                            Icons.admin_panel_settings_outlined,
+                            size: 40,
+                            color: AdminTheme.accent,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
-                      Text(
-                        'Admin Portal',
+                      const Text(
+                        'Operations Console',
                         textAlign: TextAlign.center,
-                        style: theme.textTheme.headlineSmall?.copyWith(
+                        style: TextStyle(
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF0F172A),
+                          letterSpacing: -0.4,
+                          color: AdminTheme.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 6),
-                      Text(
-                        'E-Commerce Management Dashboard',
+                      const Text(
+                        'E-Commerce Catalog & Order Management',
                         textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: const Color(0xFF64748B),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AdminTheme.textMuted,
                         ),
                       ),
                       const SizedBox(height: 28),
@@ -220,24 +228,24 @@ class _LoginScreenState extends State<LoginScreen> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.red.shade50,
+                            color: AdminTheme.statusError.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.red.shade200),
+                            border: Border.all(color: AdminTheme.statusError.withValues(alpha: 0.3)),
                           ),
                           child: Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.error_outline,
-                                color: Colors.red.shade700,
-                                size: 20,
+                                color: AdminTheme.statusError,
+                                size: 18,
                               ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   _errorMessage!,
-                                  style: TextStyle(
-                                    color: Colors.red.shade800,
-                                    fontSize: 13,
+                                  style: const TextStyle(
+                                    color: AdminTheme.statusError,
+                                    fontSize: 12,
                                   ),
                                 ),
                               ),
@@ -251,13 +259,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
+                        style: const TextStyle(color: AdminTheme.textPrimary),
+                        decoration: const InputDecoration(
                           labelText: 'Admin Email',
                           hintText: 'admin@ecommerce.com',
-                          prefixIcon: const Icon(Icons.email_outlined),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
+                          prefixIcon: Icon(Icons.email_outlined),
                         ),
                         validator: (value) {
                           if (value == null || value.trim().isEmpty) {
@@ -266,7 +272,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           return null;
                         },
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 16),
 
                       // Password Field
                       TextFormField(
@@ -274,23 +280,20 @@ class _LoginScreenState extends State<LoginScreen> {
                         obscureText: _obscurePassword,
                         textInputAction: TextInputAction.done,
                         onFieldSubmitted: (_) => _handleLogin(),
+                        style: const TextStyle(color: AdminTheme.textPrimary),
                         decoration: InputDecoration(
                           labelText: 'Password',
                           prefixIcon: const Icon(Icons.lock_outline),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword
-                                  ? Icons.visibility_off
-                                  : Icons.visibility,
+                                  ? Icons.visibility_off_outlined
+                                  : Icons.visibility_outlined,
+                              color: AdminTheme.textMuted,
                             ),
                             onPressed: () {
-                              setState(
-                                () => _obscurePassword = !_obscurePassword,
-                              );
+                              setState(() => _obscurePassword = !_obscurePassword);
                             },
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
                         validator: (value) {
@@ -306,15 +309,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       Align(
                         alignment: Alignment.centerRight,
                         child: TextButton(
-                          onPressed: authService.isLoading
-                              ? null
-                              : _showForgotPasswordDialog,
+                          onPressed: authService.isLoading ? null : _showForgotPasswordDialog,
                           child: const Text(
                             'Forgot Password?',
                             style: TextStyle(
-                              color: Color(0xFF2563EB),
+                              color: AdminTheme.accent,
                               fontWeight: FontWeight.w600,
-                              fontSize: 13,
+                              fontSize: 12,
                             ),
                           ),
                         ),
@@ -325,56 +326,53 @@ class _LoginScreenState extends State<LoginScreen> {
                       ElevatedButton(
                         onPressed: authService.isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF1E293B),
-                          foregroundColor: Colors.white,
+                          backgroundColor: AdminTheme.accent,
+                          foregroundColor: AdminTheme.bgSidebar,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          elevation: 0,
                         ),
                         child: authService.isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                'Sign In to Admin Portal',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                          ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AdminTheme.bgSidebar,
                               ),
+                            )
+                          : const Text(
+                              'Sign In to Console',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 14),
 
                       // Helper Quick Setup / Seed Button
                       OutlinedButton.icon(
-                        onPressed: authService.isLoading
-                            ? null
-                            : _handleQuickSetup,
-                        icon: const Icon(Icons.auto_fix_high, size: 18),
+                        onPressed: authService.isLoading ? null : _handleQuickSetup,
+                        icon: const Icon(Icons.auto_fix_high, size: 16, color: AdminTheme.accent),
                         label: const Text('Initialize Admin Account (1-Click)'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF2563EB),
-                          side: const BorderSide(color: Color(0xFF93C5FD)),
+                          foregroundColor: AdminTheme.accent,
+                          side: const BorderSide(color: AdminTheme.borderSubtle),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                       ),
                       const SizedBox(height: 12),
                       const Text(
-                        'Authorized administrative personnel only.',
+                        'Authorized administrative credentials required.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF94A3B8),
+                          fontSize: 11,
+                          color: AdminTheme.textMuted,
                         ),
                       ),
                     ],

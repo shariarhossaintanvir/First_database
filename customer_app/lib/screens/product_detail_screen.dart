@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product_model.dart';
 import '../providers/cart_provider.dart';
+import '../theme/app_theme.dart';
 import 'cart_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
@@ -24,15 +25,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final isUnavailable = !p.isAvailable || isOutOfStock;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppTheme.bgPrimary,
       appBar: AppBar(
-        title: Text(p.title),
+        backgroundColor: AppTheme.bgPrimary,
+        elevation: 0,
+        title: Text(
+          p.title,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
         actions: [
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined),
+                icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.textPrimary),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -45,15 +53,17 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   top: 8,
                   right: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accent,
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                     child: Text(
                       '${cart.itemCount}',
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppTheme.bgPrimary,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -62,19 +72,14 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                 ),
             ],
           ),
+          const SizedBox(width: 8),
         ],
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            ),
-          ],
+        decoration: const BoxDecoration(
+          color: AppTheme.surfaceCard,
+          border: Border(top: BorderSide(color: AppTheme.borderSubtle, width: 1)),
         ),
         child: SafeArea(
           child: Row(
@@ -82,34 +87,32 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
               // Quantity Stepper
               Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
+                  color: AppTheme.bgSecondary,
+                  border: Border.all(color: AppTheme.borderSubtle),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.remove, size: 18),
-                      onPressed: _quantity > 1
-                          ? () => setState(() => _quantity--)
-                          : null,
+                      icon: const Icon(Icons.remove, size: 18, color: AppTheme.textSecondary),
+                      onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
                     ),
                     Text(
                       '$_quantity',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.add, size: 18),
-                      onPressed: _quantity < p.stock
-                          ? () => setState(() => _quantity++)
-                          : null,
+                      icon: const Icon(Icons.add, size: 18, color: AppTheme.textSecondary),
+                      onPressed: _quantity < p.stock ? () => setState(() => _quantity++) : null,
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
 
               // Add to Cart Button
               Expanded(
@@ -118,37 +121,34 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ? null
                       : () {
                           cart.addItem(p, quantity: _quantity);
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(
-                                'Added $_quantity "${p.title}" to cart!',
-                              ),
-                              backgroundColor: Colors.green,
+                              content: Text('Added $_quantity "${p.title}" to cart'),
+                              backgroundColor: AppTheme.surfaceElevated,
                               action: SnackBarAction(
                                 label: 'VIEW CART',
-                                textColor: Colors.white,
+                                textColor: AppTheme.accent,
                                 onPressed: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const CartScreen(),
-                                    ),
+                                    MaterialPageRoute(builder: (_) => const CartScreen()),
                                   );
                                 },
                               ),
                             ),
                           );
                         },
-                  icon: const Icon(Icons.add_shopping_cart),
+                  icon: const Icon(Icons.shopping_bag_outlined, size: 18),
                   label: Text(
                     !p.isAvailable
                         ? 'Currently Unavailable'
                         : (isOutOfStock ? 'Out of Stock' : 'Add to Cart'),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade600,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: isUnavailable ? AppTheme.surfaceElevated : AppTheme.accent,
+                    foregroundColor: isUnavailable ? AppTheme.textDisabled : AppTheme.bgPrimary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -163,64 +163,74 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Hero Image
+            // Product Hero Image Frame
             Container(
-              height: 320,
+              height: 340,
               width: double.infinity,
-              color: Colors.grey.shade50,
+              color: AppTheme.bgSecondary,
+              padding: const EdgeInsets.all(24),
               child: Image.network(
                 p.imageUrl,
                 fit: BoxFit.contain,
                 errorBuilder: (ctx, err, stack) => const Center(
                   child: Icon(
-                    Icons.image_not_supported,
+                    Icons.image_not_supported_outlined,
                     size: 80,
-                    color: Colors.grey,
+                    color: AppTheme.textMuted,
                   ),
                 ),
+                loadingBuilder: (ctx, child, progress) {
+                  if (progress == null) return child;
+                  return const Center(
+                    child: CircularProgressIndicator(color: AppTheme.accent),
+                  );
+                },
               ),
             ),
-            const SizedBox(height: 20),
+            const Divider(height: 1, color: AppTheme.borderSubtle),
 
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Category & Stock Status
+                  // Category & Stock Badge Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
+                          color: AppTheme.accentSubtle,
                           borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: AppTheme.accent.withValues(alpha: 0.3)),
                         ),
                         child: Text(
                           p.category.toUpperCase(),
-                          style: TextStyle(
-                            color: Colors.blue.shade800,
+                          style: const TextStyle(
+                            color: AppTheme.accent,
                             fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: 11,
+                            letterSpacing: 0.6,
                           ),
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: !p.isAvailable
-                              ? Colors.grey.shade100
+                              ? AppTheme.surfaceCard
                               : (isOutOfStock
-                                  ? Colors.red.shade50
-                                  : Colors.green.shade50),
+                                  ? AppTheme.statusError.withValues(alpha: 0.15)
+                                  : AppTheme.statusSuccess.withValues(alpha: 0.15)),
                           borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: !p.isAvailable
+                                ? AppTheme.borderSubtle
+                                : (isOutOfStock
+                                    ? AppTheme.statusError.withValues(alpha: 0.4)
+                                    : AppTheme.statusSuccess.withValues(alpha: 0.4)),
+                          ),
                         ),
                         child: Text(
                           !p.isAvailable
@@ -230,59 +240,94 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   : 'In Stock (${p.stock} units)'),
                           style: TextStyle(
                             color: !p.isAvailable
-                                ? Colors.grey.shade800
-                                : (isOutOfStock
-                                    ? Colors.red.shade800
-                                    : Colors.green.shade800),
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
+                                ? AppTheme.textMuted
+                                : (isOutOfStock ? AppTheme.statusError : AppTheme.statusSuccess),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11,
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
 
-                  // Title
+                  // Product Title
                   Text(
                     p.title,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                      letterSpacing: -0.4,
+                      color: AppTheme.textPrimary,
+                      height: 1.3,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
 
-                  // Price
+                  // Price (BDT)
                   Text(
-                    '\$${p.price.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 26,
+                    '৳ ${p.price.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 28,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue.shade700,
+                      letterSpacing: -0.5,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
-                  const Divider(height: 32),
+                  const SizedBox(height: 20),
+                  const Divider(color: AppTheme.borderSubtle),
+                  const SizedBox(height: 16),
 
-                  // Description Header & Content
+                  // Product Description Header & Content
                   const Text(
-                    'Product Description',
+                    'Product Overview',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F172A),
+                      letterSpacing: -0.2,
+                      color: AppTheme.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Text(
                     p.description.isNotEmpty
                         ? p.description
-                        : 'No description provided for this item.',
+                        : 'No detailed description provided for this catalog item.',
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF475569),
-                      height: 1.5,
+                      color: AppTheme.textSecondary,
+                      height: 1.6,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Security & Guarantee Badges
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppTheme.surfaceCard,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.borderSubtle),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _DetailBadge(
+                          icon: Icons.verified_user_outlined,
+                          title: '100% Genuine',
+                          subtitle: 'Verified Product',
+                        ),
+                        _DetailBadge(
+                          icon: Icons.local_shipping_outlined,
+                          title: 'Fast Delivery',
+                          subtitle: 'All Bangladesh',
+                        ),
+                        _DetailBadge(
+                          icon: Icons.replay_outlined,
+                          title: 'Easy Return',
+                          subtitle: '7-Day Policy',
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 30),
@@ -292,6 +337,44 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _DetailBadge extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+
+  const _DetailBadge({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: AppTheme.accent, size: 22),
+        const SizedBox(height: 6),
+        Text(
+          title,
+          style: const TextStyle(
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.w600,
+            fontSize: 11,
+          ),
+        ),
+        Text(
+          subtitle,
+          style: const TextStyle(
+            color: AppTheme.textMuted,
+            fontSize: 10,
+          ),
+        ),
+      ],
     );
   }
 }

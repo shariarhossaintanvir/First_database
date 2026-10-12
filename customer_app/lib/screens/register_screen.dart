@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -62,8 +63,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final auth = Provider.of<AuthService>(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(title: const Text('Create Account'), elevation: 0),
+      backgroundColor: AppTheme.bgPrimary,
+      appBar: AppBar(
+        backgroundColor: AppTheme.bgPrimary,
+        elevation: 0,
+        title: const Text('Create Account'),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -77,19 +82,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const Text(
-                      'Join Us Today',
+                      'Join ShopEase',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F172A),
+                        letterSpacing: -0.4,
+                        color: AppTheme.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Create your free customer account',
+                      'Create your personal account for fast checkout',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 14, color: Color(0xFF64748B)),
+                      style: TextStyle(fontSize: 14, color: AppTheme.textMuted),
                     ),
                     const SizedBox(height: 24),
 
@@ -98,23 +104,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.red.shade50,
+                          color: AppTheme.statusError.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.red.shade200),
+                          border: Border.all(color: AppTheme.statusError.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.error_outline,
-                              color: Colors.red.shade700,
+                              color: AppTheme.statusError,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _errorMessage!,
-                                style: TextStyle(
-                                  color: Colors.red.shade800,
+                                style: const TextStyle(
+                                  color: AppTheme.statusError,
                                   fontSize: 13,
                                 ),
                               ),
@@ -128,12 +134,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     // Full Name
                     TextFormField(
                       controller: _nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Full Name',
-                        prefixIcon: const Icon(Icons.person_outline),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      style: const TextStyle(color: AppTheme.textPrimary),
+                      decoration: const InputDecoration(
+                        labelText: 'Full Name *',
+                        prefixIcon: Icon(Icons.person_outline),
                       ),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) {
@@ -149,18 +153,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // Email Field
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
+                      style: const TextStyle(color: AppTheme.textPrimary),
+                      decoration: const InputDecoration(
                         labelText: 'Email Address *',
-                        prefixIcon: const Icon(Icons.email_outlined),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        prefixIcon: Icon(Icons.email_outlined),
                       ),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) {
@@ -176,18 +178,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // Phone Field (Optional)
                     TextFormField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
+                      style: const TextStyle(color: AppTheme.textPrimary),
+                      decoration: const InputDecoration(
                         labelText: 'Phone Number (Optional)',
-                        prefixIcon: const Icon(Icons.phone_outlined),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        hintText: '+880 1XXXXXXXXX',
+                        prefixIcon: Icon(Icons.phone_outlined),
                       ),
                       validator: (v) {
                         if (v != null && v.trim().isNotEmpty && v.trim().length > 30) {
@@ -196,27 +197,26 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // Password Field
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
+                      style: const TextStyle(color: AppTheme.textPrimary),
                       decoration: InputDecoration(
-                        labelText: 'Password',
+                        labelText: 'Password *',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
-                                ? Icons.visibility_off
-                                : Icons.visibility,
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: AppTheme.textMuted,
                           ),
                           onPressed: () => setState(
                             () => _obscurePassword = !_obscurePassword,
                           ),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                       validator: (v) {
@@ -232,18 +232,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
 
                     // Confirm Password Field
                     TextFormField(
                       controller: _confirmPasswordController,
                       obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: 'Confirm Password',
-                        prefixIcon: const Icon(Icons.lock_reset),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      style: const TextStyle(color: AppTheme.textPrimary),
+                      decoration: const InputDecoration(
+                        labelText: 'Confirm Password *',
+                        prefixIcon: Icon(Icons.lock_reset),
                       ),
                       validator: (v) {
                         if (v == null || v.trim().isEmpty) {
@@ -255,19 +253,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 22),
 
                     // Register Button
                     ElevatedButton(
                       onPressed: auth.isLoading ? null : _handleRegister,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade600,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AppTheme.accent,
+                        foregroundColor: AppTheme.bgPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        elevation: 0,
                       ),
                       child: auth.isLoading
                           ? const SizedBox(
@@ -275,7 +272,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: AppTheme.bgPrimary,
                               ),
                             )
                           : const Text(
@@ -286,7 +283,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               ),
                             ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
 
                     // Already have account
                     Row(
@@ -294,15 +291,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       children: [
                         const Text(
                           'Already have an account? ',
-                          style: TextStyle(color: Color(0xFF64748B)),
+                          style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
                         ),
                         GestureDetector(
                           onTap: () => Navigator.pop(context),
-                          child: Text(
+                          child: const Text(
                             'Sign In',
                             style: TextStyle(
-                              color: Colors.blue.shade600,
+                              color: AppTheme.accent,
                               fontWeight: FontWeight.bold,
+                              fontSize: 13,
                             ),
                           ),
                         ),

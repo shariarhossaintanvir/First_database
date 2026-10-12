@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/order_model.dart';
 import '../services/firestore_service.dart';
+import '../theme/admin_theme.dart';
+import '../widgets/admin_layout.dart';
 import 'order_detail_screen.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -41,213 +43,359 @@ class _OrdersScreenState extends State<OrdersScreen>
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Pending':
-        return Colors.orange;
+        return AdminTheme.statusWarning;
       case 'Confirmed':
-        return Colors.teal;
+        return const Color(0xFF14B8A6);
       case 'Processing':
-        return Colors.blue;
+        return AdminTheme.statusInfo;
       case 'Shipped':
-        return Colors.purple;
+        return const Color(0xFFA855F7);
       case 'Delivered':
-        return Colors.green;
+        return AdminTheme.statusSuccess;
       case 'Cancelled':
-        return Colors.red;
+        return AdminTheme.statusError;
       default:
-        return Colors.grey;
+        return AdminTheme.textMuted;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order Management'),
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          tabAlignment: TabAlignment.start,
-          tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
-        ),
-      ),
-      body: StreamBuilder<List<OrderModel>>(
-        stream: _firestoreService.getOrdersStream(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.assignment_outlined,
-                      size: 48,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      'Unable to load orders',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      'Please verify your connection and administrator permissions.',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
+    return AdminLayout(
+      title: 'Customer Orders',
+      currentRoute: '/orders',
+      body: Column(
+        children: [
+          // Filter Tabs Container
+          Container(
+            color: AdminTheme.bgSidebar,
+            child: TabBar(
+              controller: _tabController,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
+              indicatorColor: AdminTheme.accent,
+              indicatorWeight: 2,
+              dividerColor: AdminTheme.borderSubtle,
+              labelColor: AdminTheme.accent,
+              unselectedLabelColor: AdminTheme.textSecondary,
+              labelStyle: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+              unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 13),
+              tabs: _tabs.map((tab) => Tab(text: tab)).toList(),
+            ),
+          ),
 
-          final allOrders = snapshot.data ?? [];
-
-          return TabBarView(
-            controller: _tabController,
-            children: _tabs.map((tab) {
-              final filteredOrders = tab == 'All'
-                  ? allOrders
-                  : allOrders
-                        .where(
-                          (o) => o.status.toLowerCase() == tab.toLowerCase(),
-                        )
-                        .toList();
-
-              if (filteredOrders.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.receipt_long_outlined,
-                        size: 64,
-                        color: Colors.grey.shade400,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No $tab orders found',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }
-
-              return ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: filteredOrders.length,
-                separatorBuilder: (ctx, idx) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final order = filteredOrders[index];
-                  final formattedDate = DateFormat(
-                    'MMM dd, yyyy - hh:mm a',
-                  ).format(order.createdAt);
-                  final color = _getStatusColor(order.status);
-
-                  return Card(
-                    elevation: 1,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => OrderDetailScreen(order: order),
+          // Orders Stream
+          Expanded(
+            child: StreamBuilder<List<OrderModel>>(
+              stream: _firestoreService.getOrdersStream(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: AdminTheme.accent),
+                  );
+                }
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            size: 48,
+                            color: AdminTheme.statusWarning,
                           ),
-                        );
-                      },
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 4,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: color.withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: color),
-                                  ),
-                                  child: Text(
-                                    order.status,
-                                    style: TextStyle(
-                                      color: color,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Unable to load orders',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AdminTheme.textPrimary,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Customer: ${order.customerName}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Date: $formattedDate',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const Divider(height: 20),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '${order.items.length} ${order.items.length == 1 ? 'item' : 'items'}',
-                                  style: const TextStyle(color: Colors.grey),
-                                ),
-                                Text(
-                                  'Total: \$${order.totalAmount.toStringAsFixed(2)}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Color(0xFF0F172A),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Verify connection and permissions: ${snapshot.error}',
+                            style: const TextStyle(color: AdminTheme.textMuted),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ),
                   );
-                },
-              );
-            }).toList(),
-          );
-        },
+                }
+
+                final allOrders = snapshot.data ?? [];
+
+                return TabBarView(
+                  controller: _tabController,
+                  children: _tabs.map((tab) {
+                    final filteredOrders = tab == 'All'
+                        ? allOrders
+                        : allOrders
+                            .where(
+                              (o) => o.status.toLowerCase() == tab.toLowerCase(),
+                            )
+                            .toList();
+
+                    if (filteredOrders.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                color: AdminTheme.surfaceCard,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: AdminTheme.borderSubtle),
+                              ),
+                              child: const Icon(
+                                Icons.receipt_long_outlined,
+                                size: 48,
+                                color: AdminTheme.textMuted,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No $tab orders found',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: AdminTheme.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Customer purchases with this status will appear here.',
+                              style: TextStyle(color: AdminTheme.textMuted, fontSize: 13),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isDesktop = constraints.maxWidth >= 960;
+
+                        if (isDesktop) {
+                          // Desktop Data Table View
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.all(24),
+                            child: Card(
+                              color: AdminTheme.surfaceCard,
+                              elevation: 0,
+                              clipBehavior: Clip.antiAlias,
+                              child: ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: filteredOrders.length,
+                                separatorBuilder: (ctx, idx) =>
+                                    const Divider(height: 1, color: AdminTheme.borderSubtle),
+                                itemBuilder: (context, index) {
+                                  final order = filteredOrders[index];
+                                  final formattedDate = DateFormat(
+                                    'MMM dd, yyyy • hh:mm a',
+                                  ).format(order.createdAt);
+                                  final color = _getStatusColor(order.status);
+
+                                  return ListTile(
+                                    hoverColor: AdminTheme.surfaceHover,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => OrderDetailScreen(order: order),
+                                        ),
+                                      );
+                                    },
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                                    leading: CircleAvatar(
+                                      radius: 18,
+                                      backgroundColor: color.withValues(alpha: 0.12),
+                                      child: Icon(Icons.receipt_outlined, color: color, size: 18),
+                                    ),
+                                    title: Row(
+                                      children: [
+                                        Text(
+                                          'Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: AdminTheme.textPrimary,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            color: color.withValues(alpha: 0.12),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: color.withValues(alpha: 0.3)),
+                                          ),
+                                          child: Text(
+                                            order.status,
+                                            style: TextStyle(
+                                              color: color,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    subtitle: Padding(
+                                      padding: const EdgeInsets.only(top: 4),
+                                      child: Text(
+                                        'Customer: ${order.customerName} • Placed: $formattedDate • Items: ${order.items.length}',
+                                        style: const TextStyle(color: AdminTheme.textMuted, fontSize: 12),
+                                      ),
+                                    ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          '৳ ${order.totalAmount.toStringAsFixed(0)}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                            color: AdminTheme.textPrimary,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        const Icon(Icons.chevron_right, size: 18, color: AdminTheme.textMuted),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          );
+                        }
+
+                        // Mobile View
+                        return ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: filteredOrders.length,
+                          separatorBuilder: (ctx, idx) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final order = filteredOrders[index];
+                            final formattedDate = DateFormat(
+                              'MMM dd, yyyy - hh:mm a',
+                            ).format(order.createdAt);
+                            final color = _getStatusColor(order.status);
+
+                            return Card(
+                              color: AdminTheme.surfaceCard,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: const BorderSide(color: AdminTheme.borderSubtle),
+                              ),
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(10),
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => OrderDetailScreen(order: order),
+                                    ),
+                                  );
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                              color: AdminTheme.textPrimary,
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 3,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: color.withValues(alpha: 0.12),
+                                              borderRadius: BorderRadius.circular(6),
+                                              border: Border.all(color: color.withValues(alpha: 0.3)),
+                                            ),
+                                            child: Text(
+                                              order.status,
+                                              style: TextStyle(
+                                                color: color,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Customer: ${order.customerName}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: AdminTheme.textPrimary,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 3),
+                                      Text(
+                                        'Date: $formattedDate',
+                                        style: const TextStyle(
+                                          color: AdminTheme.textMuted,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      const Divider(height: 1, color: AdminTheme.borderSubtle),
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '${order.items.length} ${order.items.length == 1 ? 'item' : 'items'} • ${order.paymentMethod}',
+                                            style: const TextStyle(color: AdminTheme.textMuted, fontSize: 12),
+                                          ),
+                                          Text(
+                                            '৳ ${order.totalAmount.toStringAsFixed(0)}',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 15,
+                                              color: AdminTheme.textPrimary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

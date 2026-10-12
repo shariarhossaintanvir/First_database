@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../providers/cart_provider.dart';
 import '../models/order_model.dart';
+import '../theme/app_theme.dart';
 import 'order_success_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -31,9 +32,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _nameController = TextEditingController(
       text: auth.currentUser?.displayName ?? '',
     );
-    _phoneController = TextEditingController(text: '+1 (555) 234-5678');
+    _phoneController = TextEditingController(text: '+880 1712 345678');
     _addressController = TextEditingController(
-      text: '742 Evergreen Terrace, Springfield',
+      text: 'House 12, Road 5, Dhanmondi, Dhaka',
     );
   }
 
@@ -114,29 +115,27 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final cart = Provider.of<CartProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(title: const Text('Checkout & Delivery')),
+      backgroundColor: AppTheme.bgPrimary,
+      appBar: AppBar(
+        backgroundColor: AppTheme.bgPrimary,
+        elevation: 0,
+        title: const Text('Checkout & Delivery'),
+      ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            ),
-          ],
+        decoration: const BoxDecoration(
+          color: AppTheme.surfaceCard,
+          border: Border(top: BorderSide(color: AppTheme.borderSubtle, width: 1)),
         ),
         child: SafeArea(
           child: ElevatedButton(
             onPressed: _isPlacingOrder ? null : _handlePlaceOrder,
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade600,
-              foregroundColor: Colors.white,
+              backgroundColor: AppTheme.accent,
+              foregroundColor: AppTheme.bgPrimary,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
             ),
             child: _isPlacingOrder
@@ -145,11 +144,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     height: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Colors.white,
+                      color: AppTheme.bgPrimary,
                     ),
                   )
                 : Text(
-                    'Place Order • \$${cart.totalAmount.toStringAsFixed(2)}',
+                    'Place Order • ৳ ${cart.totalAmount.toStringAsFixed(0)}',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -159,7 +158,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
@@ -167,24 +166,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             children: [
               // Shipping Address Section
               Card(
-                elevation: 1,
+                color: AppTheme.surfaceCard,
+                elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: AppTheme.borderSubtle),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.location_on_outlined, color: Colors.blue),
-                          SizedBox(width: 8),
-                          Text(
-                            'Shipping Information',
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentSubtle,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(Icons.location_on_outlined, color: AppTheme.accent, size: 18),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Shipping Details',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 15,
+                              color: AppTheme.textPrimary,
                             ),
                           ),
                         ],
@@ -192,9 +201,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       const SizedBox(height: 16),
                       TextFormField(
                         controller: _nameController,
+                        style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
                         decoration: const InputDecoration(
                           labelText: 'Recipient Full Name *',
-                          border: OutlineInputBorder(),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
@@ -214,9 +223,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       TextFormField(
                         controller: _phoneController,
                         keyboardType: TextInputType.phone,
+                        style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
                         decoration: const InputDecoration(
                           labelText: 'Phone Number *',
-                          border: OutlineInputBorder(),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
@@ -237,9 +246,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       TextFormField(
                         controller: _addressController,
                         maxLines: 2,
+                        style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
                         decoration: const InputDecoration(
-                          labelText: 'Delivery Address *',
-                          border: OutlineInputBorder(),
+                          labelText: 'Delivery Address in Bangladesh *',
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
@@ -259,57 +268,76 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // Payment Method Section
               Card(
-                elevation: 1,
+                color: AppTheme.surfaceCard,
+                elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: AppTheme.borderSubtle),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.payment, color: Colors.blue),
-                          SizedBox(width: 8),
-                          Text(
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentSubtle,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(Icons.payment_outlined, color: AppTheme.accent, size: 18),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
                             'Payment Method',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 15,
+                              color: AppTheme.textPrimary,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       _buildPaymentOption(
                         title: 'Cash on Delivery (COD)',
-                        subtitle: 'Pay with cash upon arrival',
+                        subtitle: 'Pay with cash upon receipt anywhere in Bangladesh',
                         icon: Icons.money,
                         value: 'Cash on Delivery',
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
+                      _buildPaymentOption(
+                        title: 'bKash / Nagad / Rocket',
+                        subtitle: 'Instant mobile financial payment confirmation',
+                        icon: Icons.account_balance_wallet_outlined,
+                        value: 'Mobile Banking',
+                      ),
+                      const SizedBox(height: 10),
                       _buildPaymentOption(
                         title: 'Credit / Debit Card',
                         subtitle: 'Visa, MasterCard, Amex',
-                        icon: Icons.credit_card,
+                        icon: Icons.credit_card_outlined,
                         value: 'Credit / Debit Card',
                       ),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
 
               // Order Summary Card
               Card(
-                elevation: 1,
+                color: AppTheme.surfaceCard,
+                elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: AppTheme.borderSubtle),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -320,10 +348,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         'Order Summary (${cart.itemCount} items)',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 15,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
-                      const Divider(height: 20),
+                      const SizedBox(height: 12),
+                      const Divider(color: AppTheme.borderSubtle, height: 1),
+                      const SizedBox(height: 12),
                       ...cart.itemList.map((item) {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4),
@@ -335,23 +366,30 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                   '${item.quantity}x ${item.product.title}',
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                                 ),
                               ),
-                              Text('\$${item.totalPrice.toStringAsFixed(2)}'),
+                              Text(
+                                '৳ ${item.totalPrice.toStringAsFixed(0)}',
+                                style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 13),
+                              ),
                             ],
                           ),
                         );
                       }),
-                      const Divider(height: 20),
-                      Row(
+                      const SizedBox(height: 12),
+                      const Divider(color: AppTheme.borderSubtle, height: 1),
+                      const SizedBox(height: 12),
+                      const Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Delivery Shipping:'),
+                          Text('Standard Delivery:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
                           Text(
                             'FREE',
                             style: TextStyle(
-                              color: Colors.green.shade700,
+                              color: AppTheme.statusSuccess,
                               fontWeight: FontWeight.bold,
+                              fontSize: 13,
                             ),
                           ),
                         ],
@@ -361,18 +399,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           const Text(
-                            'Total Amount:',
+                            'Total Payable:',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 16,
+                              fontSize: 15,
+                              color: AppTheme.textPrimary,
                             ),
                           ),
                           Text(
-                            '\$${cart.totalAmount.toStringAsFixed(2)}',
+                            '৳ ${cart.totalAmount.toStringAsFixed(0)}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
-                              color: Color(0xFF0F172A),
+                              color: AppTheme.accent,
                             ),
                           ),
                         ],
@@ -381,6 +420,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -404,16 +444,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? Colors.blue : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
+            color: isSelected ? AppTheme.accent : AppTheme.borderSubtle,
+            width: isSelected ? 1.5 : 1,
           ),
-          color: isSelected
-              ? Colors.blue.shade50.withValues(alpha: 0.3)
-              : Colors.transparent,
+          color: isSelected ? AppTheme.accentSubtle : AppTheme.bgSecondary,
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? Colors.blue : Colors.grey),
+            Icon(icon, color: isSelected ? AppTheme.accent : AppTheme.textMuted, size: 22),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -422,21 +460,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.w500,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: AppTheme.textPrimary,
+                      fontSize: 14,
                     ),
                   ),
+                  const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
                   ),
                 ],
               ),
             ),
             Icon(
               isSelected ? Icons.check_circle : Icons.circle_outlined,
-              color: isSelected ? Colors.blue : Colors.grey.shade400,
+              color: isSelected ? AppTheme.accent : AppTheme.textMuted,
+              size: 20,
             ),
           ],
         ),

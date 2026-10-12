@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../models/order_model.dart';
 import '../models/product_model.dart';
 import '../models/category_model.dart';
+import '../theme/admin_theme.dart';
+import '../widgets/admin_layout.dart';
 import 'products_screen.dart';
 import 'categories_screen.dart';
 import 'orders_screen.dart';
 import 'order_detail_screen.dart';
+import 'add_edit_product_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -30,106 +31,56 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Pending':
-        return Colors.orange;
+        return AdminTheme.statusWarning;
       case 'Confirmed':
-        return Colors.teal;
+        return const Color(0xFF14B8A6);
       case 'Processing':
-        return Colors.blue;
+        return AdminTheme.statusInfo;
       case 'Shipped':
-        return Colors.purple;
+        return const Color(0xFFA855F7);
       case 'Delivered':
-        return Colors.green;
+        return AdminTheme.statusSuccess;
       case 'Cancelled':
-        return Colors.red;
+        return AdminTheme.statusError;
       default:
-        return Colors.grey;
+        return AdminTheme.textMuted;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context);
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text(
-          'Admin Dashboard',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color(0xFF0F172A),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            tooltip: 'Sign Out',
-            icon: const Icon(Icons.logout),
-            onPressed: () => authService.signOut(),
+    return AdminLayout(
+      title: 'Dashboard Overview',
+      currentRoute: '/dashboard',
+      actions: [
+        ElevatedButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AddEditProductScreen()),
+            );
+          },
+          icon: const Icon(Icons.add, size: 16),
+          label: const Text('Add Product'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AdminTheme.accent,
+            foregroundColor: AdminTheme.bgSidebar,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           ),
-        ],
-      ),
+        ),
+      ],
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Welcome Header
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF1E293B), Color(0xFF0F172A)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 28,
-                    backgroundColor: Color(0xFF334155),
-                    child: Icon(
-                      Icons.admin_panel_settings,
-                      size: 32,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Welcome, Administrator',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          authService.currentUser?.email ??
-                              'admin@ecommerce.com',
-                          style: const TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 13,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // Live Analytics Cards Row
+            // Live Analytics Cards Stream
             StreamBuilder<List<ProductModel>>(
               stream: _firestoreService.getProductsStream(),
               builder: (context, productSnap) {
-                final productCount = productSnap.data?.length ?? 0;
+                final products = productSnap.data ?? [];
+                final productCount = products.length;
+                final lowStockCount = products.where((p) => p.stock <= 5).length;
 
                 return StreamBuilder<List<CategoryModel>>(
                   stream: _firestoreService.getCategoriesStream(),
@@ -148,47 +99,95 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // 4 Key Metric Cards
+                            // 4 Key SaaS Metric Cards
                             LayoutBuilder(
                               builder: (context, constraints) {
-                                final isWide = constraints.maxWidth > 600;
+                                final isWide = constraints.maxWidth > 800;
                                 return GridView.count(
                                   crossAxisCount: isWide ? 4 : 2,
                                   shrinkWrap: true,
                                   physics: const NeverScrollableScrollPhysics(),
-                                  crossAxisSpacing: 12,
-                                  mainAxisSpacing: 12,
+                                  crossAxisSpacing: 14,
+                                  mainAxisSpacing: 14,
                                   childAspectRatio: isWide ? 1.6 : 1.3,
                                   children: [
                                     _buildMetricCard(
-                                      title: 'Revenue',
-                                      value:
-                                          '\$${totalRevenue.toStringAsFixed(0)}',
-                                      icon: Icons.attach_money,
-                                      color: const Color(0xFF10B981),
+                                      title: 'Gross Revenue',
+                                      value: '৳ ${totalRevenue.toStringAsFixed(0)}',
+                                      subtitle: 'Confirmed & pending orders',
+                                      icon: Icons.payments_outlined,
+                                      color: AdminTheme.statusSuccess,
                                     ),
                                     _buildMetricCard(
                                       title: 'Total Orders',
                                       value: orderCount.toString(),
-                                      icon: Icons.receipt_long,
-                                      color: const Color(0xFF3B82F6),
+                                      subtitle: '${orders.where((o) => o.status == 'Pending').length} pending fulfillment',
+                                      icon: Icons.receipt_long_outlined,
+                                      color: AdminTheme.accent,
                                     ),
                                     _buildMetricCard(
-                                      title: 'Products',
+                                      title: 'Active Catalog',
                                       value: productCount.toString(),
-                                      icon: Icons.inventory_2,
-                                      color: const Color(0xFF8B5CF6),
+                                      subtitle: '$lowStockCount low stock items',
+                                      icon: Icons.inventory_2_outlined,
+                                      color: const Color(0xFFA855F7),
                                     ),
                                     _buildMetricCard(
                                       title: 'Categories',
                                       value: catCount.toString(),
-                                      icon: Icons.category,
-                                      color: const Color(0xFFF59E0B),
+                                      subtitle: 'Department taxonomies',
+                                      icon: Icons.category_outlined,
+                                      color: AdminTheme.statusWarning,
                                     ),
                                   ],
                                 );
                               },
                             ),
+                            const SizedBox(height: 24),
+
+                            // Low Stock Operational Alert (if any)
+                            if (lowStockCount > 0)
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 24),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: AdminTheme.statusWarning.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: AdminTheme.statusWarning.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.warning_amber_rounded,
+                                      color: AdminTheme.statusWarning,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        'Inventory Notice: $lowStockCount catalog products have 5 or fewer items remaining in stock.',
+                                        style: const TextStyle(
+                                          color: AdminTheme.textPrimary,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => const ProductsScreen(),
+                                          ),
+                                        );
+                                      },
+                                      child: const Text('Review Inventory'),
+                                    ),
+                                  ],
+                                ),
+                              ),
                           ],
                         );
                       },
@@ -197,15 +196,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 );
               },
             ),
-            const SizedBox(height: 28),
 
-            // Quick Actions & Navigation
+            // Quick Navigation Hub
             const Text(
-              'Quick Navigation',
+              'Operational Hub',
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0F172A),
+                color: AdminTheme.textPrimary,
+                letterSpacing: -0.2,
               ),
             ),
             const SizedBox(height: 12),
@@ -214,15 +213,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: _buildActionTile(
                     title: 'Inventory',
-                    subtitle: 'Manage Products',
-                    icon: Icons.shopping_bag_outlined,
-                    color: Colors.blue,
+                    subtitle: 'Manage catalog & stock',
+                    icon: Icons.inventory_2_outlined,
+                    color: AdminTheme.accent,
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => const ProductsScreen(),
-                        ),
+                        MaterialPageRoute(builder: (_) => const ProductsScreen()),
                       );
                     },
                   ),
@@ -231,15 +228,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: _buildActionTile(
                     title: 'Categories',
-                    subtitle: 'Product Types',
+                    subtitle: 'Taxonomies & departments',
                     icon: Icons.category_outlined,
-                    color: Colors.teal,
+                    color: AdminTheme.statusWarning,
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => const CategoriesScreen(),
-                        ),
+                        MaterialPageRoute(builder: (_) => const CategoriesScreen()),
                       );
                     },
                   ),
@@ -248,9 +243,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 Expanded(
                   child: _buildActionTile(
                     title: 'Orders',
-                    subtitle: 'Track & Fulfill',
+                    subtitle: 'Fulfill & track shipments',
                     icon: Icons.local_shipping_outlined,
-                    color: Colors.purple,
+                    color: AdminTheme.statusSuccess,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -263,16 +258,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 28),
 
-            // Recent Orders Section
+            // Recent Orders Header
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Recent Orders',
+                  'Recent Customer Orders',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF0F172A),
+                    color: AdminTheme.textPrimary,
+                    letterSpacing: -0.2,
                   ),
                 ),
                 TextButton(
@@ -288,26 +284,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: 10),
 
+            // Recent Orders Stream Table / Cards
             StreamBuilder<List<OrderModel>>(
               stream: _firestoreService.getOrdersStream(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24.0),
+                      child: CircularProgressIndicator(color: AdminTheme.accent),
+                    ),
+                  );
                 }
 
                 final orders = snapshot.data ?? [];
                 if (orders.isEmpty) {
                   return Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    color: AdminTheme.surfaceCard,
                     child: const Padding(
                       padding: EdgeInsets.all(32),
                       child: Center(
                         child: Text(
-                          'No orders placed yet. Orders placed from the Customer App will appear here instantly!',
+                          'No orders placed yet. Orders from the Customer App will appear here in real time.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.grey),
+                          style: TextStyle(color: AdminTheme.textMuted),
                         ),
                       ),
                     ),
@@ -316,24 +316,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                 final recentOrders = orders.take(5).toList();
 
-                return ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: recentOrders.length,
-                  separatorBuilder: (ctx, idx) => const SizedBox(height: 10),
-                  itemBuilder: (context, index) {
-                    final o = recentOrders[index];
-                    final dateStr = DateFormat(
-                      'MMM dd, hh:mm a',
-                    ).format(o.createdAt);
-                    final color = _getStatusColor(o.status);
+                return Card(
+                  color: AdminTheme.surfaceCard,
+                  elevation: 0,
+                  clipBehavior: Clip.antiAlias,
+                  child: ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: recentOrders.length,
+                    separatorBuilder: (ctx, idx) => const Divider(height: 1, color: AdminTheme.borderSubtle),
+                    itemBuilder: (context, index) {
+                      final o = recentOrders[index];
+                      final dateStr = DateFormat(
+                        'MMM dd, hh:mm a',
+                      ).format(o.createdAt);
+                      final color = _getStatusColor(o.status);
 
-                    return Card(
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ListTile(
+                      return ListTile(
+                        hoverColor: AdminTheme.surfaceHover,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -343,14 +343,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           );
                         },
                         leading: CircleAvatar(
-                          backgroundColor: color.withValues(alpha: 0.15),
-                          child: Icon(Icons.receipt, color: color),
+                          radius: 18,
+                          backgroundColor: color.withValues(alpha: 0.12),
+                          child: Icon(Icons.receipt_outlined, color: color, size: 18),
                         ),
                         title: Text(
-                          '#${o.id.length > 8 ? o.id.substring(0, 8) : o.id} - ${o.customerName}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                          '#${o.id.length > 8 ? o.id.substring(0, 8) : o.id} • ${o.customerName}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: AdminTheme.textPrimary,
+                            fontSize: 13,
+                          ),
                         ),
-                        subtitle: Text('$dateStr • ${o.items.length} items'),
+                        subtitle: Text(
+                          '$dateStr • ${o.items.length} ${o.items.length == 1 ? 'item' : 'items'} • ${o.paymentMethod}',
+                          style: const TextStyle(color: AdminTheme.textMuted, fontSize: 12),
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -360,31 +368,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(10),
+                                color: color.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: color.withValues(alpha: 0.3)),
                               ),
                               child: Text(
                                 o.status,
                                 style: TextStyle(
                                   color: color,
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w600,
                                   fontSize: 11,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 14),
                             Text(
-                              '\$${o.totalAmount.toStringAsFixed(2)}',
+                              '৳ ${o.totalAmount.toStringAsFixed(0)}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
+                                color: AdminTheme.textPrimary,
                               ),
                             ),
+                            const SizedBox(width: 6),
+                            const Icon(Icons.chevron_right, size: 18, color: AdminTheme.textMuted),
                           ],
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 );
               },
             ),
@@ -397,22 +409,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _buildMetricCard({
     required String title,
     required String value,
+    required String subtitle,
     required IconData icon,
     required Color color,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x05000000),
-            blurRadius: 4,
-            offset: Offset(0, 2),
-          ),
-        ],
+        color: AdminTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AdminTheme.borderSubtle),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -424,8 +430,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
               Text(
                 title,
                 style: const TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 13,
+                  color: AdminTheme.textSecondary,
+                  fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -433,19 +439,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(6),
                 ),
-                child: Icon(icon, size: 18, color: color),
+                child: Icon(icon, size: 16, color: color),
               ),
             ],
           ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0F172A),
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: -0.5,
+                  color: AdminTheme.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AdminTheme.textMuted,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ],
       ),
@@ -461,31 +483,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+          color: AdminTheme.surfaceCard,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AdminTheme.borderSubtle),
         ),
-        child: Column(
+        child: Row(
           children: [
-            CircleAvatar(
-              backgroundColor: color.withValues(alpha: 0.1),
-              radius: 22,
-              child: Icon(icon, color: color, size: 24),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: const TextStyle(color: Colors.grey, fontSize: 11),
-              textAlign: TextAlign.center,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                      color: AdminTheme.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: AdminTheme.textMuted, fontSize: 11),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ],
         ),

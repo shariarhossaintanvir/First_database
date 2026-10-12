@@ -4,7 +4,8 @@ import '../models/category_model.dart';
 import '../models/product_model.dart';
 import '../services/firestore_service.dart';
 import '../providers/cart_provider.dart';
-import 'product_detail_screen.dart';
+import '../theme/app_theme.dart';
+import '../widgets/product_card.dart';
 import 'cart_screen.dart';
 
 class CategoryProductsScreen extends StatelessWidget {
@@ -18,15 +19,17 @@ class CategoryProductsScreen extends StatelessWidget {
     final cart = Provider.of<CartProvider>(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppTheme.bgPrimary,
       appBar: AppBar(
+        backgroundColor: AppTheme.bgPrimary,
+        elevation: 0,
         title: Text(category.name),
         actions: [
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined),
+                icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.textPrimary),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -39,15 +42,17 @@ class CategoryProductsScreen extends StatelessWidget {
                   top: 8,
                   right: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
-                      shape: BoxShape.circle,
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.accent,
+                      borderRadius: BorderRadius.circular(10),
                     ),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                     child: Text(
                       '${cart.itemCount}',
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppTheme.bgPrimary,
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
                       ),
@@ -56,212 +61,105 @@ class CategoryProductsScreen extends StatelessWidget {
                 ),
             ],
           ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: StreamBuilder<List<ProductModel>>(
-        stream: firestoreService.getProductsByCategory(category.name),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return const Center(
-              child: Padding(
-                padding: EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.inventory_2_outlined,
-                      size: 48,
-                      color: Colors.grey,
-                    ),
-                    SizedBox(height: 12),
-                    Text(
-                      'Unable to load products',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      'Please check your connection and try again.',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final int crossAxisCount = width > 1100 ? 4 : (width > 680 ? 3 : 2);
 
-          final products = snapshot.data ?? [];
-
-          if (products.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.inventory_2_outlined,
-                    size: 70,
-                    color: Colors.grey.shade400,
+          return StreamBuilder<List<ProductModel>>(
+            stream: firestoreService.getProductsByCategory(category.name),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppTheme.accent),
+                );
+              }
+              if (snapshot.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 48,
+                          color: AppTheme.textMuted,
+                        ),
+                        const SizedBox(height: 12),
+                        const Text(
+                          'Unable to load products',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Please check your connection and try again.',
+                          style: TextStyle(color: AppTheme.textMuted),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'No products found in ${category.name}',
-                    style: TextStyle(fontSize: 16, color: Colors.grey.shade600),
-                  ),
-                ],
-              ),
-            );
-          }
+                );
+              }
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 0.72,
-              crossAxisSpacing: 14,
-              mainAxisSpacing: 14,
-            ),
-            itemCount: products.length,
-            itemBuilder: (context, index) {
-              final p = products[index];
+              final products = snapshot.data ?? [];
 
-              return Card(
-                elevation: 1,
-                clipBehavior: Clip.antiAlias,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: InkWell(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ProductDetailScreen(product: p),
-                      ),
-                    );
-                  },
+              if (products.isEmpty) {
+                return Center(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Product Image
-                      Expanded(
-                        child: Stack(
-                          children: [
-                            Container(
-                              width: double.infinity,
-                              color: Colors.grey.shade100,
-                              child: Image.network(
-                                p.imageUrl,
-                                fit: BoxFit.cover,
-                                errorBuilder: (ctx, err, stack) => const Icon(
-                                  Icons.image_not_supported,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            ),
-                            if (!p.isAvailable || p.stock <= 0)
-                              Positioned(
-                                top: 8,
-                                right: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(
-                                      alpha: 0.7,
-                                    ),
-                                    borderRadius: BorderRadius.circular(4),
-                                  ),
-                                  child: Text(
-                                    !p.isAvailable ? 'Unavailable' : 'Out of Stock',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                          ],
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: AppTheme.surfaceCard,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: AppTheme.borderSubtle),
+                        ),
+                        child: const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 48,
+                          color: AppTheme.textMuted,
                         ),
                       ),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              p.title,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '\$${p.price.toStringAsFixed(2)}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: Colors.blue.shade700,
-                                  ),
-                                ),
-                                InkWell(
-                                  onTap: (p.stock <= 0 || !p.isAvailable)
-                                      ? null
-                                      : () {
-                                          cart.addItem(p);
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Added "${p.title}" to cart!',
-                                              ),
-                                              duration: const Duration(
-                                                seconds: 1,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: (p.stock > 0 && p.isAvailable)
-                                          ? Colors.blue.shade50
-                                          : Colors.grey.shade100,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.add_shopping_cart,
-                                      size: 16,
-                                      color: (p.stock > 0 && p.isAvailable)
-                                          ? Colors.blue.shade700
-                                          : Colors.grey,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                      const SizedBox(height: 16),
+                      Text(
+                        'No products found in ${category.name}',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.textPrimary,
                         ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Catalog items will appear as soon as added by administrators.',
+                        style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
                       ),
                     ],
                   ),
+                );
+              }
+
+              return GridView.builder(
+                padding: const EdgeInsets.all(16),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  childAspectRatio: 0.68,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
                 ),
+                itemCount: products.length,
+                itemBuilder: (context, index) {
+                  return ProductCard(product: products[index]);
+                },
               );
             },
           );

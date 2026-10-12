@@ -1,0 +1,282 @@
+import 'package:flutter/material.dart';
+
+/// Premium Minimal Dark Theme Tokens for Customer Storefront
+class AppTheme {
+  // --- COLOR PALETTE ---
+  static const Color bgPrimary = Color(0xFF0A0A0C); // Deep Obsidian
+  static const Color bgSecondary = Color(0xFF121215); // Layer 2 background
+  static const Color surfaceCard = Color(0xFF18181C); // Card and container surface
+  static const Color surfaceElevated = Color(0xFF222228); // Elevated cards, modals, hovers
+  static const Color surfaceHover = Color(0xFF2A2A32); // Interactive hover state
+
+  static const Color borderSubtle = Color(0xFF26262D); // 1px borders & dividers
+  static const Color borderStrong = Color(0xFF383842); // Active or hover borders
+
+  // Accent Colors (Refined Champagne Gold & Warm Metallic)
+  static const Color accent = Color(0xFFE2B93B); // Primary brand CTA & highlight
+  static const Color accentHover = Color(0xFFC9A227);
+  static const Color accentSubtle = Color(0x26E2B93B); // 15% tint for pills/badges
+
+  // Typography Colors
+  static const Color textPrimary = Color(0xFFF8FAFC); // High contrast white
+  static const Color textSecondary = Color(0xFFCBD5E1); // Slate 300 for descriptions
+  static const Color textMuted = Color(0xFF94A3B8); // Slate 400 for metadata & hints
+  static const Color textDisabled = Color(0xFF64748B);
+
+  // Status Indicators
+  static const Color statusSuccess = Color(0xFF10B981); // Emerald
+  static const Color statusWarning = Color(0xFFF59E0B); // Amber
+  static const Color statusError = Color(0xFFEF4444); // Crimson
+  static const Color statusInfo = Color(0xFF38BDF8); // Sky
+
+  // --- TYPOGRAPHY STYLES ---
+  static const TextStyle display = TextStyle(
+    fontSize: 28,
+    fontWeight: FontWeight.bold,
+    letterSpacing: -0.5,
+    color: textPrimary,
+    height: 1.2,
+  );
+
+  static const TextStyle headline = TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.3,
+    color: textPrimary,
+    height: 1.3,
+  );
+
+  static const TextStyle title = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.w600,
+    letterSpacing: -0.2,
+    color: textPrimary,
+    height: 1.35,
+  );
+
+  static const TextStyle subtitle = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w500,
+    color: textSecondary,
+    height: 1.4,
+  );
+
+  static const TextStyle body = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.normal,
+    color: textSecondary,
+    height: 1.5,
+  );
+
+  static const TextStyle bodySmall = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.normal,
+    color: textMuted,
+    height: 1.4,
+  );
+
+  static const TextStyle priceLarge = TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    letterSpacing: -0.3,
+    color: textPrimary,
+  );
+
+  static const TextStyle priceMedium = TextStyle(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    letterSpacing: -0.2,
+    color: textPrimary,
+  );
+
+  static const TextStyle button = TextStyle(
+    fontSize: 14,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.2,
+  );
+
+  static const TextStyle label = TextStyle(
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.5,
+    color: textMuted,
+  );
+
+  // --- FLUTTER THEMEDATA ---
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: bgPrimary,
+      primaryColor: accent,
+      canvasColor: bgSecondary,
+      colorScheme: const ColorScheme.dark(
+        primary: accent,
+        onPrimary: bgPrimary,
+        secondary: accent,
+        onSecondary: bgPrimary,
+        surface: surfaceCard,
+        onSurface: textPrimary,
+        error: statusError,
+        onError: textPrimary,
+      ),
+
+      // AppBar
+      appBarTheme: const AppBarTheme(
+        backgroundColor: bgPrimary,
+        foregroundColor: textPrimary,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleTextStyle: headline,
+        iconTheme: IconThemeData(color: textPrimary, size: 22),
+      ),
+
+      // Card Theme
+      cardTheme: CardThemeData(
+        color: surfaceCard,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: borderSubtle, width: 1),
+        ),
+        margin: EdgeInsets.zero,
+      ),
+
+      // Input Decoration Theme
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: bgSecondary,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        hintStyle: const TextStyle(color: textMuted, fontSize: 14),
+        labelStyle: const TextStyle(color: textSecondary, fontSize: 14),
+        prefixIconColor: textMuted,
+        suffixIconColor: textMuted,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: borderSubtle),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: borderSubtle),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: accent, width: 1.5),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: statusError),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: statusError, width: 1.5),
+        ),
+        errorStyle: const TextStyle(color: statusError, fontSize: 12),
+      ),
+
+      // Elevated Button Theme (Primary Accent)
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: accent,
+          foregroundColor: const Color(0xFF0A0A0C), // Dark label for maximum contrast against gold
+          elevation: 0,
+          shadowColor: Colors.transparent,
+          textStyle: button,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+
+      // Outlined Button Theme
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: textPrimary,
+          side: const BorderSide(color: borderSubtle, width: 1),
+          textStyle: button,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+
+      // Text Button Theme
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: accent,
+          textStyle: button,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        ),
+      ),
+
+      // Chip Theme
+      chipTheme: ChipThemeData(
+        backgroundColor: bgSecondary,
+        disabledColor: surfaceElevated,
+        selectedColor: accentSubtle,
+        secondarySelectedColor: accentSubtle,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        labelStyle: const TextStyle(color: textSecondary, fontSize: 13, fontWeight: FontWeight.w500),
+        secondaryLabelStyle: const TextStyle(color: accent, fontSize: 13, fontWeight: FontWeight.w600),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: const BorderSide(color: borderSubtle),
+        ),
+        side: const BorderSide(color: borderSubtle),
+      ),
+
+      // Navigation Bar (Bottom Mobile)
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: bgSecondary,
+        elevation: 0,
+        indicatorColor: accentSubtle,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const IconThemeData(color: accent, size: 22);
+          }
+          return const IconThemeData(color: textMuted, size: 22);
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return const TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.w600);
+          }
+          return const TextStyle(color: textMuted, fontSize: 11, fontWeight: FontWeight.w500);
+        }),
+      ),
+
+      // Dialog Theme
+      dialogTheme: DialogThemeData(
+        backgroundColor: surfaceElevated,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: borderSubtle),
+        ),
+        titleTextStyle: title,
+        contentTextStyle: body,
+      ),
+
+      // SnackBar Theme
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: surfaceElevated,
+        contentTextStyle: const TextStyle(color: textPrimary, fontSize: 14),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: const BorderSide(color: borderSubtle),
+        ),
+        behavior: SnackBarBehavior.floating,
+      ),
+
+      // Divider Theme
+      dividerTheme: const DividerThemeData(
+        color: borderSubtle,
+        thickness: 1,
+        space: 1,
+      ),
+    );
+  }
+}
