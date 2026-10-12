@@ -4,6 +4,7 @@ import '../models/product_model.dart';
 import '../providers/cart_provider.dart';
 import '../theme/app_theme.dart';
 import '../screens/product_detail_screen.dart';
+import 'status_badge.dart';
 
 /// Premium Minimal Dark Product Card
 class ProductCard extends StatelessWidget {
@@ -38,7 +39,7 @@ class ProductCard extends StatelessWidget {
                 children: [
                   Container(
                     color: AppTheme.bgSecondary,
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(AppTheme.space12),
                     child: Image.network(
                       product.imageUrl,
                       fit: BoxFit.contain,
@@ -68,49 +69,15 @@ class ProductCard extends StatelessWidget {
                     ),
                   ),
 
-                  // Stock/Availability pill
-                  if (isUnavailable)
+                  // Stock/Availability status badge
+                  if (isUnavailable || product.stock <= 5)
                     Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.75),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppTheme.statusError.withValues(alpha: 0.4)),
-                        ),
-                        child: Text(
-                          isOutOfStock ? 'OUT OF STOCK' : 'UNAVAILABLE',
-                          style: const TextStyle(
-                            color: AppTheme.statusError,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ),
-                    )
-                  else if (product.stock <= 5)
-                    Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.75),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppTheme.statusWarning.withValues(alpha: 0.4)),
-                        ),
-                        child: Text(
-                          'ONLY ${product.stock} LEFT',
-                          style: const TextStyle(
-                            color: AppTheme.statusWarning,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+                      top: AppTheme.space8,
+                      left: AppTheme.space8,
+                      child: StatusBadge.fromStock(
+                        product.stock,
+                        isAvailable: product.isAvailable,
+                        isSmall: true,
                       ),
                     ),
                 ],

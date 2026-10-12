@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/order_model.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/status_badge.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final OrderModel order;
@@ -15,25 +16,6 @@ class OrderDetailScreen extends StatefulWidget {
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final FirestoreService _firestoreService = FirestoreService();
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'Pending':
-        return AppTheme.statusWarning;
-      case 'Confirmed':
-        return const Color(0xFF14B8A6);
-      case 'Processing':
-        return AppTheme.statusInfo;
-      case 'Shipped':
-        return const Color(0xFFA855F7);
-      case 'Delivered':
-        return AppTheme.statusSuccess;
-      case 'Cancelled':
-        return AppTheme.statusError;
-      default:
-        return AppTheme.textMuted;
-    }
-  }
 
   int _getStatusStep(String status) {
     switch (status) {
@@ -59,23 +41,25 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: AppTheme.surfaceCard,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
           side: const BorderSide(color: AppTheme.borderSubtle),
         ),
         title: const Text(
           'Order Cancellation Request',
-          style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
+          style:
+              TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          'To ensure order security, orders are fulfilled and managed by administrators. '
+          'To ensure order security, orders are managed by administrators. '
           'To request a cancellation for Order #$shortId, '
-          'please contact support at support@ecommerce.com or call our fulfillment team.',
-          style: const TextStyle(color: AppTheme.textSecondary, height: 1.4),
+          'please contact support at support@shopease.com or call our fulfillment team.',
+          style: const TextStyle(color: AppTheme.textSecondary, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Understood', style: TextStyle(color: AppTheme.accent)),
+            child: const Text('Understood',
+                style: TextStyle(color: AppTheme.accent)),
           ),
         ],
       ),
@@ -90,9 +74,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       builder: (context, snapshot) {
         final currentOrder = snapshot.data ?? widget.order;
         final currentStatus = currentOrder.status;
-        final formattedDate = DateFormat(
-          'MMM dd, yyyy - hh:mm a',
-        ).format(currentOrder.createdAt);
+        final formattedDate =
+            DateFormat('MMM dd, yyyy  •  h:mm a').format(currentOrder.createdAt);
         final activeStep = _getStatusStep(currentStatus);
         final shortId = currentOrder.id.length > 8
             ? currentOrder.id.substring(0, 8)
@@ -106,288 +89,247 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
             title: Text('Order #$shortId'),
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(AppTheme.space16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Status Tracking Card
-                Card(
-                  color: AppTheme.surfaceCard,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: AppTheme.borderSubtle),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Tracking Status',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: AppTheme.textPrimary,
-                              ),
+                // ── Status Tracking Card ─────────────────────────────────
+                _SectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          const Text(
+                            'Order Status',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppTheme.textPrimary,
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _getStatusColor(currentStatus).withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(
-                                  color: _getStatusColor(currentStatus).withValues(alpha: 0.4),
-                                ),
-                              ),
-                              child: Text(
-                                currentStatus,
-                                style: TextStyle(
-                                  color: _getStatusColor(currentStatus),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Placed on $formattedDate',
-                          style: const TextStyle(
-                            color: AppTheme.textMuted,
-                            fontSize: 12,
                           ),
-                        ),
-                        const SizedBox(height: 18),
+                          StatusBadge.fromOrderStatus(currentStatus),
+                        ],
+                      ),
+                      const SizedBox(height: AppTheme.space6),
+                      Text(
+                        'Placed on $formattedDate',
+                        style: const TextStyle(
+                            color: AppTheme.textMuted, fontSize: 11),
+                      ),
+                      const SizedBox(height: AppTheme.space20),
 
-                        if (currentStatus == 'Cancelled')
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppTheme.statusError.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppTheme.statusError.withValues(alpha: 0.3)),
+                      // Cancelled notice or step tracker
+                      if (currentStatus == 'Cancelled')
+                        Container(
+                          padding: const EdgeInsets.all(AppTheme.space12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.statusError.withValues(alpha: 0.1),
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusSm),
+                            border: Border.all(
+                              color: AppTheme.statusError
+                                  .withValues(alpha: 0.3),
                             ),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.cancel_outlined, color: AppTheme.statusError, size: 20),
-                                SizedBox(width: 8),
-                                Text(
-                                  'This order was cancelled.',
-                                  style: TextStyle(color: AppTheme.statusError, fontWeight: FontWeight.w500),
-                                ),
-                              ],
-                            ),
-                          )
-                        else ...[
-                          // 5 Progress Steps
-                          Row(
+                          ),
+                          child: const Row(
                             children: [
-                              _buildStepIndicator('Placed', 0, activeStep),
-                              _buildStepLine(0 < activeStep),
-                              _buildStepIndicator('Confirmed', 1, activeStep),
-                              _buildStepLine(1 < activeStep),
-                              _buildStepIndicator('Processing', 2, activeStep),
-                              _buildStepLine(2 < activeStep),
-                              _buildStepIndicator('Shipped', 3, activeStep),
-                              _buildStepLine(3 < activeStep),
-                              _buildStepIndicator('Delivered', 4, activeStep),
+                              Icon(Icons.cancel_outlined,
+                                  color: AppTheme.statusError, size: 18),
+                              SizedBox(width: 8),
+                              Text(
+                                'This order has been cancelled.',
+                                style: TextStyle(
+                                  color: AppTheme.statusError,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 13,
+                                ),
+                              ),
                             ],
                           ),
-                        ],
+                        )
+                      else
+                        _OrderStepTracker(activeStep: activeStep),
 
-                        if (currentStatus == 'Pending') ...[
-                          const SizedBox(height: 16),
-                          const Divider(height: 1, color: AppTheme.borderSubtle),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: OutlinedButton.icon(
-                              onPressed: () => _showCancellationPolicy(currentOrder.id),
-                              icon: const Icon(Icons.help_outline, size: 16),
-                              label: const Text('Request Order Cancellation'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: AppTheme.textMuted,
-                                side: const BorderSide(color: AppTheme.borderSubtle),
-                              ),
+                      // Cancel request (Pending orders only)
+                      if (currentStatus == 'Pending') ...[
+                        const SizedBox(height: AppTheme.space16),
+                        const Divider(height: 1, color: AppTheme.borderSubtle),
+                        const SizedBox(height: AppTheme.space12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: () =>
+                                _showCancellationPolicy(currentOrder.id),
+                            icon: const Icon(Icons.help_outline, size: 15),
+                            label: const Text('Request Cancellation'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.textMuted,
+                              side:
+                                  const BorderSide(color: AppTheme.borderSubtle),
+                              textStyle: const TextStyle(fontSize: 12),
                             ),
                           ),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-
-                // Delivery Details
-                Card(
-                  color: AppTheme.surfaceCard,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: AppTheme.borderSubtle),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Shipping Details',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Divider(height: 1, color: AppTheme.borderSubtle),
-                        const SizedBox(height: 10),
-                        Text(
-                          'Recipient: ${currentOrder.customerName}',
-                          style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary, fontSize: 13),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Phone: ${currentOrder.customerPhone}',
-                          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Address: ${currentOrder.customerAddress}',
-                          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                         ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: AppTheme.space12),
 
-                // Items List
-                Card(
-                  color: AppTheme.surfaceCard,
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: AppTheme.borderSubtle),
+                // ── Shipping Details ─────────────────────────────────────
+                _SectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const _SectionLabel(
+                        icon: Icons.location_on_outlined,
+                        label: 'Shipping Details',
+                      ),
+                      const SizedBox(height: AppTheme.space12),
+                      const Divider(height: 1, color: AppTheme.borderSubtle),
+                      const SizedBox(height: AppTheme.space12),
+                      _DetailRow(
+                          label: 'Recipient', value: currentOrder.customerName),
+                      const SizedBox(height: AppTheme.space6),
+                      _DetailRow(
+                          label: 'Phone', value: currentOrder.customerPhone),
+                      const SizedBox(height: AppTheme.space6),
+                      _DetailRow(
+                          label: 'Address',
+                          value: currentOrder.customerAddress),
+                      const SizedBox(height: AppTheme.space6),
+                      _DetailRow(
+                          label: 'Payment',
+                          value: currentOrder.paymentMethod),
+                    ],
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Items (${currentOrder.items.length})',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                            color: AppTheme.textPrimary,
-                          ),
+                ),
+                const SizedBox(height: AppTheme.space12),
+
+                // ── Items List ───────────────────────────────────────────
+                _SectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _SectionLabel(
+                        icon: Icons.inventory_2_outlined,
+                        label: 'Items (${currentOrder.items.length})',
+                      ),
+                      const SizedBox(height: AppTheme.space12),
+                      const Divider(height: 1, color: AppTheme.borderSubtle),
+                      const SizedBox(height: AppTheme.space12),
+
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: currentOrder.items.length,
+                        separatorBuilder: (ctx, idx) => const Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: AppTheme.space8),
+                          child: Divider(
+                              height: 1, color: AppTheme.borderSubtle),
                         ),
-                        const SizedBox(height: 10),
-                        const Divider(height: 1, color: AppTheme.borderSubtle),
-                        const SizedBox(height: 10),
-                        ListView.separated(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: currentOrder.items.length,
-                          separatorBuilder: (ctx, idx) =>
-                              const Divider(height: 16, color: AppTheme.borderSubtle),
-                          itemBuilder: (context, index) {
-                            final item = currentOrder.items[index];
-                            return Row(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Container(
-                                    width: 52,
-                                    height: 52,
-                                    color: AppTheme.bgSecondary,
-                                    padding: const EdgeInsets.all(4),
-                                    child: Image.network(
-                                      item.imageUrl,
-                                      fit: BoxFit.contain,
-                                      errorBuilder: (ctx, err, stack) =>
-                                          const Icon(
-                                            Icons.image_not_supported_outlined,
-                                            color: AppTheme.textMuted,
-                                            size: 20,
-                                          ),
+                        itemBuilder: (context, index) {
+                          final item = currentOrder.items[index];
+                          return Row(
+                            children: [
+                              // Item thumbnail
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                    AppTheme.radiusXs),
+                                child: Container(
+                                  width: 48,
+                                  height: 48,
+                                  color: AppTheme.bgSecondary,
+                                  padding:
+                                      const EdgeInsets.all(AppTheme.space4),
+                                  child: Image.network(
+                                    item.imageUrl,
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (ctx, err, stack) =>
+                                        const Icon(
+                                      Icons.image_not_supported_outlined,
+                                      color: AppTheme.textMuted,
+                                      size: 18,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.title,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w600,
-                                          color: AppTheme.textPrimary,
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        '৳ ${item.price.toStringAsFixed(0)} x ${item.quantity}',
-                                        style: const TextStyle(
-                                          color: AppTheme.textMuted,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  '৳ ${(item.price * item.quantity).toStringAsFixed(0)}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                        const Divider(height: 1, color: AppTheme.borderSubtle),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Total Amount Paid',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: AppTheme.textPrimary,
                               ),
-                            ),
-                            Text(
-                              '৳ ${currentOrder.totalAmount.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: AppTheme.accent,
+                              const SizedBox(width: AppTheme.space12),
+
+                              // Title + unit price
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      item.title,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.textPrimary,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '৳ ${item.price.toStringAsFixed(0)}  ×  ${item.quantity}',
+                                      style: const TextStyle(
+                                        color: AppTheme.textMuted,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
+
+                              // Line total
+                              Text(
+                                '৳ ${(item.price * item.quantity).toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: AppTheme.space12),
+                      const Divider(height: 1, color: AppTheme.borderSubtle),
+                      const SizedBox(height: AppTheme.space12),
+
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Total Paid',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: AppTheme.textPrimary,
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                          Text(
+                            '৳ ${currentOrder.totalAmount.toStringAsFixed(0)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 17,
+                              color: AppTheme.accent,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
+
+                const SizedBox(height: AppTheme.space24),
               ],
             ),
           ),
@@ -395,20 +337,148 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
       },
     );
   }
+}
 
-  Widget _buildStepIndicator(String label, int stepIndex, int currentStep) {
-    final isDone = stepIndex <= currentStep;
-    final isCurrent = stepIndex == currentStep;
+// ─── Shared Helper Widgets ──────────────────────────────────────────────────
+
+class _SectionCard extends StatelessWidget {
+  final Widget child;
+
+  const _SectionCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.space16),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppTheme.borderSubtle),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _SectionLabel({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppTheme.accent),
+        const SizedBox(width: AppTheme.space8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _DetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 72,
+          child: Text(
+            '$label:',
+            style: const TextStyle(
+                color: AppTheme.textMuted, fontSize: 12),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: AppTheme.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Order Step Tracker ─────────────────────────────────────────────────────
+
+class _OrderStepTracker extends StatelessWidget {
+  final int activeStep;
+
+  const _OrderStepTracker({required this.activeStep});
+
+  static const _steps = ['Placed', 'Confirmed', 'Processing', 'Shipped', 'Delivered'];
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        for (int i = 0; i < _steps.length; i++) ...[
+          _StepDot(
+            label: _steps[i],
+            stepIndex: i,
+            activeStep: activeStep,
+          ),
+          if (i < _steps.length - 1)
+            Expanded(
+              child: Container(
+                height: 2,
+                margin: const EdgeInsets.only(bottom: 14),
+                color:
+                    i < activeStep ? AppTheme.accent : AppTheme.borderSubtle,
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+}
+
+class _StepDot extends StatelessWidget {
+  final String label;
+  final int stepIndex;
+  final int activeStep;
+
+  const _StepDot({
+    required this.label,
+    required this.stepIndex,
+    required this.activeStep,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDone = stepIndex <= activeStep;
+    final isCurrent = stepIndex == activeStep;
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         CircleAvatar(
           radius: 11,
           backgroundColor: isDone ? AppTheme.accent : AppTheme.bgSecondary,
           child: Icon(
             isDone ? Icons.check : Icons.circle,
-            size: isDone ? 13 : 6,
-            color: isDone ? AppTheme.bgPrimary : AppTheme.borderSubtle,
+            size: isDone ? 13 : 5,
+            color: isDone ? AppTheme.bgPrimary : AppTheme.borderStrong,
           ),
         ),
         const SizedBox(height: 4),
@@ -421,16 +491,6 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildStepLine(bool isDone) {
-    return Expanded(
-      child: Container(
-        height: 2,
-        color: isDone ? AppTheme.accent : AppTheme.borderSubtle,
-        margin: const EdgeInsets.only(bottom: 14),
-      ),
     );
   }
 }

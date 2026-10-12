@@ -6,6 +6,10 @@ import '../services/firestore_service.dart';
 import '../providers/cart_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/product_card.dart';
+import '../widgets/loading_shimmer.dart';
+import '../widgets/empty_state_view.dart';
+import '../widgets/error_state_view.dart';
+import '../widgets/category_pill.dart';
 import 'cart_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -39,7 +43,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: AppTheme.accent.withValues(alpha: 0.3)),
               ),
-              child: const Icon(Icons.shopping_bag_outlined, color: AppTheme.accent, size: 20),
+              child: const Icon(
+                Icons.shopping_bag_outlined,
+                color: AppTheme.accent,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 10),
             const Text(
@@ -101,75 +109,82 @@ class _HomeScreenState extends State<HomeScreen> {
 
           return CustomScrollView(
             slivers: [
-              // Search Bar
+              // ── Search Bar ──────────────────────────────────────────────
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.space16, AppTheme.space12,
+                    AppTheme.space16, AppTheme.space12,
+                  ),
                   child: TextField(
                     style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
                     decoration: InputDecoration(
-                      hintText: 'Search products, brands, models...',
+                      hintText: 'Search products, brands, categories...',
                       hintStyle: const TextStyle(color: AppTheme.textMuted, fontSize: 14),
-                      prefixIcon: const Icon(Icons.search, color: AppTheme.textMuted),
+                      prefixIcon: const Icon(
+                        Icons.search, color: AppTheme.textMuted, size: 20),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, color: AppTheme.textMuted),
+                              icon: const Icon(Icons.close, color: AppTheme.textMuted, size: 18),
                               onPressed: () => setState(() => _searchQuery = ''),
                             )
                           : null,
                       filled: true,
                       fillColor: AppTheme.bgSecondary,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                         borderSide: const BorderSide(color: AppTheme.borderSubtle),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                         borderSide: const BorderSide(color: AppTheme.borderSubtle),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                         borderSide: const BorderSide(color: AppTheme.accent, width: 1.5),
                       ),
                     ),
-                    onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
+                    onChanged: (val) =>
+                        setState(() => _searchQuery = val.trim().toLowerCase()),
                   ),
                 ),
               ),
 
-              // Promotional Hero Banner (only when not searching)
+              // ── Hero Banner (hidden while searching) ────────────────────
               if (_searchQuery.isEmpty)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppTheme.space16, 0, AppTheme.space16, AppTheme.space4),
                     child: Container(
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFF1E1E24), Color(0xFF131317)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                         border: Border.all(color: AppTheme.borderSubtle),
                       ),
-                      padding: const EdgeInsets.all(22),
+                      padding: const EdgeInsets.all(AppTheme.space20),
                       child: Row(
                         children: [
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: AppTheme.space8,
+                                    vertical: AppTheme.space4,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: AppTheme.accentSubtle,
-                                    borderRadius: BorderRadius.circular(6),
-                                    border: Border.all(color: AppTheme.accent.withValues(alpha: 0.3)),
+                                    borderRadius: BorderRadius.circular(AppTheme.radiusXs),
+                                    border: Border.all(
+                                      color: AppTheme.accent.withValues(alpha: 0.3),
+                                    ),
                                   ),
                                   child: const Text(
-                                    'CURATED COLLECTION',
+                                    'CURATED CATALOG',
                                     style: TextStyle(
                                       color: AppTheme.accent,
                                       fontWeight: FontWeight.bold,
@@ -178,19 +193,20 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(height: 10),
+                                const SizedBox(height: AppTheme.space10),
                                 const Text(
-                                  'Genuine Tech &\nPremium Goods',
+                                  'Genuine Products\nDelivered Nationwide',
                                   style: TextStyle(
                                     color: AppTheme.textPrimary,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 20,
+                                    fontSize: 18,
                                     height: 1.25,
+                                    letterSpacing: -0.3,
                                   ),
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: AppTheme.space6),
                                 const Text(
-                                  'Verified authenticity with fast nationwide delivery in Bangladesh.',
+                                  'Verified authenticity with delivery across Bangladesh.',
                                   style: TextStyle(
                                     color: AppTheme.textMuted,
                                     fontSize: 12,
@@ -200,18 +216,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: AppTheme.space12),
                           Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(AppTheme.space16),
                             decoration: BoxDecoration(
-                              color: AppTheme.surfaceCard,
+                              color: AppTheme.bgSecondary,
                               shape: BoxShape.circle,
                               border: Border.all(color: AppTheme.borderSubtle),
                             ),
                             child: const Icon(
                               Icons.verified_outlined,
                               color: AppTheme.accent,
-                              size: 36,
+                              size: 32,
                             ),
                           ),
                         ],
@@ -220,32 +236,43 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
 
-              // Category Pills Section
+              // ── Category Section Header ──────────────────────────────────
               SliverToBoxAdapter(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 18, 16, 10),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppTheme.space16, AppTheme.space16,
+                    AppTheme.space16, AppTheme.space10,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text(
                         'Categories',
                         style: TextStyle(
-                          fontSize: 17,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: AppTheme.textPrimary,
-                          letterSpacing: -0.3,
+                          letterSpacing: -0.2,
                         ),
                       ),
                       if (_selectedCategory != 'All')
-                        TextButton(
-                          onPressed: () => setState(() => _selectedCategory = 'All'),
-                          child: const Text('Reset Filter'),
+                        GestureDetector(
+                          onTap: () => setState(() => _selectedCategory = 'All'),
+                          child: const Text(
+                            'Clear',
+                            style: TextStyle(
+                              color: AppTheme.accent,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                     ],
                   ),
                 ),
               ),
 
+              // ── Category Pills (Phase 2 CategoryPill) ───────────────────
               SliverToBoxAdapter(
                 child: StreamBuilder<List<CategoryModel>>(
                   stream: _firestoreService.getCategoriesStream(),
@@ -254,127 +281,76 @@ class _HomeScreenState extends State<HomeScreen> {
                     if (categories.isEmpty) return const SizedBox.shrink();
 
                     return SizedBox(
-                      height: 42,
-                      child: ListView.separated(
+                      height: 38,
+                      child: ListView(
                         scrollDirection: Axis.horizontal,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        itemCount: categories.length + 1,
-                        separatorBuilder: (ctx, idx) => const SizedBox(width: 8),
-                        itemBuilder: (context, index) {
-                          if (index == 0) {
-                            final isSelected = _selectedCategory == 'All';
-                            return ChoiceChip(
-                              label: const Text('All'),
-                              selected: isSelected,
-                              selectedColor: AppTheme.accentSubtle,
-                              backgroundColor: AppTheme.bgSecondary,
-                              side: BorderSide(
-                                color: isSelected ? AppTheme.accent : AppTheme.borderSubtle,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppTheme.space16),
+                        children: [
+                          CategoryPill(
+                            label: 'All',
+                            isSelected: _selectedCategory == 'All',
+                            onTap: () =>
+                                setState(() => _selectedCategory = 'All'),
+                          ),
+                          ...categories.map((cat) {
+                            final isSelected = _selectedCategory == cat.name;
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.only(left: AppTheme.space8),
+                              child: CategoryPill(
+                                label: cat.name,
+                                isSelected: isSelected,
+                                onTap: () => setState(() {
+                                  _selectedCategory =
+                                      isSelected ? 'All' : cat.name;
+                                }),
                               ),
-                              labelStyle: TextStyle(
-                                color: isSelected ? AppTheme.accent : AppTheme.textSecondary,
-                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                                fontSize: 13,
-                              ),
-                              onSelected: (_) => setState(() => _selectedCategory = 'All'),
                             );
-                          }
-
-                          final cat = categories[index - 1];
-                          final isSelected = _selectedCategory == cat.name;
-
-                          return ChoiceChip(
-                            label: Text(cat.name),
-                            selected: isSelected,
-                            selectedColor: AppTheme.accentSubtle,
-                            backgroundColor: AppTheme.bgSecondary,
-                            side: BorderSide(
-                              color: isSelected ? AppTheme.accent : AppTheme.borderSubtle,
-                            ),
-                            labelStyle: TextStyle(
-                              color: isSelected ? AppTheme.accent : AppTheme.textSecondary,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                              fontSize: 13,
-                            ),
-                            onSelected: (selected) {
-                              setState(() {
-                                _selectedCategory = selected ? cat.name : 'All';
-                              });
-                            },
-                          );
-                        },
+                          }),
+                          const SizedBox(width: AppTheme.space8),
+                        ],
                       ),
                     );
                   },
                 ),
               ),
 
-              // Products Section Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 22, 16, 12),
-                  child: Text(
-                    _selectedCategory == 'All'
-                        ? (_searchQuery.isEmpty ? 'Trending Catalog' : 'Search Results')
-                        : '$_selectedCategory Collection',
-                    style: const TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.textPrimary,
-                      letterSpacing: -0.3,
-                    ),
-                  ),
-                ),
-              ),
-
-              // Products Stream Grid
+              // ── Product Grid Stream ──────────────────────────────────────
               StreamBuilder<List<ProductModel>>(
                 stream: _firestoreService.getProductsStream(),
                 builder: (context, snapshot) {
+                  // Loading — shimmer skeleton placeholders
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const SliverFillRemaining(
-                      child: Center(
-                        child: CircularProgressIndicator(color: AppTheme.accent),
+                    return SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppTheme.space16, AppTheme.space20,
+                        AppTheme.space16, 0,
+                      ),
+                      sliver: SliverGrid(
+                        gridDelegate:
+                            SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          childAspectRatio: 0.68,
+                          crossAxisSpacing: AppTheme.space12,
+                          mainAxisSpacing: AppTheme.space12,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                          (context, _) => const ProductCardSkeleton(),
+                          childCount: crossAxisCount * 2,
+                        ),
                       ),
                     );
                   }
 
+                  // Error state
                   if (snapshot.hasError) {
                     return SliverFillRemaining(
                       hasScrollBody: false,
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.cloud_off_outlined,
-                                size: 64,
-                                color: AppTheme.textMuted,
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Unable to load products',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Please check your connection and try again.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: AppTheme.textMuted),
-                              ),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                onPressed: () => setState(() {}),
-                                child: const Text('Retry'),
-                              ),
-                            ],
-                          ),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: AppTheme.space32),
+                        child: ErrorStateView.offline(
+                          onRetry: () => setState(() {}),
                         ),
                       ),
                     );
@@ -382,83 +358,117 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   var products = snapshot.data ?? [];
 
-                  // Filter by category
+                  // Apply category filter
                   if (_selectedCategory != 'All') {
                     products = products
-                        .where(
-                          (p) =>
-                              p.category.toLowerCase() == _selectedCategory.toLowerCase(),
-                        )
+                        .where((p) =>
+                            p.category.toLowerCase() ==
+                            _selectedCategory.toLowerCase())
                         .toList();
                   }
 
-                  // Filter by search query
+                  // Apply search filter
                   if (_searchQuery.isNotEmpty) {
                     products = products.where((p) {
-                      return p.title.toLowerCase().contains(_searchQuery) ||
-                          p.category.toLowerCase().contains(_searchQuery) ||
-                          p.description.toLowerCase().contains(_searchQuery);
+                      return p.title
+                              .toLowerCase()
+                              .contains(_searchQuery) ||
+                          p.category
+                              .toLowerCase()
+                              .contains(_searchQuery) ||
+                          p.description
+                              .toLowerCase()
+                              .contains(_searchQuery);
                     }).toList();
                   }
 
+                  // Empty state
                   if (products.isEmpty) {
                     return SliverFillRemaining(
                       hasScrollBody: false,
-                      child: Center(
+                      child: EmptyStateView(
+                        icon: Icons.inventory_2_outlined,
+                        title: _searchQuery.isNotEmpty
+                            ? 'No results for "$_searchQuery"'
+                            : _selectedCategory != 'All'
+                                ? 'No products in $_selectedCategory'
+                                : 'Catalog is empty',
+                        description: _searchQuery.isNotEmpty
+                            ? 'Try different keywords or browse by category.'
+                            : 'Products will appear here once added.',
+                        actionLabel:
+                            (_searchQuery.isNotEmpty ||
+                                    _selectedCategory != 'All')
+                                ? 'Clear Filter'
+                                : null,
+                        onActionPressed: () => setState(() {
+                          _searchQuery = '';
+                          _selectedCategory = 'All';
+                        }),
+                      ),
+                    );
+                  }
+
+                  // Populated — section header + grid
+                  return SliverMainAxisGroup(
+                    slivers: [
+                      SliverToBoxAdapter(
                         child: Padding(
-                          padding: const EdgeInsets.all(32),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                          padding: const EdgeInsets.fromLTRB(
+                            AppTheme.space16, AppTheme.space20,
+                            AppTheme.space16, AppTheme.space12,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Icon(
-                                Icons.inventory_2_outlined,
-                                size: 64,
-                                color: AppTheme.textMuted,
-                              ),
-                              const SizedBox(height: 14),
                               Text(
                                 _searchQuery.isNotEmpty
-                                    ? 'No products matching "$_searchQuery"'
-                                    : 'No products in this category yet',
+                                    ? 'Search Results'
+                                    : _selectedCategory == 'All'
+                                        ? 'All Products'
+                                        : _selectedCategory,
                                 style: const TextStyle(
-                                  fontSize: 16,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.textPrimary,
+                                  letterSpacing: -0.2,
                                 ),
                               ),
-                              const SizedBox(height: 6),
-                              const Text(
-                                'Try clearing your filter or searching for another term.',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: AppTheme.textMuted),
+                              Text(
+                                '${products.length} ${products.length == 1 ? 'item' : 'items'}',
+                                style: const TextStyle(
+                                  color: AppTheme.textMuted,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                    );
-                  }
-
-                  return SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    sliver: SliverGrid(
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: crossAxisCount,
-                        childAspectRatio: 0.68,
-                        crossAxisSpacing: 14,
-                        mainAxisSpacing: 14,
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppTheme.space16),
+                        sliver: SliverGrid(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: crossAxisCount,
+                            childAspectRatio: 0.68,
+                            crossAxisSpacing: AppTheme.space12,
+                            mainAxisSpacing: AppTheme.space12,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) =>
+                                ProductCard(product: products[index]),
+                            childCount: products.length,
+                          ),
+                        ),
                       ),
-                      delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          return ProductCard(product: products[index]);
-                        },
-                        childCount: products.length,
-                      ),
-                    ),
+                    ],
                   );
                 },
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 36)),
+
+              const SliverToBoxAdapter(child: SizedBox(height: AppTheme.space40)),
             ],
           );
         },

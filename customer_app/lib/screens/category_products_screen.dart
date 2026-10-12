@@ -6,6 +6,9 @@ import '../services/firestore_service.dart';
 import '../providers/cart_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/product_card.dart';
+import '../widgets/loading_shimmer.dart';
+import '../widgets/empty_state_view.dart';
+import '../widgets/error_state_view.dart';
 import 'cart_screen.dart';
 
 class CategoryProductsScreen extends StatelessWidget {
@@ -29,7 +32,8 @@ class CategoryProductsScreen extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.textPrimary),
+                icon: const Icon(
+                    Icons.shopping_cart_outlined, color: AppTheme.textPrimary),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -72,94 +76,95 @@ class CategoryProductsScreen extends StatelessWidget {
           return StreamBuilder<List<ProductModel>>(
             stream: firestoreService.getProductsByCategory(category.name),
             builder: (context, snapshot) {
+              // Loading state — shimmer skeleton grid
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(color: AppTheme.accent),
+                return GridView.builder(
+                  padding: const EdgeInsets.all(AppTheme.space16),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount,
+                    childAspectRatio: 0.68,
+                    crossAxisSpacing: AppTheme.space12,
+                    mainAxisSpacing: AppTheme.space12,
+                  ),
+                  itemCount: crossAxisCount * 2,
+                  itemBuilder: (context, _) => const ProductCardSkeleton(),
                 );
               }
+
+              // Error state
               if (snapshot.hasError) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.inventory_2_outlined,
-                          size: 48,
-                          color: AppTheme.textMuted,
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Unable to load products',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Please check your connection and try again.',
-                          style: TextStyle(color: AppTheme.textMuted),
-                        ),
-                      ],
-                    ),
-                  ),
+                return const ErrorStateView(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'Unable to Load Products',
+                  message: 'Please check your connection and try again.',
                 );
               }
 
               final products = snapshot.data ?? [];
 
+              // Empty state
               if (products.isEmpty) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppTheme.surfaceCard,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: AppTheme.borderSubtle),
-                        ),
-                        child: const Icon(
-                          Icons.inventory_2_outlined,
-                          size: 48,
-                          color: AppTheme.textMuted,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No products found in ${category.name}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      const Text(
-                        'Catalog items will appear as soon as added by administrators.',
-                        style: TextStyle(color: AppTheme.textMuted, fontSize: 13),
-                      ),
-                    ],
-                  ),
+                return EmptyStateView(
+                  icon: Icons.inventory_2_outlined,
+                  title: 'No Products Yet',
+                  description:
+                      'No items found in ${category.name}. '
+                      'Products will appear as soon as they are added.',
                 );
               }
 
-              return GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: crossAxisCount,
-                  childAspectRatio: 0.68,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                ),
-                itemCount: products.length,
-                itemBuilder: (context, index) {
-                  return ProductCard(product: products[index]);
-                },
+              // Products header + grid
+              return CustomScrollView(
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppTheme.space16, AppTheme.space16,
+                        AppTheme.space16, AppTheme.space12,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            category.name,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          Text(
+                            '${products.length} ${products.length == 1 ? 'product' : 'products'}',
+                            style: const TextStyle(
+                              color: AppTheme.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppTheme.space16, 0,
+                      AppTheme.space16, AppTheme.space40,
+                    ),
+                    sliver: SliverGrid(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
+                        childAspectRatio: 0.68,
+                        crossAxisSpacing: AppTheme.space12,
+                        mainAxisSpacing: AppTheme.space12,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) =>
+                            ProductCard(product: products[index]),
+                        childCount: products.length,
+                      ),
+                    ),
+                  ),
+                ],
               );
             },
           );

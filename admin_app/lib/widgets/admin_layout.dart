@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../theme/admin_theme.dart';
+import 'admin_status_badge.dart';
 
 class AdminLayout extends StatelessWidget {
   final Widget body;
@@ -67,31 +68,11 @@ class AdminLayout extends StatelessWidget {
                                   ),
                                 ),
                                 const SizedBox(width: 14),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: AdminTheme.statusSuccess.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: AdminTheme.statusSuccess.withValues(alpha: 0.3),
-                                    ),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      CircleAvatar(radius: 3, backgroundColor: AdminTheme.statusSuccess),
-                                      SizedBox(width: 6),
-                                      Text(
-                                        'LIVE CATALOG',
-                                        style: TextStyle(
-                                          color: AdminTheme.statusSuccess,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.6,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                const AdminStatusBadge(
+                                  label: 'LIVE CATALOG',
+                                  variant: AdminStatusBadgeVariant.success,
+                                  showDot: true,
+                                  isSmall: true,
                                 ),
                               ],
                             ),
