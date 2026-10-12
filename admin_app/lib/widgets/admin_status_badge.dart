@@ -18,6 +18,8 @@ class AdminStatusBadge extends StatelessWidget {
   final bool showDot;
   final bool isSmall;
 
+  final Color? customColor;
+
   const AdminStatusBadge({
     super.key,
     required this.label,
@@ -25,6 +27,7 @@ class AdminStatusBadge extends StatelessWidget {
     this.icon,
     this.showDot = true,
     this.isSmall = false,
+    this.customColor,
   });
 
   /// Factory constructor for order fulfillment statuses in admin
@@ -108,11 +111,12 @@ class AdminStatusBadge extends StatelessWidget {
   }
 
   Color _getColor() {
+    if (customColor != null) return customColor!;
     switch (variant) {
       case AdminStatusBadgeVariant.success:
         return AdminTheme.statusSuccess;
       case AdminStatusBadgeVariant.warning:
-        return AdminTheme.statusWarning;
+        return AdminTheme.secondaryWarm;
       case AdminStatusBadgeVariant.error:
         return AdminTheme.statusError;
       case AdminStatusBadgeVariant.info:

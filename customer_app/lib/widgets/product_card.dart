@@ -86,7 +86,7 @@ class ProductCard extends StatelessWidget {
 
             // Product Details Block
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(AppTheme.space12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -103,7 +103,7 @@ class ProductCard extends StatelessWidget {
                       letterSpacing: 0.8,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppTheme.space4),
 
                   // Product Title
                   Text(
@@ -117,7 +117,7 @@ class ProductCard extends StatelessWidget {
                       height: 1.3,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppTheme.space8),
 
                   // Price & Quick Cart Action
                   Row(
@@ -156,12 +156,12 @@ class ProductCard extends StatelessWidget {
                                   ),
                                 );
                               },
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                         child: Container(
                           padding: const EdgeInsets.all(7),
                           decoration: BoxDecoration(
                             color: isUnavailable ? AppTheme.surfaceElevated : AppTheme.accentSubtle,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                             border: Border.all(
                               color: isUnavailable ? AppTheme.borderSubtle : AppTheme.accent.withValues(alpha: 0.3),
                             ),

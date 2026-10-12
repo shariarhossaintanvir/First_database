@@ -17,6 +17,13 @@ class AdminTheme {
   static const Color accentHover = Color(0xFF0EA5E9);
   static const Color accentSubtle = Color(0x2638BDF8); // 15% tint for pills/metrics
 
+  // Daraz Bangladesh Marketplace Accent Additions (Phase 1)
+  static const Color primaryAccent = Color(0xFF0099FF); // Electric Sky-Blue marketplace accent
+  static const Color primaryAccentHover = Color(0xFF0077CC);
+  static const Color primaryAccentSubtle = Color(0x260099FF); // 15% tint for pills/metrics
+  static const Color secondaryWarm = Color(0xFFFFA726); // Warm marketplace orange
+  static const Color secondaryWarmSubtle = Color(0x26FFA726); // 15% tint
+
   // Typography Colors
   static const Color textPrimary = Color(0xFFF0F6FC); // High contrast crisp white
   static const Color textSecondary = Color(0xFF8B949E); // Slate metadata & subheaders

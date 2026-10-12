@@ -8,6 +8,7 @@ class ErrorStateView extends StatelessWidget {
   final String message;
   final VoidCallback? onRetry;
   final String retryLabel;
+  final Color? accentColor;
 
   const ErrorStateView({
     super.key,
@@ -16,6 +17,7 @@ class ErrorStateView extends StatelessWidget {
     required this.message,
     this.onRetry,
     this.retryLabel = 'Try Again',
+    this.accentColor,
   });
 
   /// Factory constructor specifically for network / offline situations
@@ -31,6 +33,8 @@ class ErrorStateView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveColor = accentColor ?? AppTheme.statusError;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -47,17 +51,17 @@ class ErrorStateView extends StatelessWidget {
               width: 72,
               height: 72,
               decoration: BoxDecoration(
-                color: AppTheme.statusError.withValues(alpha: 0.1),
+                color: effectiveColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppTheme.statusError.withValues(alpha: 0.3),
+                  color: effectiveColor.withValues(alpha: 0.3),
                   width: 1.5,
                 ),
               ),
               child: Icon(
                 icon,
                 size: 32,
-                color: AppTheme.statusError,
+                color: effectiveColor,
               ),
             ),
             const SizedBox(height: AppTheme.space20),

@@ -17,6 +17,13 @@ class AppTheme {
   static const Color accentHover = Color(0xFFC9A227);
   static const Color accentSubtle = Color(0x26E2B93B); // 15% tint for pills/badges
 
+  // Daraz Bangladesh Marketplace Accent Additions (Phase 1)
+  static const Color primaryAccent = Color(0xFF0099FF); // Electric Sky-Blue marketplace accent
+  static const Color primaryAccentHover = Color(0xFF0077CC);
+  static const Color primaryAccentSubtle = Color(0x260099FF); // 15% tint for pills/badges
+  static const Color secondaryWarm = Color(0xFFFFA726); // Warm marketplace orange
+  static const Color secondaryWarmSubtle = Color(0x26FFA726); // 15% tint
+
   // Typography Colors
   static const Color textPrimary = Color(0xFFF8FAFC); // High contrast white
   static const Color textSecondary = Color(0xFFCBD5E1); // Slate 300 for descriptions

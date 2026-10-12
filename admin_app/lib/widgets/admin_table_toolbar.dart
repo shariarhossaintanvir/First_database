@@ -9,6 +9,7 @@ class AdminTableToolbar extends StatelessWidget {
   final String? countLabel;
   final List<Widget>? filterChips;
   final List<Widget>? actions;
+  final Color? accentColor;
 
   const AdminTableToolbar({
     super.key,
@@ -18,6 +19,7 @@ class AdminTableToolbar extends StatelessWidget {
     this.countLabel,
     this.filterChips,
     this.actions,
+    this.accentColor,
   });
 
   @override
@@ -135,7 +137,7 @@ class AdminTableToolbar extends StatelessWidget {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: AdminTheme.roundedSm,
-            borderSide: const BorderSide(color: AdminTheme.accent, width: 1.5),
+            borderSide: BorderSide(color: accentColor ?? AdminTheme.accent, width: 1.5),
           ),
         ),
       ),

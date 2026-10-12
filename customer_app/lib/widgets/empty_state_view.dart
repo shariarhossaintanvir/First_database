@@ -9,6 +9,7 @@ class EmptyStateView extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onActionPressed;
   final Widget? customAction;
+  final Color? iconColor;
 
   const EmptyStateView({
     super.key,
@@ -18,6 +19,7 @@ class EmptyStateView extends StatelessWidget {
     this.actionLabel,
     this.onActionPressed,
     this.customAction,
+    this.iconColor,
   });
 
   @override
@@ -45,7 +47,7 @@ class EmptyStateView extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 36,
-                color: AppTheme.textMuted,
+                color: iconColor ?? AppTheme.textMuted,
               ),
             ),
             const SizedBox(height: AppTheme.space24),

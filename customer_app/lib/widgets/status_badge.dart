@@ -17,6 +17,7 @@ class StatusBadge extends StatelessWidget {
   final IconData? icon;
   final bool showDot;
   final bool isSmall;
+  final Color? customColor;
 
   const StatusBadge({
     super.key,
@@ -25,6 +26,7 @@ class StatusBadge extends StatelessWidget {
     this.icon,
     this.showDot = false,
     this.isSmall = false,
+    this.customColor,
   });
 
   /// Factory constructor for order fulfillment statuses
@@ -99,11 +101,12 @@ class StatusBadge extends StatelessWidget {
   }
 
   Color _getColor() {
+    if (customColor != null) return customColor!;
     switch (variant) {
       case StatusBadgeVariant.success:
         return AppTheme.statusSuccess;
       case StatusBadgeVariant.warning:
-        return AppTheme.statusWarning;
+        return AppTheme.secondaryWarm;
       case StatusBadgeVariant.error:
         return AppTheme.statusError;
       case StatusBadgeVariant.info:

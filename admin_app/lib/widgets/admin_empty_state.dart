@@ -9,6 +9,7 @@ class AdminEmptyState extends StatelessWidget {
   final String? actionLabel;
   final VoidCallback? onActionPressed;
   final Widget? customAction;
+  final Color? iconColor;
 
   const AdminEmptyState({
     super.key,
@@ -18,6 +19,7 @@ class AdminEmptyState extends StatelessWidget {
     this.actionLabel,
     this.onActionPressed,
     this.customAction,
+    this.iconColor,
   });
 
   @override
@@ -44,7 +46,7 @@ class AdminEmptyState extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 28,
-                color: AdminTheme.textMuted,
+                color: iconColor ?? AdminTheme.textMuted,
               ),
             ),
             const SizedBox(height: AdminTheme.space16),

@@ -77,12 +77,14 @@ class ShimmerBox extends StatelessWidget {
   final double? width;
   final double height;
   final BorderRadius? borderRadius;
+  final Color? color;
 
   const ShimmerBox({
     super.key,
     this.width,
     required this.height,
     this.borderRadius,
+    this.color,
   });
 
   @override
@@ -91,7 +93,7 @@ class ShimmerBox extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: AppTheme.surfaceElevated,
+        color: color ?? AppTheme.surfaceElevated,
         borderRadius: borderRadius ?? AppTheme.roundedSm,
       ),
     );

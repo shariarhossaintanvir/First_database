@@ -9,6 +9,7 @@ class CategoryPill extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
   final bool isCompact;
+  final Color? activeColor;
 
   const CategoryPill({
     super.key,
@@ -18,10 +19,12 @@ class CategoryPill extends StatelessWidget {
     this.isSelected = false,
     required this.onTap,
     this.isCompact = false,
+    this.activeColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final effectiveAccent = activeColor ?? AppTheme.accent;
     final horizontalPadding = isCompact ? AppTheme.space12 : AppTheme.space16;
     final verticalPadding = isCompact ? AppTheme.space6 : AppTheme.space10;
     final fontSize = isCompact ? 12.0 : 13.0;
@@ -39,10 +42,10 @@ class CategoryPill extends StatelessWidget {
             vertical: verticalPadding,
           ),
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.accentSubtle : AppTheme.surfaceCard,
+            color: isSelected ? effectiveAccent.withValues(alpha: 0.15) : AppTheme.surfaceCard,
             borderRadius: AppTheme.roundedFull,
             border: Border.all(
-              color: isSelected ? AppTheme.accent : AppTheme.borderSubtle,
+              color: isSelected ? effectiveAccent : AppTheme.borderSubtle,
               width: isSelected ? 1.5 : 1.0,
             ),
           ),
@@ -54,14 +57,14 @@ class CategoryPill extends StatelessWidget {
                 Icon(
                   icon,
                   size: fontSize + 3,
-                  color: isSelected ? AppTheme.accent : AppTheme.textMuted,
+                  color: isSelected ? effectiveAccent : AppTheme.textMuted,
                 ),
                 SizedBox(width: isCompact ? AppTheme.space4 : AppTheme.space6),
               ],
               Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? AppTheme.accent : AppTheme.textSecondary,
+                  color: isSelected ? effectiveAccent : AppTheme.textSecondary,
                   fontSize: fontSize,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   letterSpacing: 0.1,
@@ -73,14 +76,14 @@ class CategoryPill extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? AppTheme.accent.withValues(alpha: 0.2)
+                        ? effectiveAccent.withValues(alpha: 0.2)
                         : AppTheme.surfaceElevated,
                     borderRadius: AppTheme.roundedFull,
                   ),
                   child: Text(
                     count.toString(),
                     style: TextStyle(
-                      color: isSelected ? AppTheme.accent : AppTheme.textMuted,
+                      color: isSelected ? effectiveAccent : AppTheme.textMuted,
                       fontSize: 10,
                       fontWeight: FontWeight.w600,
                     ),
