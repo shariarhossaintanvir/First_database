@@ -25,24 +25,24 @@ class TrustBadgeRow extends StatelessWidget {
 
   static const List<TrustBadgeData> defaultBadges = [
     TrustBadgeData(
-      icon: Icons.verified_user_outlined,
-      title: '100% Authentic',
-      subtitle: 'Original guaranteed',
+      icon: Icons.payments_outlined,
+      title: 'Cash on Delivery',
+      subtitle: 'Pay upon receipt',
     ),
     TrustBadgeData(
-      icon: Icons.local_shipping_outlined,
-      title: 'Fast Delivery',
-      subtitle: 'Across Bangladesh',
+      icon: Icons.receipt_long_outlined,
+      title: 'Order Tracking',
+      subtitle: 'Status updates',
     ),
     TrustBadgeData(
-      icon: Icons.assignment_return_outlined,
-      title: 'Easy Returns',
-      subtitle: '7-day policy',
+      icon: Icons.support_agent_outlined,
+      title: 'Customer Support',
+      subtitle: 'support@shopease.com',
     ),
     TrustBadgeData(
-      icon: Icons.security_outlined,
-      title: 'Warranty Support',
-      subtitle: 'Official warranty',
+      icon: Icons.inventory_2_outlined,
+      title: 'Direct Catalog',
+      subtitle: 'Admin verified',
     ),
   ];
 

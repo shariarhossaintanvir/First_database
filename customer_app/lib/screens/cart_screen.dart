@@ -89,70 +89,75 @@ class CartScreen extends StatelessWidget {
                     top: BorderSide(color: AppTheme.borderSubtle, width: 1)),
               ),
               child: SafeArea(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Price breakdown
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
-                          '${cart.itemCount} ${cart.itemCount == 1 ? 'item' : 'items'}',
-                          style: const TextStyle(
-                              fontSize: 13, color: AppTheme.textMuted),
-                        ),
+                        // Price breakdown
                         Row(
-                          crossAxisAlignment: CrossAxisAlignment.baseline,
-                          textBaseline: TextBaseline.alphabetic,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            const Text(
-                              'Subtotal  ',
-                              style: TextStyle(
+                            Text(
+                              '${cart.itemCount} ${cart.itemCount == 1 ? 'item' : 'items'}',
+                              style: const TextStyle(
                                   fontSize: 13, color: AppTheme.textMuted),
                             ),
-                            Text(
-                              '৳ ${cart.totalAmount.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: -0.4,
-                                color: AppTheme.textPrimary,
-                              ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.baseline,
+                              textBaseline: TextBaseline.alphabetic,
+                              children: [
+                                const Text(
+                                  'Subtotal  ',
+                                  style: TextStyle(
+                                      fontSize: 13, color: AppTheme.textMuted),
+                                ),
+                                Text(
+                                  '৳ ${cart.totalAmount.toStringAsFixed(0)}',
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: -0.4,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: AppTheme.space12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const CheckoutScreen()),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppTheme.accent,
-                          foregroundColor: AppTheme.bgPrimary,
-                          padding:
-                              const EdgeInsets.symmetric(vertical: AppTheme.space16),
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppTheme.radiusSm),
+                        const SizedBox(height: AppTheme.space12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const CheckoutScreen()),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.accent,
+                              foregroundColor: AppTheme.bgPrimary,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: AppTheme.space16),
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppTheme.radiusSm),
+                              ),
+                            ),
+                            child: const Text(
+                              'Proceed to Checkout',
+                              style: TextStyle(
+                                  fontSize: 15, fontWeight: FontWeight.bold),
+                            ),
                           ),
                         ),
-                        child: const Text(
-                          'Proceed to Checkout',
-                          style: TextStyle(
-                              fontSize: 15, fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -171,22 +176,29 @@ class CartScreen extends StatelessWidget {
                 child: const Text('Browse Products'),
               ),
             )
-          : ListView.separated(
-              padding: const EdgeInsets.all(AppTheme.space16),
-              itemCount: cart.itemList.length,
-              separatorBuilder: (ctx, idx) =>
-                  const SizedBox(height: AppTheme.space10),
-              itemBuilder: (context, index) {
-                final item = cart.itemList[index];
-                return _CartItemRow(
-                  item: item,
-                  onIncrement: () =>
-                      cart.incrementQuantity(item.product.id),
-                  onDecrement: () =>
-                      cart.decrementQuantity(item.product.id),
-                  onRemove: () => cart.removeItem(item.product.id),
-                );
-              },
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: ListView.separated(
+                  padding: const EdgeInsets.all(AppTheme.space16),
+                  itemCount: cart.itemList.length,
+                  separatorBuilder: (ctx, idx) =>
+                      const SizedBox(height: AppTheme.space10),
+                  itemBuilder: (context, index) {
+                    final item = cart.itemList[index];
+                    final canIncrement = item.quantity < item.product.stock;
+                    return _CartItemRow(
+                      item: item,
+                      onIncrement: canIncrement
+                          ? () => cart.incrementQuantity(item.product.id)
+                          : null,
+                      onDecrement: () =>
+                          cart.decrementQuantity(item.product.id),
+                      onRemove: () => cart.removeItem(item.product.id),
+                    );
+                  },
+                ),
+              ),
             ),
     );
   }
@@ -195,13 +207,13 @@ class CartScreen extends StatelessWidget {
 /// Individual cart item row widget
 class _CartItemRow extends StatelessWidget {
   final dynamic item; // CartItemModel
-  final VoidCallback onIncrement;
+  final VoidCallback? onIncrement;
   final VoidCallback onDecrement;
   final VoidCallback onRemove;
 
   const _CartItemRow({
     required this.item,
-    required this.onIncrement,
+    this.onIncrement,
     required this.onDecrement,
     required this.onRemove,
   });
@@ -300,7 +312,7 @@ class _CartItemRow extends StatelessWidget {
                             _MiniStepperButton(
                               icon: Icons.add,
                               onPressed: onIncrement,
-                              color: AppTheme.accent,
+                              color: onIncrement == null ? AppTheme.textDisabled : AppTheme.accent,
                             ),
                           ],
                         ),
@@ -339,12 +351,12 @@ class _CartItemRow extends StatelessWidget {
 
 class _MiniStepperButton extends StatelessWidget {
   final IconData icon;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color? color;
 
   const _MiniStepperButton({
     required this.icon,
-    required this.onPressed,
+    this.onPressed,
     this.color,
   });
 

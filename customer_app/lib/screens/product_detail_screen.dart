@@ -353,9 +353,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
 
                   const SizedBox(height: AppTheme.space24),
 
-                  // Specifications & Details Table (Star Tech / Pickaboo inspired)
+                  // Product Specifications Table
                   SpecAttributeTable(
-                    title: 'Specifications & Details',
+                    title: 'Product Specifications',
                     specifications: {
                       'Category': p.category,
                       'Stock Availability': p.stock > 0
@@ -364,9 +364,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               : 'In Stock (${p.stock} units available)')
                           : 'Currently Out of Stock',
                       'Unit Price': '৳ ${p.price.toStringAsFixed(0)}',
-                      'Delivery Coverage': 'All 64 Districts in Bangladesh (2-5 Days)',
-                      'Payment Method': 'Cash on Delivery (COD) / bKash / Nagad',
-                      'Product Guarantee': '100% Genuine Guaranteed',
+                      'Payment Method': 'Cash on Delivery (COD)',
                     },
                   ),
 

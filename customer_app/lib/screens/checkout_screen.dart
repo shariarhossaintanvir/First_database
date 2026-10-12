@@ -318,23 +318,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       const SizedBox(height: 14),
                       _buildPaymentOption(
                         title: 'Cash on Delivery (COD)',
-                        subtitle: 'Pay with cash upon receipt anywhere in Bangladesh',
-                        icon: Icons.money,
+                        subtitle: 'Pay with cash upon delivery of your items',
+                        icon: Icons.payments_outlined,
                         value: 'Cash on Delivery',
+                        isAvailable: true,
                       ),
                       const SizedBox(height: 10),
                       _buildPaymentOption(
                         title: 'bKash / Nagad / Rocket',
-                        subtitle: 'Instant mobile financial payment confirmation',
+                        subtitle: 'Online payment gateway not currently integrated',
                         icon: Icons.account_balance_wallet_outlined,
                         value: 'Mobile Banking',
+                        isAvailable: false,
+                        badgeText: 'Unavailable',
                       ),
                       const SizedBox(height: 10),
                       _buildPaymentOption(
                         title: 'Credit / Debit Card',
-                        subtitle: 'Visa, MasterCard, Amex',
+                        subtitle: 'Card payment gateway not currently integrated',
                         icon: Icons.credit_card_outlined,
                         value: 'Credit / Debit Card',
+                        isAvailable: false,
+                        badgeText: 'Unavailable',
                       ),
                     ],
                   ),
@@ -391,17 +396,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       const SizedBox(height: 12),
                       const Divider(color: AppTheme.borderSubtle, height: 1),
                       const SizedBox(height: 12),
-                      const Row(
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('Standard Delivery:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
+                          const Text('Subtotal:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
                           Text(
-                            'FREE',
-                            style: TextStyle(
-                              color: AppTheme.statusSuccess,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
+                            '৳ ${cart.totalAmount.toStringAsFixed(0)}',
+                            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                           ),
                         ],
                       ),
@@ -446,49 +447,91 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     required String subtitle,
     required IconData icon,
     required String value,
+    bool isAvailable = true,
+    String? badgeText,
   }) {
-    final isSelected = _paymentMethod == value;
+    final isSelected = isAvailable && _paymentMethod == value;
 
     return InkWell(
-      onTap: () => setState(() => _paymentMethod = value),
+      onTap: isAvailable ? () => setState(() => _paymentMethod = value) : null,
       borderRadius: BorderRadius.circular(10),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? AppTheme.accent : AppTheme.borderSubtle,
+            color: isSelected
+                ? AppTheme.accent
+                : (isAvailable ? AppTheme.borderSubtle : AppTheme.borderSubtle.withValues(alpha: 0.5)),
             width: isSelected ? 1.5 : 1,
           ),
-          color: isSelected ? AppTheme.accentSubtle : AppTheme.bgSecondary,
+          color: isSelected
+              ? AppTheme.accentSubtle
+              : (isAvailable ? AppTheme.bgSecondary : AppTheme.bgPrimary),
         ),
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? AppTheme.accent : AppTheme.textMuted, size: 22),
+            Icon(
+              icon,
+              color: isSelected
+                  ? AppTheme.accent
+                  : (isAvailable ? AppTheme.textMuted : AppTheme.textDisabled),
+              size: 22,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                      color: AppTheme.textPrimary,
-                      fontSize: 14,
-                    ),
+                  Row(
+                    children: [
+                      Text(
+                        title,
+                        style: TextStyle(
+                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          color: isAvailable ? AppTheme.textPrimary : AppTheme.textMuted,
+                          fontSize: 14,
+                        ),
+                      ),
+                      if (badgeText != null) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppTheme.bgSecondary,
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: AppTheme.borderSubtle),
+                          ),
+                          child: Text(
+                            badgeText,
+                            style: const TextStyle(
+                              color: AppTheme.textMuted,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: 2),
                   Text(
                     subtitle,
-                    style: const TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                    style: TextStyle(
+                      color: isAvailable ? AppTheme.textMuted : AppTheme.textDisabled,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
             ),
             Icon(
-              isSelected ? Icons.check_circle : Icons.circle_outlined,
-              color: isSelected ? AppTheme.accent : AppTheme.textMuted,
+              isSelected
+                  ? Icons.check_circle
+                  : (isAvailable ? Icons.circle_outlined : Icons.block_outlined),
+              color: isSelected
+                  ? AppTheme.accent
+                  : (isAvailable ? AppTheme.textMuted : AppTheme.textDisabled),
               size: 20,
             ),
           ],

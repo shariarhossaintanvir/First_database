@@ -90,9 +90,12 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(AppTheme.space16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                 // ── Status Tracking Card ─────────────────────────────────
                 _SectionCard(
                   child: Column(
@@ -333,7 +336,9 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               ],
             ),
           ),
-        );
+        ),
+      ),
+    );
       },
     );
   }

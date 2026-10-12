@@ -57,50 +57,55 @@ class _OrdersScreenState extends State<OrdersScreen> {
       body: Column(
         children: [
           // ── Status Filter Chips ──────────────────────────────────────
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.space16, vertical: AppTheme.space10),
-            child: Row(
-              children: _filters.map((f) {
-                final isSelected = _selectedStatus == f;
-                return Padding(
-                  padding: const EdgeInsets.only(right: AppTheme.space8),
-                  child: GestureDetector(
-                    onTap: () => setState(() => _selectedStatus = f),
-                    child: AnimatedContainer(
-                      duration: AppTheme.durationFast,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: AppTheme.space12,
-                          vertical: AppTheme.space6),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppTheme.accentSubtle
-                            : AppTheme.bgSecondary,
-                        borderRadius:
-                            BorderRadius.circular(AppTheme.radiusFull),
-                        border: Border.all(
-                          color: isSelected
-                              ? AppTheme.accent
-                              : AppTheme.borderSubtle,
+          Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.space16, vertical: AppTheme.space10),
+                child: Row(
+                  children: _filters.map((f) {
+                    final isSelected = _selectedStatus == f;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: AppTheme.space8),
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedStatus = f),
+                        child: AnimatedContainer(
+                          duration: AppTheme.durationFast,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppTheme.space12,
+                              vertical: AppTheme.space6),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? AppTheme.accentSubtle
+                                : AppTheme.bgSecondary,
+                            borderRadius:
+                                BorderRadius.circular(AppTheme.radiusFull),
+                            border: Border.all(
+                              color: isSelected
+                                  ? AppTheme.accent
+                                  : AppTheme.borderSubtle,
+                            ),
+                          ),
+                          child: Text(
+                            f,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? AppTheme.accent
+                                  : AppTheme.textSecondary,
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
                       ),
-                      child: Text(
-                        f,
-                        style: TextStyle(
-                          color: isSelected
-                              ? AppTheme.accent
-                              : AppTheme.textSecondary,
-                          fontWeight: isSelected
-                              ? FontWeight.w600
-                              : FontWeight.normal,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
+                    );
+                  }).toList(),
+                ),
+              ),
             ),
           ),
 
@@ -151,28 +156,33 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   );
                 }
 
-                return ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppTheme.space16, AppTheme.space4,
-                    AppTheme.space16, AppTheme.space40,
-                  ),
-                  itemCount: orders.length,
-                  separatorBuilder: (ctx, idx) =>
-                      const SizedBox(height: AppTheme.space10),
-                  itemBuilder: (context, index) {
-                    final order = orders[index];
-                    return _OrderCard(
-                      order: order,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => OrderDetailScreen(order: order),
-                          ),
+                return Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 720),
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppTheme.space16, AppTheme.space4,
+                        AppTheme.space16, AppTheme.space40,
+                      ),
+                      itemCount: orders.length,
+                      separatorBuilder: (ctx, idx) =>
+                          const SizedBox(height: AppTheme.space10),
+                      itemBuilder: (context, index) {
+                        final order = orders[index];
+                        return _OrderCard(
+                          order: order,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => OrderDetailScreen(order: order),
+                              ),
+                            );
+                          },
                         );
                       },
-                    );
-                  },
+                    ),
+                  ),
                 );
               },
             ),

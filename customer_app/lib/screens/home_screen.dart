@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                   child: const Text(
-                                    'CURATED CATALOG',
+                                    'PRODUCT CATALOG',
                                     style: TextStyle(
                                       color: AppTheme.accent,
                                       fontWeight: FontWeight.bold,
@@ -195,7 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(height: AppTheme.space10),
                                 const Text(
-                                  'Genuine Products\nDelivered Nationwide',
+                                  'Explore Our Store\nOrder with Cash on Delivery',
                                   style: TextStyle(
                                     color: AppTheme.textPrimary,
                                     fontWeight: FontWeight.bold,
@@ -206,7 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 const SizedBox(height: AppTheme.space6),
                                 const Text(
-                                  'Verified authenticity with delivery across Bangladesh.',
+                                  'Browse categories and submit orders directly for processing.',
                                   style: TextStyle(
                                     color: AppTheme.textMuted,
                                     fontSize: 12,

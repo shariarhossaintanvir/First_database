@@ -238,10 +238,10 @@ void main() {
         ),
       );
 
-      expect(find.text('100% Authentic'), findsOneWidget);
-      expect(find.text('Fast Delivery'), findsOneWidget);
-      expect(find.text('Easy Returns'), findsOneWidget);
-      expect(find.text('Warranty Support'), findsOneWidget);
+      expect(find.text('Cash on Delivery'), findsOneWidget);
+      expect(find.text('Order Tracking'), findsOneWidget);
+      expect(find.text('Customer Support'), findsOneWidget);
+      expect(find.text('Direct Catalog'), findsOneWidget);
     });
   });
 }
