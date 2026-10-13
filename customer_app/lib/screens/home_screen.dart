@@ -23,6 +23,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   String _searchQuery = '';
   String _selectedCategory = 'All';
+  String _sortBy = 'newest';
 
   @override
   Widget build(BuildContext context) {
@@ -382,6 +383,15 @@ class _HomeScreenState extends State<HomeScreen> {
                     }).toList();
                   }
 
+                  // Apply sorting
+                  if (_sortBy == 'price_asc') {
+                    products.sort((a, b) => a.price.compareTo(b.price));
+                  } else if (_sortBy == 'price_desc') {
+                    products.sort((a, b) => b.price.compareTo(a.price));
+                  } else {
+                    products.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+                  }
+
                   // Empty state
                   if (products.isEmpty) {
                     return SliverFillRemaining(
@@ -404,6 +414,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onActionPressed: () => setState(() {
                           _searchQuery = '';
                           _selectedCategory = 'All';
+                          _sortBy = 'newest';
                         }),
                       ),
                     );
@@ -420,25 +431,85 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Text(
-                                _searchQuery.isNotEmpty
-                                    ? 'Search Results'
-                                    : _selectedCategory == 'All'
-                                        ? 'All Products'
-                                        : _selectedCategory,
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.textPrimary,
-                                  letterSpacing: -0.2,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _searchQuery.isNotEmpty
+                                          ? 'Search Results'
+                                          : _selectedCategory == 'All'
+                                              ? 'All Products'
+                                              : _selectedCategory,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.bold,
+                                        color: AppTheme.textPrimary,
+                                        letterSpacing: -0.2,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      '${products.length} ${products.length == 1 ? 'item' : 'items'}',
+                                      style: const TextStyle(
+                                        color: AppTheme.textMuted,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Text(
-                                '${products.length} ${products.length == 1 ? 'item' : 'items'}',
-                                style: const TextStyle(
-                                  color: AppTheme.textMuted,
-                                  fontSize: 12,
+                              const SizedBox(width: AppTheme.space12),
+                              // Sort dropdown
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppTheme.space10,
+                                  vertical: AppTheme.space4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.surfaceCard,
+                                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                                  border: Border.all(color: AppTheme.borderSubtle),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: _sortBy,
+                                    isDense: true,
+                                    dropdownColor: AppTheme.surfaceElevated,
+                                    icon: const Icon(
+                                      Icons.sort_rounded,
+                                      size: 16,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                    style: const TextStyle(
+                                      color: AppTheme.textPrimary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    items: const [
+                                      DropdownMenuItem(
+                                        value: 'newest',
+                                        child: Text('Newest'),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'price_asc',
+                                        child: Text('Price: Low to High'),
+                                      ),
+                                      DropdownMenuItem(
+                                        value: 'price_desc',
+                                        child: Text('Price: High to Low'),
+                                      ),
+                                    ],
+                                    onChanged: (val) {
+                                      if (val != null) {
+                                        setState(() => _sortBy = val);
+                                      }
+                                    },
+                                  ),
                                 ),
                               ),
                             ],

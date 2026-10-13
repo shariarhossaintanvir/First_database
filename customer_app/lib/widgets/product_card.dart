@@ -139,6 +139,17 @@ class ProductCard extends StatelessWidget {
                         onTap: isUnavailable
                             ? null
                             : () {
+                                final inCartQty = cart.getProductQuantity(product.id);
+                                if (inCartQty >= product.stock) {
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Cannot add more: maximum available stock reached.'),
+                                      backgroundColor: AppTheme.surfaceElevated,
+                                    ),
+                                  );
+                                  return;
+                                }
                                 cart.addItem(product);
                                 ScaffoldMessenger.of(context).hideCurrentSnackBar();
                                 ScaffoldMessenger.of(context).showSnackBar(
