@@ -18,32 +18,69 @@ class _ProductsScreenState extends State<ProductsScreen> {
   String _selectedCategory = 'All';
 
   void _confirmDelete(ProductModel product) {
+    bool isDeleting = false;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AdminTheme.surfaceCard,
-        title: const Text('Delete Product', style: TextStyle(color: AdminTheme.textPrimary)),
-        content: Text(
-          'Are you sure you want to permanently remove "${product.title}" from the catalog?',
-          style: const TextStyle(color: AdminTheme.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AdminTheme.textMuted)),
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: AdminTheme.surfaceCard,
+          title: const Text('Delete Product', style: TextStyle(color: AdminTheme.textPrimary)),
+          content: Text(
+            'Are you sure you want to permanently remove "${product.title}" from the catalog?',
+            style: const TextStyle(color: AdminTheme.textSecondary),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AdminTheme.statusError,
-              foregroundColor: Colors.white,
+          actions: [
+            TextButton(
+              onPressed: isDeleting ? null : () => Navigator.pop(dialogCtx),
+              child: const Text('Cancel', style: TextStyle(color: AdminTheme.textMuted)),
             ),
-            onPressed: () async {
-              await _firestoreService.deleteProduct(product.id);
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text('Delete'),
-          ),
-        ],
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AdminTheme.statusError,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: isDeleting
+                  ? null
+                  : () async {
+                      setDialogState(() => isDeleting = true);
+                      try {
+                        await _firestoreService.deleteProduct(product.id);
+                        if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Product "${product.title}" removed from catalog.'),
+                              backgroundColor: AdminTheme.surfaceElevated,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (dialogCtx.mounted) {
+                          setDialogState(() => isDeleting = false);
+                        }
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to delete product: $e'),
+                              backgroundColor: AdminTheme.statusError,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              child: isDeleting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('Delete'),
+            ),
+          ],
+        ),
       ),
     );
   }

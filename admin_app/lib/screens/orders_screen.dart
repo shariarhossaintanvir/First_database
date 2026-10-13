@@ -45,11 +45,10 @@ class _OrdersScreenState extends State<OrdersScreen>
       case 'Pending':
         return AdminTheme.statusWarning;
       case 'Confirmed':
-        return const Color(0xFF14B8A6);
+        return AdminTheme.accent;
       case 'Processing':
-        return AdminTheme.statusInfo;
       case 'Shipped':
-        return const Color(0xFFA855F7);
+        return AdminTheme.statusInfo;
       case 'Delivered':
         return AdminTheme.statusSuccess;
       case 'Cancelled':

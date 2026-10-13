@@ -6,6 +6,7 @@ import '../models/product_model.dart';
 import '../models/category_model.dart';
 import '../theme/admin_theme.dart';
 import '../widgets/admin_layout.dart';
+import '../widgets/admin_status_badge.dart';
 import 'products_screen.dart';
 import 'categories_screen.dart';
 import 'orders_screen.dart';
@@ -33,11 +34,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 'Pending':
         return AdminTheme.statusWarning;
       case 'Confirmed':
-        return const Color(0xFF14B8A6);
+        return AdminTheme.accent;
       case 'Processing':
-        return AdminTheme.statusInfo;
       case 'Shipped':
-        return const Color(0xFFA855F7);
+        return AdminTheme.statusInfo;
       case 'Delivered':
         return AdminTheme.statusSuccess;
       case 'Cancelled':
@@ -362,24 +362,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: color.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: color.withValues(alpha: 0.3)),
-                              ),
-                              child: Text(
-                                o.status,
-                                style: TextStyle(
-                                  color: color,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 11,
-                                ),
-                              ),
+                            AdminStatusBadge.fromOrderStatus(
+                              o.status,
+                              isSmall: true,
                             ),
                             const SizedBox(width: 14),
                             Text(
