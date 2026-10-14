@@ -6,7 +6,9 @@ import '../widgets/admin_layout.dart';
 import 'add_edit_product_screen.dart';
 
 class ProductsScreen extends StatefulWidget {
-  const ProductsScreen({super.key});
+  final bool filterLowStock;
+
+  const ProductsScreen({super.key, this.filterLowStock = false});
 
   @override
   State<ProductsScreen> createState() => _ProductsScreenState();
@@ -16,6 +18,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
   final FirestoreService _firestoreService = FirestoreService();
   String _searchQuery = '';
   String _selectedCategory = 'All';
+  late bool _filterLowStockOnly;
+
+  @override
+  void initState() {
+    super.initState();
+    _filterLowStockOnly = widget.filterLowStock;
+  }
 
   void _confirmDelete(ProductModel product) {
     bool isDeleting = false;
@@ -87,54 +96,191 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   void _showStockDialog(ProductModel product) {
     final stockController = TextEditingController(text: product.stock.toString());
+    String? validationError;
+    bool isSaving = false;
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AdminTheme.surfaceCard,
-        title: Text(
-          'Update Stock: ${product.title}',
-          style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 16),
-        ),
-        content: TextField(
-          controller: stockController,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          style: const TextStyle(color: AdminTheme.textPrimary),
-          decoration: const InputDecoration(
-            labelText: 'New Stock Units',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel', style: TextStyle(color: AdminTheme.textMuted)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final newStock = int.tryParse(stockController.text.trim());
-              if (newStock == null || newStock < 0 || newStock > 1000000) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Invalid stock value (0 - 1,000,000 allowed)'),
-                    backgroundColor: AdminTheme.statusError,
+      barrierDismissible: false,
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          void updateQuantityBy(int delta) {
+            final currentVal = int.tryParse(stockController.text.trim()) ?? product.stock;
+            final updatedVal = (currentVal + delta).clamp(0, 1000000);
+            stockController.text = updatedVal.toString();
+            setDialogState(() {
+              validationError = null;
+            });
+          }
+
+          return AlertDialog(
+            backgroundColor: AdminTheme.surfaceCard,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: const BorderSide(color: AdminTheme.borderSubtle),
+            ),
+            title: Row(
+              children: [
+                const Icon(Icons.inventory_2_outlined, color: AdminTheme.accent, size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Update Stock: ${product.title}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 16),
                   ),
-                );
-                return;
-              }
-              await _firestoreService.updateProductStock(product.id, newStock);
-              if (ctx.mounted) Navigator.pop(ctx);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Stock updated to $newStock for "${product.title}"'),
-                    backgroundColor: AdminTheme.surfaceElevated,
+                ),
+              ],
+            ),
+            content: SizedBox(
+              width: 380,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AdminTheme.bgWorkspace,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AdminTheme.borderSubtle),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Current Recorded Stock:',
+                          style: TextStyle(color: AdminTheme.textSecondary, fontSize: 12),
+                        ),
+                        Text(
+                          '${product.stock} units',
+                          style: TextStyle(
+                            color: product.stock <= 0
+                                ? AdminTheme.statusError
+                                : (product.stock <= 5 ? AdminTheme.statusWarning : AdminTheme.statusSuccess),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                );
-              }
-            },
-            child: const Text('Save'),
-          ),
-        ],
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: stockController,
+                    keyboardType: TextInputType.number,
+                    enabled: !isSaving,
+                    autofocus: true,
+                    style: const TextStyle(color: AdminTheme.textPrimary),
+                    decoration: InputDecoration(
+                      labelText: 'New Absolute Stock Units (0 – 1,000,000)',
+                      errorText: validationError,
+                      helperText: 'Sets absolute stock level on save',
+                      helperStyle: const TextStyle(color: AdminTheme.textMuted, fontSize: 11),
+                    ),
+                    onChanged: (val) {
+                      if (validationError != null) {
+                        setDialogState(() => validationError = null);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Quick Adjustments:',
+                    style: TextStyle(color: AdminTheme.textSecondary, fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [1, 5, 10, 25].map((delta) {
+                      return OutlinedButton(
+                        onPressed: isSaving ? null : () => updateQuantityBy(delta),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AdminTheme.accent,
+                          side: const BorderSide(color: AdminTheme.borderSubtle),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          minimumSize: const Size(48, 32),
+                        ),
+                        child: Text('+$delta'),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSaving ? null : () => Navigator.pop(dialogCtx),
+                child: const Text('Cancel', style: TextStyle(color: AdminTheme.textMuted)),
+              ),
+              ElevatedButton(
+                onPressed: isSaving
+                    ? null
+                    : () async {
+                        final raw = stockController.text.trim();
+                        if (raw.isEmpty) {
+                          setDialogState(() => validationError = 'Please enter a stock quantity');
+                          return;
+                        }
+                        final newStock = int.tryParse(raw);
+                        if (newStock == null) {
+                          setDialogState(() => validationError = 'Enter a valid whole number');
+                          return;
+                        }
+                        if (newStock < 0 || newStock > 1000000) {
+                          setDialogState(() => validationError = 'Stock must be between 0 and 1,000,000');
+                          return;
+                        }
+
+                        setDialogState(() {
+                          validationError = null;
+                          isSaving = true;
+                        });
+
+                        try {
+                          await _firestoreService.updateProductStock(product.id, newStock);
+                          if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Stock updated to $newStock units for "${product.title}"'),
+                                backgroundColor: AdminTheme.surfaceElevated,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (dialogCtx.mounted) {
+                            setDialogState(() {
+                              isSaving = false;
+                              validationError = 'Failed to update stock: $e';
+                            });
+                          }
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to update stock: $e'),
+                                backgroundColor: AdminTheme.statusError,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isSaving
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text('Save Stock'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -186,47 +332,107 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
                 );
 
+                final categoryDropdown = StreamBuilder<List<String>>(
+                  stream: _firestoreService.getCategoriesStream().map((cats) => ['All', ...cats.map((c) => c.name)]),
+                  builder: (context, catSnap) {
+                    final categories = catSnap.data ?? ['All'];
+                    return Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: AdminTheme.bgWorkspace,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AdminTheme.borderSubtle),
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: categories.contains(_selectedCategory) ? _selectedCategory : 'All',
+                          dropdownColor: AdminTheme.surfaceCard,
+                          style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 13),
+                          items: categories.map((cat) {
+                            return DropdownMenuItem(value: cat, child: Text(cat));
+                          }).toList(),
+                          onChanged: (val) {
+                            if (val != null) setState(() => _selectedCategory = val);
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                );
+
+                final lowStockChip = FilterChip(
+                  label: const Text('Low Stock (≤ 5)'),
+                  selected: _filterLowStockOnly,
+                  onSelected: (val) => setState(() => _filterLowStockOnly = val),
+                  selectedColor: AdminTheme.statusWarning.withValues(alpha: 0.2),
+                  checkmarkColor: AdminTheme.statusWarning,
+                  labelStyle: TextStyle(
+                    color: _filterLowStockOnly ? AdminTheme.statusWarning : AdminTheme.textSecondary,
+                    fontSize: 12,
+                    fontWeight: _filterLowStockOnly ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  backgroundColor: AdminTheme.bgWorkspace,
+                  side: BorderSide(
+                    color: _filterLowStockOnly ? AdminTheme.statusWarning : AdminTheme.borderSubtle,
+                  ),
+                );
+
                 if (isWide) {
                   return Row(
                     children: [
                       Expanded(child: searchWidget),
                       const SizedBox(width: 16),
-                      // Category Filter Pill Dropdown
-                      StreamBuilder<List<String>>(
-                        stream: _firestoreService.getCategoriesStream().map((cats) => ['All', ...cats.map((c) => c.name)]),
-                        builder: (context, catSnap) {
-                          final categories = catSnap.data ?? ['All'];
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: AdminTheme.bgWorkspace,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AdminTheme.borderSubtle),
-                            ),
-                            child: DropdownButtonHideUnderline(
-                              child: DropdownButton<String>(
-                                value: categories.contains(_selectedCategory) ? _selectedCategory : 'All',
-                                dropdownColor: AdminTheme.surfaceCard,
-                                style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 13),
-                                items: categories.map((cat) {
-                                  return DropdownMenuItem(value: cat, child: Text(cat));
-                                }).toList(),
-                                onChanged: (val) {
-                                  if (val != null) setState(() => _selectedCategory = val);
-                                },
-                              ),
-                            ),
-                          );
-                        },
-                      ),
+                      categoryDropdown,
+                      const SizedBox(width: 12),
+                      lowStockChip,
                     ],
                   );
                 }
 
-                return searchWidget;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    searchWidget,
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(child: categoryDropdown),
+                        const SizedBox(width: 10),
+                        lowStockChip,
+                      ],
+                    ),
+                  ],
+                );
               },
             ),
           ),
+
+          // Active Low-Stock Filter Notice Banner
+          if (_filterLowStockOnly)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: AdminTheme.statusWarning.withValues(alpha: 0.1),
+              child: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, size: 16, color: AdminTheme.statusWarning),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Active Filter: Showing products with low or zero stock (≤ 5 units)',
+                    style: TextStyle(color: AdminTheme.textPrimary, fontSize: 12, fontWeight: FontWeight.w500),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => setState(() => _filterLowStockOnly = false),
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: const Size(60, 24),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text('Clear Filter', style: TextStyle(fontSize: 12, color: AdminTheme.statusWarning)),
+                  ),
+                ],
+              ),
+            ),
 
           // Product Inventory Stream
           Expanded(
@@ -257,6 +463,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   products = products.where((p) => p.category.toLowerCase() == _selectedCategory.toLowerCase()).toList();
                 }
 
+                // Filter by low stock (<= 5)
+                if (_filterLowStockOnly) {
+                  products = products.where((p) => p.stock <= 5).toList();
+                }
+
                 // Filter by search query
                 if (_searchQuery.isNotEmpty) {
                   products = products.where((p) {
@@ -278,9 +489,11 @@ class _ProductsScreenState extends State<ProductsScreen> {
                         ),
                         const SizedBox(height: 14),
                         Text(
-                          _searchQuery.isNotEmpty
-                              ? 'No products matching "$_searchQuery"'
-                              : 'No products in store yet',
+                          _filterLowStockOnly
+                              ? 'No low-stock products found'
+                              : (_searchQuery.isNotEmpty
+                                  ? 'No products matching "$_searchQuery"'
+                                  : 'No products in store yet'),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -288,18 +501,24 @@ class _ProductsScreenState extends State<ProductsScreen> {
                           ),
                         ),
                         const SizedBox(height: 14),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const AddEditProductScreen(),
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.add, size: 16),
-                          label: const Text('Add Catalog Product'),
-                        ),
+                        if (_filterLowStockOnly)
+                          OutlinedButton(
+                            onPressed: () => setState(() => _filterLowStockOnly = false),
+                            child: const Text('Show All Products'),
+                          )
+                        else
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const AddEditProductScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.add, size: 16),
+                            label: const Text('Add Catalog Product'),
+                          ),
                       ],
                     ),
                   );
@@ -627,17 +846,30 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                             child: Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                               decoration: BoxDecoration(
-                                                color: p.stock > 0
-                                                    ? AdminTheme.statusSuccess.withValues(alpha: 0.12)
-                                                    : AdminTheme.statusError.withValues(alpha: 0.12),
+                                                color: p.stock <= 0
+                                                    ? AdminTheme.statusError.withValues(alpha: 0.12)
+                                                    : (p.stock <= 5
+                                                        ? AdminTheme.statusWarning.withValues(alpha: 0.12)
+                                                        : AdminTheme.statusSuccess.withValues(alpha: 0.12)),
                                                 borderRadius: BorderRadius.circular(4),
+                                                border: Border.all(
+                                                  color: p.stock <= 0
+                                                      ? AdminTheme.statusError.withValues(alpha: 0.3)
+                                                      : (p.stock <= 5
+                                                          ? AdminTheme.statusWarning.withValues(alpha: 0.3)
+                                                          : AdminTheme.statusSuccess.withValues(alpha: 0.3)),
+                                                ),
                                               ),
                                               child: Text(
                                                 'Stock: ${p.stock}',
                                                 style: TextStyle(
                                                   fontSize: 10,
                                                   fontWeight: FontWeight.bold,
-                                                  color: p.stock > 0 ? AdminTheme.statusSuccess : AdminTheme.statusError,
+                                                  color: p.stock <= 0
+                                                      ? AdminTheme.statusError
+                                                      : (p.stock <= 5
+                                                          ? AdminTheme.statusWarning
+                                                          : AdminTheme.statusSuccess),
                                                 ),
                                               ),
                                             ),

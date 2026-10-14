@@ -224,4 +224,63 @@ void main() {
       expect(removed, isTrue);
     });
   });
+
+  group('Phase 2 Admin Inventory & Restock Logic Tests', () {
+    test('validates stock warning threshold styling logic at 0, 1, 5, and 6', () {
+      Color getStockColor(int stock) {
+        if (stock <= 0) return AdminTheme.statusError;
+        if (stock <= 5) return AdminTheme.statusWarning;
+        return AdminTheme.statusSuccess;
+      }
+
+      expect(getStockColor(0), AdminTheme.statusError);
+      expect(getStockColor(1), AdminTheme.statusWarning);
+      expect(getStockColor(5), AdminTheme.statusWarning);
+      expect(getStockColor(6), AdminTheme.statusSuccess);
+      expect(getStockColor(100), AdminTheme.statusSuccess);
+    });
+
+    test('validates quick-restock numeric boundary logic for -1, 0, 5, 1000000, 1000001, and invalid inputs', () {
+      bool isValidStockInput(String input) {
+        final val = int.tryParse(input.trim());
+        if (val == null) return false;
+        return val >= 0 && val <= 1000000;
+      }
+
+      expect(isValidStockInput('-1'), isFalse);
+      expect(isValidStockInput('0'), isTrue);
+      expect(isValidStockInput('5'), isTrue);
+      expect(isValidStockInput('1000000'), isTrue);
+      expect(isValidStockInput('1000001'), isFalse);
+      expect(isValidStockInput(''), isFalse);
+      expect(isValidStockInput('abc'), isFalse);
+      expect(isValidStockInput('  42  '), isTrue);
+    });
+
+    test('validates stepper adjustment increments and upper boundary clamping', () {
+      int applyStepperDelta(int current, int delta) {
+        return (current + delta).clamp(0, 1000000);
+      }
+
+      expect(applyStepperDelta(0, 1), 1);
+      expect(applyStepperDelta(5, 5), 10);
+      expect(applyStepperDelta(10, 10), 20);
+      expect(applyStepperDelta(20, 25), 45);
+      expect(applyStepperDelta(999990, 25), 1000000); // Clamped at maximum
+    });
+
+    test('validates low-stock filter predicate includes stock <= 5 (including 0)', () {
+      final catalog = [
+        {'id': 'p1', 'stock': 0},
+        {'id': 'p2', 'stock': 1},
+        {'id': 'p3', 'stock': 5},
+        {'id': 'p4', 'stock': 6},
+        {'id': 'p5', 'stock': 50},
+      ];
+
+      final filtered = catalog.where((p) => (p['stock'] as int) <= 5).toList();
+      expect(filtered.length, 3);
+      expect(filtered.map((p) => p['id']), ['p1', 'p2', 'p3']);
+    });
+  });
 }

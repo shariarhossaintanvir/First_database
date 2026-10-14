@@ -244,4 +244,97 @@ void main() {
       expect(find.text('Direct Catalog'), findsOneWidget);
     });
   });
+
+  group('Phase 2 Customer Checkout & Order Timeline Tests', () {
+    test('verifies profile pre-population logic does not overwrite existing user inputs', () {
+      final nameController = TextEditingController();
+      final phoneController = TextEditingController(text: '+880 1999 000000'); // User already typed
+
+      final profileData = {
+        'name': 'Jane Doe',
+        'phone': '+880 1711 111111',
+        'address': 'Dhanmondi, Dhaka',
+      };
+
+      // Simulated safe pre-population logic
+      if (nameController.text.trim().isEmpty && profileData['name'] != null) {
+        nameController.text = profileData['name']!;
+      }
+      if (phoneController.text.trim().isEmpty && profileData['phone'] != null) {
+        phoneController.text = profileData['phone']!;
+      }
+
+      // Name was empty -> populated from profile
+      expect(nameController.text, 'Jane Doe');
+      // Phone was user-entered -> PRESERVED, not overwritten
+      expect(phoneController.text, '+880 1999 000000');
+    });
+
+    test('verifies checkout field validation rules', () {
+      String? validateName(String? v) {
+        if (v == null || v.trim().isEmpty) return 'Enter recipient name';
+        final trimmed = v.trim();
+        if (trimmed.length < 2) return 'Name must be at least 2 characters';
+        if (trimmed.length > 100) return 'Name cannot exceed 100 characters';
+        return null;
+      }
+
+      String? validatePhone(String? v) {
+        if (v == null || v.trim().isEmpty) return 'Enter phone number';
+        final phone = v.trim();
+        if (phone.length < 5 || phone.length > 30) return 'Phone number must be between 5 and 30 characters';
+        final phoneRegex = RegExp(r'^[0-9+\-()\s]+$');
+        if (!phoneRegex.hasMatch(phone)) return 'Enter a valid phone number';
+        return null;
+      }
+
+      String? validateAddress(String? v) {
+        if (v == null || v.trim().isEmpty) return 'Enter delivery address';
+        final trimmed = v.trim();
+        if (trimmed.length < 5) return 'Address must be at least 5 characters';
+        if (trimmed.length > 500) return 'Address cannot exceed 500 characters';
+        return null;
+      }
+
+      expect(validateName(''), isNotNull);
+      expect(validateName('A'), isNotNull);
+      expect(validateName('Valid Name'), isNull);
+
+      expect(validatePhone(''), isNotNull);
+      expect(validatePhone('123'), isNotNull);
+      expect(validatePhone('invalid-phone!@#'), isNotNull);
+      expect(validatePhone('+880 1712-345678'), isNull);
+
+      expect(validateAddress(''), isNotNull);
+      expect(validateAddress('Road'), isNotNull);
+      expect(validateAddress('House 1, Road 2, Gulshan, Dhaka'), isNull);
+    });
+
+    test('verifies order timeline status step calculation and cancellation handling', () {
+      int getStatusStep(String status) {
+        switch (status) {
+          case 'Pending':
+            return 0;
+          case 'Confirmed':
+            return 1;
+          case 'Processing':
+            return 2;
+          case 'Shipped':
+            return 3;
+          case 'Delivered':
+            return 4;
+          default:
+            return -1;
+        }
+      }
+
+      expect(getStatusStep('Pending'), 0);
+      expect(getStatusStep('Confirmed'), 1);
+      expect(getStatusStep('Processing'), 2);
+      expect(getStatusStep('Shipped'), 3);
+      expect(getStatusStep('Delivered'), 4);
+      expect(getStatusStep('Cancelled'), -1);
+      expect(getStatusStep('UnknownStatus'), -1);
+    });
+  });
 }

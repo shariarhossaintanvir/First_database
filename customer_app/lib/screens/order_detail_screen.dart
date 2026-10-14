@@ -124,37 +124,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       ),
                       const SizedBox(height: AppTheme.space20),
 
-                      // Cancelled notice or step tracker
+                      // Cancelled notice or progressive timeline
                       if (currentStatus == 'Cancelled')
-                        Container(
-                          padding: const EdgeInsets.all(AppTheme.space12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.statusError.withValues(alpha: 0.1),
-                            borderRadius:
-                                BorderRadius.circular(AppTheme.radiusSm),
-                            border: Border.all(
-                              color: AppTheme.statusError
-                                  .withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: const Row(
-                            children: [
-                              Icon(Icons.cancel_outlined,
-                                  color: AppTheme.statusError, size: 18),
-                              SizedBox(width: 8),
-                              Text(
-                                'This order has been cancelled.',
-                                style: TextStyle(
-                                  color: AppTheme.statusError,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
+                        _CancelledOrderNotice(order: currentOrder)
+                      else if (activeStep == -1)
+                        _UnknownStatusNotice(status: currentStatus)
                       else
-                        _OrderStepTracker(activeStep: activeStep),
+                        _OrderTimeline(
+                          order: currentOrder,
+                          activeStep: activeStep,
+                        ),
 
                       // Cancel request (Pending orders only)
                       if (currentStatus == 'Pending') ...[
@@ -424,78 +403,290 @@ class _DetailRow extends StatelessWidget {
   }
 }
 
-// ─── Order Step Tracker ─────────────────────────────────────────────────────
+// ─── Order Timeline & Status Presentation ───────────────────────────────────
 
-class _OrderStepTracker extends StatelessWidget {
+class _TimelineStage {
+  final String status;
+  final String title;
+  final String description;
+  final IconData icon;
+
+  const _TimelineStage({
+    required this.status,
+    required this.title,
+    required this.description,
+    required this.icon,
+  });
+}
+
+class _OrderTimeline extends StatelessWidget {
+  final OrderModel order;
   final int activeStep;
 
-  const _OrderStepTracker({required this.activeStep});
+  const _OrderTimeline({
+    required this.order,
+    required this.activeStep,
+  });
 
-  static const _steps = ['Placed', 'Confirmed', 'Processing', 'Shipped', 'Delivered'];
+  static const List<_TimelineStage> _stages = [
+    _TimelineStage(
+      status: 'Pending',
+      title: 'Order Placed',
+      description: 'Your order was received and is awaiting merchant confirmation.',
+      icon: Icons.receipt_long_outlined,
+    ),
+    _TimelineStage(
+      status: 'Confirmed',
+      title: 'Order Confirmed',
+      description: 'Order details and inventory verified by store administrator.',
+      icon: Icons.check_circle_outline,
+    ),
+    _TimelineStage(
+      status: 'Processing',
+      title: 'Processing & Quality Check',
+      description: 'Items are being packed and prepared for dispatch.',
+      icon: Icons.inventory_2_outlined,
+    ),
+    _TimelineStage(
+      status: 'Shipped',
+      title: 'Dispatched for Delivery',
+      description: 'Package has departed fulfillment center and is on route.',
+      icon: Icons.local_shipping_outlined,
+    ),
+    _TimelineStage(
+      status: 'Delivered',
+      title: 'Delivered',
+      description: 'Package successfully delivered to recipient.',
+      icon: Icons.home_outlined,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        for (int i = 0; i < _steps.length; i++) ...[
-          _StepDot(
-            label: _steps[i],
-            stepIndex: i,
-            activeStep: activeStep,
-          ),
-          if (i < _steps.length - 1)
-            Expanded(
-              child: Container(
-                height: 2,
-                margin: const EdgeInsets.only(bottom: 14),
-                color:
-                    i < activeStep ? AppTheme.accent : AppTheme.borderSubtle,
+    return Column(
+      children: List.generate(_stages.length, (index) {
+        final stage = _stages[index];
+        final isCompleted = index < activeStep;
+        final isCurrent = index == activeStep;
+        final isPending = index > activeStep;
+        final isLast = index == _stages.length - 1;
+
+        // Display genuine timestamps only:
+        // Index 0 (Order Placed) has createdAt.
+        // If active step is > 0 and order.updatedAt != null, display genuine updatedAt on current stage.
+        String? timestampStr;
+        if (index == 0) {
+          timestampStr = DateFormat('MMM dd, yyyy • h:mm a').format(order.createdAt);
+        } else if (isCurrent && order.updatedAt != null) {
+          timestampStr = 'Updated: ${DateFormat('MMM dd, yyyy • h:mm a').format(order.updatedAt!)}';
+        }
+
+        return IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Timeline Node & Connecting Line
+              Column(
+                children: [
+                  CircleAvatar(
+                    radius: 14,
+                    backgroundColor: isCompleted || isCurrent
+                        ? AppTheme.accent
+                        : AppTheme.bgSecondary,
+                    child: Icon(
+                      isCompleted
+                          ? Icons.check
+                          : (isCurrent ? stage.icon : Icons.circle),
+                      size: isCompleted ? 14 : (isCurrent ? 14 : 6),
+                      color: isCompleted || isCurrent
+                          ? AppTheme.bgPrimary
+                          : AppTheme.borderStrong,
+                    ),
+                  ),
+                  if (!isLast)
+                    Expanded(
+                      child: Container(
+                        width: 2,
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        color: isCompleted ? AppTheme.accent : AppTheme.borderSubtle,
+                      ),
+                    ),
+                ],
               ),
-            ),
-        ],
-      ],
+              const SizedBox(width: AppTheme.space12),
+
+              // Stage Details
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: isLast ? 0 : AppTheme.space20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            stage.title,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: isCurrent ? FontWeight.bold : (isCompleted ? FontWeight.w600 : FontWeight.normal),
+                              color: isCurrent
+                                  ? AppTheme.accent
+                                  : (isCompleted ? AppTheme.textPrimary : AppTheme.textMuted),
+                            ),
+                          ),
+                          if (isCurrent)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accentSubtle,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'CURRENT STAGE',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.accent,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        stage.description,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: isPending ? AppTheme.textDisabled : AppTheme.textSecondary,
+                          height: 1.4,
+                        ),
+                      ),
+                      if (timestampStr != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          timestampStr,
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: AppTheme.textMuted,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }),
     );
   }
 }
 
-class _StepDot extends StatelessWidget {
-  final String label;
-  final int stepIndex;
-  final int activeStep;
+class _CancelledOrderNotice extends StatelessWidget {
+  final OrderModel order;
 
-  const _StepDot({
-    required this.label,
-    required this.stepIndex,
-    required this.activeStep,
-  });
+  const _CancelledOrderNotice({required this.order});
 
   @override
   Widget build(BuildContext context) {
-    final isDone = stepIndex <= activeStep;
-    final isCurrent = stepIndex == activeStep;
+    final cancelDate = order.updatedAt ?? order.createdAt;
+    final formattedDate = DateFormat('MMM dd, yyyy • h:mm a').format(cancelDate);
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        CircleAvatar(
-          radius: 11,
-          backgroundColor: isDone ? AppTheme.accent : AppTheme.bgSecondary,
-          child: Icon(
-            isDone ? Icons.check : Icons.circle,
-            size: isDone ? 13 : 5,
-            color: isDone ? AppTheme.bgPrimary : AppTheme.borderStrong,
-          ),
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.space16),
+      decoration: BoxDecoration(
+        color: AppTheme.statusError.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(
+          color: AppTheme.statusError.withValues(alpha: 0.3),
         ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 9,
-            fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
-            color: isDone ? AppTheme.accent : AppTheme.textMuted,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppTheme.statusError.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.cancel_outlined,
+                  color: AppTheme.statusError,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Order Cancelled',
+                      style: TextStyle(
+                        color: AppTheme.statusError,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    Text(
+                      'This order has been cancelled and will not be delivered.',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ),
-      ],
+          const SizedBox(height: 12),
+          Text(
+            'Recorded on $formattedDate',
+            style: const TextStyle(
+              color: AppTheme.textMuted,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UnknownStatusNotice extends StatelessWidget {
+  final String status;
+
+  const _UnknownStatusNotice({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppTheme.space12),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceCard,
+        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+        border: Border.all(color: AppTheme.borderSubtle),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, color: AppTheme.textMuted, size: 18),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Current Order Status: $status',
+              style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

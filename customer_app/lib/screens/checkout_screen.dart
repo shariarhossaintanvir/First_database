@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../providers/cart_provider.dart';
@@ -22,6 +24,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   late TextEditingController _phoneController;
   late TextEditingController _addressController;
 
+  StreamSubscription<DocumentSnapshot>? _profileSubscription;
+  bool _hasPrepopulated = false;
+  bool _saveAsDefaultAddress = false;
+
   String _paymentMethod = 'Cash on Delivery';
   bool _isPlacingOrder = false;
 
@@ -32,14 +38,31 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _nameController = TextEditingController(
       text: auth.currentUser?.displayName ?? '',
     );
-    _phoneController = TextEditingController(text: '+880 1712 345678');
-    _addressController = TextEditingController(
-      text: 'House 12, Road 5, Dhanmondi, Dhaka',
-    );
+    _phoneController = TextEditingController();
+    _addressController = TextEditingController();
+
+    _profileSubscription = auth.getUserProfileStream().listen((snapshot) {
+      if (!_hasPrepopulated && mounted && snapshot.exists) {
+        final data = snapshot.data() as Map<String, dynamic>?;
+        if (data != null) {
+          if (_nameController.text.trim().isEmpty && data['name'] != null && (data['name'] as String).isNotEmpty) {
+            _nameController.text = data['name'] as String;
+          }
+          if (_phoneController.text.trim().isEmpty && data['phone'] != null && (data['phone'] as String).isNotEmpty) {
+            _phoneController.text = data['phone'] as String;
+          }
+          if (_addressController.text.trim().isEmpty && data['address'] != null && (data['address'] as String).isNotEmpty) {
+            _addressController.text = data['address'] as String;
+          }
+        }
+        _hasPrepopulated = true;
+      }
+    });
   }
 
   @override
   void dispose() {
+    _profileSubscription?.cancel();
     _nameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
@@ -47,6 +70,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _handlePlaceOrder() async {
+    if (_isPlacingOrder) return;
     if (!_formKey.currentState!.validate()) return;
 
     final auth = Provider.of<AuthService>(context, listen: false);
@@ -91,6 +115,18 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       );
 
       final orderId = await _firestoreService.placeOrder(order);
+
+      // Save as default profile address if selected by customer
+      if (_saveAsDefaultAddress) {
+        try {
+          await auth.updateProfile(
+            phone: _phoneController.text.trim(),
+            address: _addressController.text.trim(),
+          );
+        } catch (profileError) {
+          debugPrint('Non-critical profile address update error: $profileError');
+        }
+      }
 
       // Clear the cart
       cart.clearCart();
@@ -280,6 +316,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           }
                           return null;
                         },
+                      ),
+                      const SizedBox(height: 10),
+                      CheckboxListTile(
+                        value: _saveAsDefaultAddress,
+                        onChanged: _isPlacingOrder
+                            ? null
+                            : (val) => setState(() => _saveAsDefaultAddress = val ?? false),
+                        title: const Text(
+                          'Save as default address in my profile',
+                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                        ),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                        activeColor: AppTheme.accent,
+                        checkColor: AppTheme.bgPrimary,
+                        dense: true,
                       ),
                     ],
                   ),
