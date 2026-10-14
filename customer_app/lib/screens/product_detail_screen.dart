@@ -142,6 +142,22 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       onPressed: isUnavailable
                           ? null
                           : () {
+                              final inCartQty = cart.getProductQuantity(p.id);
+                              if (inCartQty + _quantity > p.stock) {
+                                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      inCartQty >= p.stock
+                                          ? 'Cannot add more: maximum available stock reached ($inCartQty in cart).'
+                                          : 'Cannot add $_quantity items: only ${p.stock - inCartQty} more available ($inCartQty in cart).',
+                                    ),
+                                    duration: const Duration(seconds: 2),
+                                    backgroundColor: AppTheme.surfaceElevated,
+                                  ),
+                                );
+                                return;
+                              }
                               cart.addItem(p, quantity: _quantity);
                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
                               ScaffoldMessenger.of(context).showSnackBar(

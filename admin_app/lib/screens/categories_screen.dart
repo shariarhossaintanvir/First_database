@@ -27,11 +27,12 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
     final idController = TextEditingController(text: category?.id ?? '');
     final isEditing = category != null;
+    bool isSaving = false;
 
     showDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
           backgroundColor: AdminTheme.surfaceCard,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -76,71 +77,141 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: isSaving ? null : () => Navigator.pop(dialogCtx),
               child: const Text('Cancel', style: TextStyle(color: AdminTheme.textMuted)),
             ),
             ElevatedButton(
-              onPressed: () async {
-                final name = nameController.text.trim();
-                final desc = descController.text.trim();
-                if (name.isEmpty) return;
+              onPressed: isSaving
+                  ? null
+                  : () async {
+                      final name = nameController.text.trim();
+                      final desc = descController.text.trim();
+                      if (name.isEmpty) return;
 
-                final id = isEditing
-                    ? category.id
-                    : (idController.text.trim().isNotEmpty
-                          ? idController.text.trim().toLowerCase()
-                          : name.toLowerCase().replaceAll(' ', '_'));
+                      final id = isEditing
+                          ? category.id
+                          : (idController.text.trim().isNotEmpty
+                                ? idController.text.trim().toLowerCase()
+                                : name.toLowerCase().replaceAll(' ', '_'));
 
-                final newCat = CategoryModel(
-                  id: id,
-                  name: name,
-                  description: desc,
-                  icon: category?.icon ?? 'category',
-                );
+                      final newCat = CategoryModel(
+                        id: id,
+                        name: name,
+                        description: desc,
+                        icon: category?.icon ?? 'category',
+                      );
 
-                if (isEditing) {
-                  await _firestoreService.updateCategory(newCat);
-                } else {
-                  await _firestoreService.addCategory(newCat);
-                }
-
-                if (context.mounted) Navigator.pop(context);
-              },
-              child: Text(isEditing ? 'Save Changes' : 'Add Category'),
+                      setDialogState(() => isSaving = true);
+                      try {
+                        if (isEditing) {
+                          await _firestoreService.updateCategory(newCat);
+                        } else {
+                          await _firestoreService.addCategory(newCat);
+                        }
+                        if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Category "${newCat.name}" saved.'),
+                              backgroundColor: AdminTheme.surfaceElevated,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (dialogCtx.mounted) {
+                          setDialogState(() => isSaving = false);
+                        }
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to save category: $e'),
+                              backgroundColor: AdminTheme.statusError,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              child: isSaving
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(isEditing ? 'Save Changes' : 'Add Category'),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
   }
 
   void _confirmDelete(CategoryModel category) {
+    bool isDeleting = false;
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AdminTheme.surfaceCard,
-        title: const Text('Delete Category', style: TextStyle(color: AdminTheme.textPrimary)),
-        content: Text(
-          'Are you sure you want to delete "${category.name}"? Products assigned to this category will lose category filtering.',
-          style: const TextStyle(color: AdminTheme.textSecondary),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: AdminTheme.textMuted)),
+      builder: (dialogCtx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          backgroundColor: AdminTheme.surfaceCard,
+          title: const Text('Delete Category', style: TextStyle(color: AdminTheme.textPrimary)),
+          content: Text(
+            'Are you sure you want to delete "${category.name}"? Products assigned to this category will lose category filtering.',
+            style: const TextStyle(color: AdminTheme.textSecondary),
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AdminTheme.statusError,
-              foregroundColor: Colors.white,
+          actions: [
+            TextButton(
+              onPressed: isDeleting ? null : () => Navigator.pop(dialogCtx),
+              child: const Text('Cancel', style: TextStyle(color: AdminTheme.textMuted)),
             ),
-            onPressed: () async {
-              await _firestoreService.deleteCategory(category.id);
-              if (context.mounted) Navigator.pop(context);
-            },
-            child: const Text('Delete'),
-          ),
-        ],
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AdminTheme.statusError,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: isDeleting
+                  ? null
+                  : () async {
+                      setDialogState(() => isDeleting = true);
+                      try {
+                        await _firestoreService.deleteCategory(category.id);
+                        if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Category "${category.name}" removed.'),
+                              backgroundColor: AdminTheme.surfaceElevated,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (dialogCtx.mounted) {
+                          setDialogState(() => isDeleting = false);
+                        }
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to delete category: $e'),
+                              backgroundColor: AdminTheme.statusError,
+                            ),
+                          );
+                        }
+                      }
+                    },
+              child: isDeleting
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text('Delete'),
+            ),
+          ],
+        ),
       ),
     );
   }

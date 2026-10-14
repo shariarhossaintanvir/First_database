@@ -53,9 +53,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final cart = Provider.of<CartProvider>(context, listen: false);
 
     if (cart.itemList.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Your cart is empty!')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Your cart is empty!'),
+          backgroundColor: AppTheme.surfaceElevated,
+        ),
+      );
       return;
     }
 
@@ -103,9 +106,12 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     } catch (e) {
       setState(() => _isPlacingOrder = false);
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to place order: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to place order: $e'),
+            backgroundColor: AppTheme.statusError,
+          ),
+        );
       }
     }
   }

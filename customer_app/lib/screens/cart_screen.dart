@@ -189,9 +189,22 @@ class CartScreen extends StatelessWidget {
                     final canIncrement = item.quantity < item.product.stock;
                     return _CartItemRow(
                       item: item,
-                      onIncrement: canIncrement
-                          ? () => cart.incrementQuantity(item.product.id)
-                          : null,
+                      canIncrement: canIncrement,
+                      onIncrement: () {
+                        if (!canIncrement) {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  'Cannot add more: only ${item.product.stock} available in stock.'),
+                              duration: const Duration(seconds: 2),
+                              backgroundColor: AppTheme.surfaceElevated,
+                            ),
+                          );
+                          return;
+                        }
+                        cart.incrementQuantity(item.product.id);
+                      },
                       onDecrement: () =>
                           cart.decrementQuantity(item.product.id),
                       onRemove: () => cart.removeItem(item.product.id),
@@ -207,13 +220,15 @@ class CartScreen extends StatelessWidget {
 /// Individual cart item row widget
 class _CartItemRow extends StatelessWidget {
   final dynamic item; // CartItemModel
-  final VoidCallback? onIncrement;
+  final bool canIncrement;
+  final VoidCallback onIncrement;
   final VoidCallback onDecrement;
   final VoidCallback onRemove;
 
   const _CartItemRow({
     required this.item,
-    this.onIncrement,
+    required this.canIncrement,
+    required this.onIncrement,
     required this.onDecrement,
     required this.onRemove,
   });
@@ -271,13 +286,28 @@ class _CartItemRow extends StatelessWidget {
                   ),
                   const SizedBox(height: AppTheme.space6),
 
-                  // Unit price
-                  Text(
-                    '৳ ${item.product.price.toStringAsFixed(0)} / unit',
-                    style: const TextStyle(
-                      color: AppTheme.textMuted,
-                      fontSize: 11,
-                    ),
+                  // Unit price and stock limit indicator
+                  Row(
+                    children: [
+                      Text(
+                        '৳ ${item.product.price.toStringAsFixed(0)} / unit',
+                        style: const TextStyle(
+                          color: AppTheme.textMuted,
+                          fontSize: 11,
+                        ),
+                      ),
+                      if (!canIncrement) ...[
+                        const SizedBox(width: AppTheme.space8),
+                        const Text(
+                          '• Max stock reached',
+                          style: TextStyle(
+                            color: AppTheme.secondaryWarm,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                   const SizedBox(height: AppTheme.space8),
 
@@ -312,7 +342,7 @@ class _CartItemRow extends StatelessWidget {
                             _MiniStepperButton(
                               icon: Icons.add,
                               onPressed: onIncrement,
-                              color: onIncrement == null ? AppTheme.textDisabled : AppTheme.accent,
+                              color: canIncrement ? AppTheme.accent : AppTheme.textDisabled,
                             ),
                           ],
                         ),
