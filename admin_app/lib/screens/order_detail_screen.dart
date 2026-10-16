@@ -51,6 +51,85 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+  void _confirmStatusUpdate(String newStatus) {
+    if (_isUpdating) return;
+    final shortId = widget.order.id.length > 8 ? widget.order.id.substring(0, 8) : widget.order.id;
+    final color = _getStatusColor(newStatus);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AdminTheme.surfaceCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AdminTheme.borderSubtle),
+        ),
+        title: Row(
+          children: [
+            Icon(Icons.swap_horiz, color: color, size: 22),
+            const SizedBox(width: 10),
+            const Text(
+              'Update Order Status',
+              style: TextStyle(
+                color: AdminTheme.textPrimary,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Are you sure you want to transition Order #$shortId from "$_currentStatus" to "$newStatus"?',
+              style: const TextStyle(color: AdminTheme.textSecondary, fontSize: 13, height: 1.4),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: color.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, size: 16, color: color),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Customer will see "$newStatus" on their order tracking timeline.',
+                      style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: AdminTheme.textMuted)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: color,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              _updateStatus(newStatus);
+            },
+            child: Text('Confirm ($newStatus)'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _updateStatus(String newStatus) async {
     setState(() => _isUpdating = true);
     try {
@@ -188,8 +267,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                   fontSize: 12,
                                 ),
                                 onSelected: (selected) {
-                                  if (selected && status != _currentStatus) {
-                                    _updateStatus(status);
+                                  if (selected && status != _currentStatus && !_isUpdating) {
+                                    _confirmStatusUpdate(status);
                                   }
                                 },
                               );

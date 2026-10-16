@@ -148,16 +148,89 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
     );
   }
 
-  void _confirmDelete(CategoryModel category) {
+  Future<void> _confirmDelete(CategoryModel category) async {
+    // Check if any products reference this category to prevent orphaned data
+    int productCount = 0;
+    try {
+      productCount = await _firestoreService.getProductCountInCategory(category.name);
+    } catch (_) {
+      productCount = 0;
+    }
+
+    if (!mounted) return;
+
+    if (productCount > 0) {
+      showDialog(
+        context: context,
+        builder: (dialogCtx) => AlertDialog(
+          backgroundColor: AdminTheme.surfaceCard,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AdminTheme.borderSubtle),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.shield_outlined, color: AdminTheme.statusWarning, size: 22),
+              SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Cannot Delete Category',
+                  style: TextStyle(
+                    color: AdminTheme.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Referential Integrity Block: $productCount catalog product${productCount == 1 ? '' : 's'} are currently assigned to "${category.name}".',
+                style: const TextStyle(
+                  color: AdminTheme.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'To prevent orphaned or unclassified products in the customer storefront, you must reassign or remove all referenced products before deleting this category.',
+                style: TextStyle(color: AdminTheme.textSecondary, fontSize: 13, height: 1.4),
+              ),
+            ],
+          ),
+          actions: [
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AdminTheme.accent,
+                foregroundColor: AdminTheme.bgSidebar,
+              ),
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Understand'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
     bool isDeleting = false;
     showDialog(
       context: context,
       builder: (dialogCtx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
           backgroundColor: AdminTheme.surfaceCard,
-          title: const Text('Delete Category', style: TextStyle(color: AdminTheme.textPrimary)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AdminTheme.borderSubtle),
+          ),
+          title: const Text('Delete Category', style: TextStyle(color: AdminTheme.textPrimary, fontWeight: FontWeight.bold)),
           content: Text(
-            'Are you sure you want to delete "${category.name}"? Products assigned to this category will lose category filtering.',
+            'Are you sure you want to permanently delete "${category.name}"? No products currently reference this category.',
             style: const TextStyle(color: AdminTheme.textSecondary),
           ),
           actions: [

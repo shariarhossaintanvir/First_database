@@ -17,6 +17,7 @@ class _OrdersScreenState extends State<OrdersScreen>
     with SingleTickerProviderStateMixin {
   final FirestoreService _firestoreService = FirestoreService();
   late TabController _tabController;
+  String _searchQuery = '';
 
   final List<String> _tabs = [
     'All',
@@ -83,6 +84,31 @@ class _OrdersScreenState extends State<OrdersScreen>
             ),
           ),
 
+          // Search Toolbar
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: const BoxDecoration(
+              color: AdminTheme.bgSidebar,
+              border: Border(bottom: BorderSide(color: AdminTheme.borderSubtle, width: 1)),
+            ),
+            child: TextField(
+              style: const TextStyle(color: AdminTheme.textPrimary, fontSize: 13),
+              decoration: InputDecoration(
+                hintText: 'Search orders by Order ID, customer name, phone, or email...',
+                prefixIcon: const Icon(Icons.search, size: 18),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, size: 16),
+                        onPressed: () => setState(() => _searchQuery = ''),
+                      )
+                    : null,
+                isDense: true,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              ),
+              onChanged: (val) => setState(() => _searchQuery = val.trim().toLowerCase()),
+            ),
+          ),
+
           // Orders Stream
           Expanded(
             child: StreamBuilder<List<OrderModel>>(
@@ -131,13 +157,22 @@ class _OrdersScreenState extends State<OrdersScreen>
                 return TabBarView(
                   controller: _tabController,
                   children: _tabs.map((tab) {
-                    final filteredOrders = tab == 'All'
+                    var filteredOrders = tab == 'All'
                         ? allOrders
                         : allOrders
                             .where(
                               (o) => o.status.toLowerCase() == tab.toLowerCase(),
                             )
                             .toList();
+
+                    if (_searchQuery.isNotEmpty) {
+                      filteredOrders = filteredOrders.where((o) {
+                        return o.id.toLowerCase().contains(_searchQuery) ||
+                            o.customerName.toLowerCase().contains(_searchQuery) ||
+                            o.customerPhone.toLowerCase().contains(_searchQuery) ||
+                            o.customerEmail.toLowerCase().contains(_searchQuery);
+                      }).toList();
+                    }
 
                     if (filteredOrders.isEmpty) {
                       return Center(
@@ -159,7 +194,9 @@ class _OrdersScreenState extends State<OrdersScreen>
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No $tab orders found',
+                              _searchQuery.isNotEmpty
+                                  ? 'No $tab orders matching "$_searchQuery"'
+                                  : 'No $tab orders found',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -167,10 +204,19 @@ class _OrdersScreenState extends State<OrdersScreen>
                               ),
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              'Customer purchases with this status will appear here.',
-                              style: TextStyle(color: AdminTheme.textMuted, fontSize: 13),
+                            Text(
+                              _searchQuery.isNotEmpty
+                                  ? 'Try checking for typos or searching by Order ID or phone number.'
+                                  : 'Customer purchases with this status will appear here.',
+                              style: const TextStyle(color: AdminTheme.textMuted, fontSize: 13),
                             ),
+                            if (_searchQuery.isNotEmpty) ...[
+                              const SizedBox(height: 14),
+                              OutlinedButton(
+                                onPressed: () => setState(() => _searchQuery = ''),
+                                child: const Text('Clear Search'),
+                              ),
+                            ],
                           ],
                         ),
                       );

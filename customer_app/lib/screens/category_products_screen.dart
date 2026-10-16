@@ -11,14 +11,22 @@ import '../widgets/empty_state_view.dart';
 import '../widgets/error_state_view.dart';
 import 'cart_screen.dart';
 
-class CategoryProductsScreen extends StatelessWidget {
+class CategoryProductsScreen extends StatefulWidget {
   final CategoryModel category;
 
   const CategoryProductsScreen({super.key, required this.category});
 
   @override
+  State<CategoryProductsScreen> createState() => _CategoryProductsScreenState();
+}
+
+class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
+  final FirestoreService _firestoreService = FirestoreService();
+  String _sortBy = 'newest';
+  bool _inStockOnly = false;
+
+  @override
   Widget build(BuildContext context) {
-    final firestoreService = FirestoreService();
     final cart = Provider.of<CartProvider>(context);
 
     return Scaffold(
@@ -26,14 +34,15 @@ class CategoryProductsScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppTheme.bgPrimary,
         elevation: 0,
-        title: Text(category.name),
+        scrolledUnderElevation: 0,
+        title: Text(widget.category.name),
         actions: [
           Stack(
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(
-                    Icons.shopping_cart_outlined, color: AppTheme.textPrimary),
+                icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.textPrimary),
+                tooltip: 'Shopping Cart',
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -71,10 +80,12 @@ class CategoryProductsScreen extends StatelessWidget {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
-          final int crossAxisCount = width > 1100 ? 4 : (width > 680 ? 3 : 2);
+          final int crossAxisCount = width > 1200
+              ? 5
+              : (width > 900 ? 4 : (width > 600 ? 3 : 2));
 
           return StreamBuilder<List<ProductModel>>(
-            stream: firestoreService.getProductsByCategory(category.name),
+            stream: _firestoreService.getProductsByCategory(widget.category.name),
             builder: (context, snapshot) {
               // Loading state — shimmer skeleton grid
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -82,7 +93,7 @@ class CategoryProductsScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(AppTheme.space16),
                   gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: crossAxisCount,
-                    childAspectRatio: 0.68,
+                    childAspectRatio: 0.72,
                     crossAxisSpacing: AppTheme.space12,
                     mainAxisSpacing: AppTheme.space12,
                   ),
@@ -93,58 +104,154 @@ class CategoryProductsScreen extends StatelessWidget {
 
               // Error state
               if (snapshot.hasError) {
-                return const ErrorStateView(
-                  icon: Icons.inventory_2_outlined,
-                  title: 'Unable to Load Products',
-                  message: 'Please check your connection and try again.',
+                return ErrorStateView.offline(
+                  onRetry: () => setState(() {}),
                 );
               }
 
-              final products = snapshot.data ?? [];
+              var products = snapshot.data ?? [];
+
+              // Filter by in-stock only
+              if (_inStockOnly) {
+                products = products.where((p) => p.isAvailable && p.stock > 0).toList();
+              }
+
+              // Sorting
+              if (_sortBy == 'price_asc') {
+                products.sort((a, b) => a.price.compareTo(b.price));
+              } else if (_sortBy == 'price_desc') {
+                products.sort((a, b) => b.price.compareTo(a.price));
+              } else if (_sortBy == 'availability') {
+                products.sort((a, b) {
+                  final aInStock = (a.isAvailable && a.stock > 0) ? 1 : 0;
+                  final bInStock = (b.isAvailable && b.stock > 0) ? 1 : 0;
+                  if (aInStock != bInStock) {
+                    return bInStock.compareTo(aInStock);
+                  }
+                  return b.stock.compareTo(a.stock);
+                });
+              } else {
+                products.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+              }
 
               // Empty state
               if (products.isEmpty) {
                 return EmptyStateView(
                   icon: Icons.inventory_2_outlined,
-                  title: 'No Products Yet',
-                  description:
-                      'No items found in ${category.name}. '
-                      'Products will appear as soon as they are added.',
+                  title: _inStockOnly
+                      ? 'No In-Stock Items'
+                      : 'No Products Found',
+                  description: _inStockOnly
+                      ? 'All products in ${widget.category.name} are currently out of stock.'
+                      : 'No items found in ${widget.category.name}.',
+                  actionLabel: _inStockOnly ? 'Show All Products' : null,
+                  onActionPressed: _inStockOnly
+                      ? () => setState(() => _inStockOnly = false)
+                      : null,
                 );
               }
 
               // Products header + grid
               return CustomScrollView(
                 slivers: [
+                  // Filter & Sort Bar
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(
-                        AppTheme.space16, AppTheme.space16,
+                        AppTheme.space16, AppTheme.space12,
                         AppTheme.space16, AppTheme.space12,
                       ),
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            category.name,
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.textPrimary,
-                              letterSpacing: -0.2,
+                          // In-Stock toggle chip
+                          FilterChip(
+                            label: const Text('In-Stock Only'),
+                            labelStyle: TextStyle(
+                              fontSize: 12,
+                              fontWeight: _inStockOnly ? FontWeight.w600 : FontWeight.normal,
+                              color: _inStockOnly ? AppTheme.accent : AppTheme.textSecondary,
+                            ),
+                            selected: _inStockOnly,
+                            onSelected: (val) => setState(() => _inStockOnly = val),
+                            selectedColor: AppTheme.accentSubtle,
+                            backgroundColor: AppTheme.bgSecondary,
+                            side: BorderSide(
+                              color: _inStockOnly ? AppTheme.accent : AppTheme.borderSubtle,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
                             ),
                           ),
+                          const Spacer(),
+
+                          // Count label
                           Text(
-                            '${products.length} ${products.length == 1 ? 'product' : 'products'}',
+                            '${products.length} ${products.length == 1 ? 'item' : 'items'}',
                             style: const TextStyle(
                               color: AppTheme.textMuted,
                               fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(width: AppTheme.space10),
+
+                          // Sort dropdown
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppTheme.space10,
+                              vertical: AppTheme.space4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppTheme.surfaceCard,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                              border: Border.all(color: AppTheme.borderSubtle),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: _sortBy,
+                                isDense: true,
+                                dropdownColor: AppTheme.surfaceElevated,
+                                icon: const Icon(
+                                  Icons.sort_rounded,
+                                  size: 16,
+                                  color: AppTheme.textMuted,
+                                ),
+                                style: const TextStyle(
+                                  color: AppTheme.textPrimary,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: 'newest',
+                                    child: Text('Newest'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'price_asc',
+                                    child: Text('Price: Low to High'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'price_desc',
+                                    child: Text('Price: High to Low'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'availability',
+                                    child: Text('Availability'),
+                                  ),
+                                ],
+                                onChanged: (val) {
+                                  if (val != null) {
+                                    setState(() => _sortBy = val);
+                                  }
+                                },
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
+
+                  // Product Grid
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(
                       AppTheme.space16, 0,
@@ -153,13 +260,12 @@ class CategoryProductsScreen extends StatelessWidget {
                     sliver: SliverGrid(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: crossAxisCount,
-                        childAspectRatio: 0.68,
+                        childAspectRatio: 0.72,
                         crossAxisSpacing: AppTheme.space12,
                         mainAxisSpacing: AppTheme.space12,
                       ),
                       delegate: SliverChildBuilderDelegate(
-                        (context, index) =>
-                            ProductCard(product: products[index]),
+                        (context, index) => ProductCard(product: products[index]),
                         childCount: products.length,
                       ),
                     ),

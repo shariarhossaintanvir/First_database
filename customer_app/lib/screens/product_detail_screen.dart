@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/product_model.dart';
 import '../providers/cart_provider.dart';
+import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
+import '../widgets/product_card.dart';
 import '../widgets/spec_attribute_row.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/trust_badge_row.dart';
@@ -18,7 +20,75 @@ class ProductDetailScreen extends StatefulWidget {
 }
 
 class _ProductDetailScreenState extends State<ProductDetailScreen> {
+  final FirestoreService _firestoreService = FirestoreService();
   int _quantity = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    // If product is out of stock, quantity defaults to 0, otherwise 1
+    _quantity = widget.product.stock > 0 ? 1 : 0;
+  }
+
+  void _showFullScreenImage(BuildContext context, String imageUrl, String title) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog.fullscreen(
+        backgroundColor: Colors.black.withValues(alpha: 0.95),
+        child: Stack(
+          children: [
+            Center(
+              child: InteractiveViewer(
+                panEnabled: true,
+                boundaryMargin: const EdgeInsets.all(20),
+                minScale: 0.8,
+                maxScale: 4.0,
+                child: Image.network(
+                  imageUrl,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, _, _) => const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.image_not_supported_outlined, color: Colors.white70, size: 64),
+                      SizedBox(height: 8),
+                      Text('Image preview unavailable', style: TextStyle(color: Colors.white70)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40,
+              right: 20,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black45,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 26),
+                  tooltip: 'Close Preview',
+                  onPressed: () => Navigator.pop(ctx),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 30,
+              left: 20,
+              right: 20,
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +102,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
       appBar: AppBar(
         backgroundColor: AppTheme.bgPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
         title: Text(
           p.title,
           maxLines: 1,
@@ -43,8 +114,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(
-                    Icons.shopping_cart_outlined, color: AppTheme.textPrimary),
+                icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.textPrimary),
+                tooltip: 'Shopping Cart',
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -57,14 +128,12 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   top: 8,
                   right: 8,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                     decoration: BoxDecoration(
                       color: AppTheme.accent,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    constraints:
-                        const BoxConstraints(minWidth: 16, minHeight: 16),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                     child: Text(
                       '${cart.itemCount}',
                       textAlign: TextAlign.center,
@@ -110,25 +179,33 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       children: [
                         _StepperButton(
                           icon: Icons.remove,
-                          enabled: _quantity > 1,
-                          onPressed: () => setState(() => _quantity--),
+                          enabled: !isUnavailable && _quantity > 1,
+                          onPressed: () {
+                            if (_quantity > 1) {
+                              setState(() => _quantity--);
+                            }
+                          },
                         ),
                         SizedBox(
-                          width: 36,
+                          width: 38,
                           child: Text(
-                            '$_quantity',
+                            isUnavailable ? '0' : '$_quantity',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
-                              color: AppTheme.textPrimary,
+                              color: isUnavailable ? AppTheme.textDisabled : AppTheme.textPrimary,
                             ),
                           ),
                         ),
                         _StepperButton(
                           icon: Icons.add,
-                          enabled: !isOutOfStock && _quantity < p.stock,
-                          onPressed: () => setState(() => _quantity++),
+                          enabled: !isUnavailable && _quantity < p.stock,
+                          onPressed: () {
+                            if (_quantity < p.stock) {
+                              setState(() => _quantity++);
+                            }
+                          },
                           activeColor: AppTheme.accent,
                         ),
                       ],
@@ -149,7 +226,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   SnackBar(
                                     content: Text(
                                       inCartQty >= p.stock
-                                          ? 'Cannot add more: maximum available stock reached ($inCartQty in cart).'
+                                          ? 'Maximum available stock reached ($inCartQty in cart).'
                                           : 'Cannot add $_quantity items: only ${p.stock - inCartQty} more available ($inCartQty in cart).',
                                     ),
                                     duration: const Duration(seconds: 2),
@@ -162,8 +239,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                               ScaffoldMessenger.of(context).hideCurrentSnackBar();
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(
-                                      'Added $_quantity × "${p.title}" to cart'),
+                                  content: Text('Added $_quantity × "${p.title}" to cart'),
                                   backgroundColor: AppTheme.surfaceElevated,
                                   action: SnackBarAction(
                                     label: 'VIEW CART',
@@ -171,8 +247,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                     onPressed: () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(
-                                            builder: (_) => const CartScreen()),
+                                        MaterialPageRoute(builder: (_) => const CartScreen()),
                                       );
                                     },
                                   ),
@@ -223,182 +298,265 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-            // Product Image Hero
-            Stack(
-              children: [
-                Container(
-                  height: 320,
-                  width: double.infinity,
-                  color: AppTheme.bgSecondary,
-                  padding: const EdgeInsets.all(AppTheme.space24),
-                  child: Image.network(
-                    p.imageUrl,
-                    fit: BoxFit.contain,
-                    errorBuilder: (ctx, err, stack) => const Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.image_not_supported_outlined,
-                            size: 64,
-                            color: AppTheme.textMuted,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'Image unavailable',
-                            style: TextStyle(
-                                color: AppTheme.textMuted, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                    loadingBuilder: (ctx, child, progress) {
-                      if (progress == null) return child;
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: AppTheme.accent,
-                          strokeWidth: 2,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                // Stock badge overlay
-                if (isUnavailable || p.stock <= 5)
-                  Positioned(
-                    top: AppTheme.space12,
-                    left: AppTheme.space12,
-                    child: StatusBadge.fromStock(
-                      p.stock,
-                      isAvailable: p.isAvailable,
-                      isSmall: false,
-                    ),
-                  ),
-              ],
-            ),
-            const Divider(height: 1, color: AppTheme.borderSubtle),
-
-            // Product Info Block
-            Padding(
-              padding: const EdgeInsets.all(AppTheme.space20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Category pill + availability
-                  Row(
+                // Product Image Hero (Tap to Zoom)
+                GestureDetector(
+                  onTap: () => _showFullScreenImage(context, p.imageUrl, p.title),
+                  child: Stack(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppTheme.space10, vertical: AppTheme.space4),
-                        decoration: BoxDecoration(
-                          color: AppTheme.accentSubtle,
-                          borderRadius: BorderRadius.circular(AppTheme.radiusXs),
-                          border: Border.all(
-                              color: AppTheme.accent.withValues(alpha: 0.3)),
-                        ),
-                        child: Text(
-                          p.category.toUpperCase(),
-                          style: const TextStyle(
-                            color: AppTheme.accent,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 10,
-                            letterSpacing: 0.6,
+                        height: 320,
+                        width: double.infinity,
+                        color: AppTheme.bgSecondary,
+                        padding: const EdgeInsets.all(AppTheme.space24),
+                        child: Image.network(
+                          p.imageUrl,
+                          fit: BoxFit.contain,
+                          errorBuilder: (ctx, err, stack) => const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.image_not_supported_outlined,
+                                  size: 64,
+                                  color: AppTheme.textMuted,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Image unavailable',
+                                  style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                                ),
+                              ],
+                            ),
                           ),
+                          loadingBuilder: (ctx, child, progress) {
+                            if (progress == null) return child;
+                            return const Center(
+                              child: CircularProgressIndicator(
+                                color: AppTheme.accent,
+                                strokeWidth: 2,
+                              ),
+                            );
+                          },
                         ),
                       ),
-                      const Spacer(),
-                      StatusBadge.fromStock(
-                        p.stock,
-                        isAvailable: p.isAvailable,
-                        isSmall: false,
+
+                      // Stock badge overlay
+                      if (isUnavailable || p.stock <= 5)
+                        Positioned(
+                          top: AppTheme.space12,
+                          left: AppTheme.space12,
+                          child: StatusBadge.fromStock(
+                            p.stock,
+                            isAvailable: p.isAvailable,
+                            isSmall: false,
+                          ),
+                        ),
+
+                      // Tap to zoom hint badge
+                      Positioned(
+                        bottom: AppTheme.space12,
+                        right: AppTheme.space12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.6),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.zoom_in, color: Colors.white, size: 14),
+                              SizedBox(width: 4),
+                              Text(
+                                'Tap to zoom',
+                                style: TextStyle(color: Colors.white, fontSize: 11),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppTheme.space12),
+                ),
+                const Divider(height: 1, color: AppTheme.borderSubtle),
 
-                  // Product title
-                  Text(
-                    p.title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.4,
-                      color: AppTheme.textPrimary,
-                      height: 1.3,
-                    ),
+                // Product Info Block
+                Padding(
+                  padding: const EdgeInsets.all(AppTheme.space20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Category pill + availability
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: AppTheme.space10, vertical: AppTheme.space4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentSubtle,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusXs),
+                              border: Border.all(
+                                  color: AppTheme.accent.withValues(alpha: 0.3)),
+                            ),
+                            child: Text(
+                              p.category.toUpperCase(),
+                              style: const TextStyle(
+                                color: AppTheme.accent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 10,
+                                letterSpacing: 0.6,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          StatusBadge.fromStock(
+                            p.stock,
+                            isAvailable: p.isAvailable,
+                            isSmall: false,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppTheme.space12),
+
+                      // Product title
+                      Text(
+                        p.title,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.4,
+                          color: AppTheme.textPrimary,
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.space12),
+
+                      // Price (BDT)
+                      Text(
+                        '৳ ${p.price.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.5,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+
+                      const SizedBox(height: AppTheme.space20),
+                      const Divider(color: AppTheme.borderSubtle),
+                      const SizedBox(height: AppTheme.space16),
+
+                      // Description
+                      const Text(
+                        'Product Overview',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -0.2,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: AppTheme.space10),
+                      Text(
+                        p.description.isNotEmpty
+                            ? p.description
+                            : 'No detailed description is available for this product.',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.textSecondary,
+                          height: 1.6,
+                        ),
+                      ),
+
+                      const SizedBox(height: AppTheme.space24),
+
+                      // Product Specifications Table
+                      SpecAttributeTable(
+                        title: 'Product Specifications',
+                        specifications: {
+                          'Category': p.category,
+                          'Stock Availability': p.stock > 0
+                              ? (p.stock <= 5
+                                  ? 'Low Stock (${p.stock} units left)'
+                                  : 'In Stock (${p.stock} units available)')
+                              : 'Currently Out of Stock',
+                          'Unit Price': '৳ ${p.price.toStringAsFixed(0)}',
+                          'Payment Method': 'Cash on Delivery (COD)',
+                        },
+                      ),
+
+                      const SizedBox(height: AppTheme.space24),
+
+                      // Trust badge row
+                      const TrustBadgeRow(),
+
+                      const SizedBox(height: AppTheme.space28),
+
+                      // ── Related Products ──────────────────────────────────
+                      StreamBuilder<List<ProductModel>>(
+                        stream: _firestoreService.getProductsByCategory(p.category),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData) return const SizedBox.shrink();
+                          final related = snapshot.data!
+                              .where((item) => item.id != p.id && item.isAvailable)
+                              .take(6)
+                              .toList();
+                          if (related.isEmpty) return const SizedBox.shrink();
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Divider(color: AppTheme.borderSubtle),
+                              const SizedBox(height: AppTheme.space20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'Related Products',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: -0.2,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  Text(
+                                    'More in ${p.category}',
+                                    style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: AppTheme.space12),
+                              SizedBox(
+                                height: 260,
+                                child: ListView.separated(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: related.length,
+                                  separatorBuilder: (_, _) => const SizedBox(width: AppTheme.space12),
+                                  itemBuilder: (context, idx) {
+                                    final relProduct = related[idx];
+                                    return SizedBox(
+                                      width: 175,
+                                      child: ProductCard(product: relProduct),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+
+                      const SizedBox(height: AppTheme.space32),
+                    ],
                   ),
-                  const SizedBox(height: AppTheme.space12),
-
-                  // Price (BDT)
-                  Text(
-                    '৳ ${p.price.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.5,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-
-                  const SizedBox(height: AppTheme.space20),
-                  const Divider(color: AppTheme.borderSubtle),
-                  const SizedBox(height: AppTheme.space16),
-
-                  // Description
-                  const Text(
-                    'Product Overview',
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -0.2,
-                      color: AppTheme.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: AppTheme.space10),
-                  Text(
-                    p.description.isNotEmpty
-                        ? p.description
-                        : 'No detailed description is available for this product.',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppTheme.textSecondary,
-                      height: 1.6,
-                    ),
-                  ),
-
-                  const SizedBox(height: AppTheme.space24),
-
-                  // Product Specifications Table
-                  SpecAttributeTable(
-                    title: 'Product Specifications',
-                    specifications: {
-                      'Category': p.category,
-                      'Stock Availability': p.stock > 0
-                          ? (p.stock <= 5
-                              ? 'Low Stock (${p.stock} units left)'
-                              : 'In Stock (${p.stock} units available)')
-                          : 'Currently Out of Stock',
-                      'Unit Price': '৳ ${p.price.toStringAsFixed(0)}',
-                      'Payment Method': 'Cash on Delivery (COD)',
-                    },
-                  ),
-
-                  const SizedBox(height: AppTheme.space24),
-
-                  // Trust badge row (Phase 2 component)
-                  const TrustBadgeRow(),
-
-                  const SizedBox(height: AppTheme.space32),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
-    ),
-  ),
-);
+    );
   }
 }
 

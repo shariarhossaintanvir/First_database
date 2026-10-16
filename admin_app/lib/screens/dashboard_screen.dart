@@ -4,6 +4,7 @@ import '../services/firestore_service.dart';
 import '../models/order_model.dart';
 import '../models/product_model.dart';
 import '../models/category_model.dart';
+import '../models/customer_model.dart';
 import '../theme/admin_theme.dart';
 import '../widgets/admin_layout.dart';
 import '../widgets/admin_status_badge.dart';
@@ -11,6 +12,7 @@ import 'products_screen.dart';
 import 'categories_screen.dart';
 import 'orders_screen.dart';
 import 'order_detail_screen.dart';
+import 'customers_screen.dart';
 import 'add_edit_product_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
@@ -87,108 +89,135 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   builder: (context, catSnap) {
                     final catCount = catSnap.data?.length ?? 0;
 
-                    return StreamBuilder<List<OrderModel>>(
-                      stream: _firestoreService.getOrdersStream(),
-                      builder: (context, orderSnap) {
-                        final orders = orderSnap.data ?? [];
-                        final orderCount = orders.length;
-                        final totalRevenue = orders
-                            .where((o) => o.status != 'Cancelled')
-                            .fold<double>(0.0, (sum, o) => sum + o.totalAmount);
+                    return StreamBuilder<List<CustomerModel>>(
+                      stream: _firestoreService.getCustomersStream(),
+                      builder: (context, customerSnap) {
+                        final customerCount = customerSnap.data?.length ?? 0;
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 4 Key SaaS Metric Cards
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                final isWide = constraints.maxWidth > 800;
-                                return GridView.count(
-                                  crossAxisCount: isWide ? 4 : 2,
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  crossAxisSpacing: 14,
-                                  mainAxisSpacing: 14,
-                                  childAspectRatio: isWide ? 1.6 : 1.3,
-                                  children: [
-                                    _buildMetricCard(
-                                      title: 'Gross Revenue',
-                                      value: '৳ ${totalRevenue.toStringAsFixed(0)}',
-                                      subtitle: 'Confirmed & pending orders',
-                                      icon: Icons.payments_outlined,
-                                      color: AdminTheme.statusSuccess,
-                                    ),
-                                    _buildMetricCard(
-                                      title: 'Total Orders',
-                                      value: orderCount.toString(),
-                                      subtitle: '${orders.where((o) => o.status == 'Pending').length} pending fulfillment',
-                                      icon: Icons.receipt_long_outlined,
-                                      color: AdminTheme.accent,
-                                    ),
-                                    _buildMetricCard(
-                                      title: 'Active Catalog',
-                                      value: productCount.toString(),
-                                      subtitle: '$lowStockCount low stock items',
-                                      icon: Icons.inventory_2_outlined,
-                                      color: const Color(0xFFA855F7),
-                                    ),
-                                    _buildMetricCard(
-                                      title: 'Categories',
-                                      value: catCount.toString(),
-                                      subtitle: 'Department taxonomies',
-                                      icon: Icons.category_outlined,
-                                      color: AdminTheme.statusWarning,
-                                    ),
-                                  ],
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 24),
+                        return StreamBuilder<List<OrderModel>>(
+                          stream: _firestoreService.getOrdersStream(),
+                          builder: (context, orderSnap) {
+                            final orders = orderSnap.data ?? [];
+                            final orderCount = orders.length;
+                            final totalRevenue = orders
+                                .where((o) => o.status != 'Cancelled')
+                                .fold<double>(0.0, (sum, o) => sum + o.totalAmount);
 
-                            // Low Stock Operational Alert (if any)
-                            if (lowStockCount > 0)
-                              Container(
-                                margin: const EdgeInsets.only(bottom: 24),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: AdminTheme.statusWarning.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: AdminTheme.statusWarning.withValues(alpha: 0.3),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.warning_amber_rounded,
-                                      color: AdminTheme.statusWarning,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        'Inventory Notice: $lowStockCount catalog products have 5 or fewer items remaining in stock.',
-                                        style: const TextStyle(
-                                          color: AdminTheme.textPrimary,
-                                          fontSize: 13,
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // 5 Key SaaS Metric Cards
+                                LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    final width = constraints.maxWidth;
+                                    int crossAxisCount;
+                                    double childAspectRatio;
+                                    if (width >= 1150) {
+                                      crossAxisCount = 5;
+                                      childAspectRatio = 1.35;
+                                    } else if (width >= 850) {
+                                      crossAxisCount = 3;
+                                      childAspectRatio = 1.5;
+                                    } else {
+                                      crossAxisCount = 2;
+                                      childAspectRatio = 1.25;
+                                    }
+
+                                    return GridView.count(
+                                      crossAxisCount: crossAxisCount,
+                                      shrinkWrap: true,
+                                      physics: const NeverScrollableScrollPhysics(),
+                                      crossAxisSpacing: 14,
+                                      mainAxisSpacing: 14,
+                                      childAspectRatio: childAspectRatio,
+                                      children: [
+                                        _buildMetricCard(
+                                          title: 'Gross Revenue',
+                                          value: '৳ ${totalRevenue.toStringAsFixed(0)}',
+                                          subtitle: 'Confirmed & pending orders',
+                                          icon: Icons.payments_outlined,
+                                          color: AdminTheme.statusSuccess,
                                         ),
+                                        _buildMetricCard(
+                                          title: 'Total Orders',
+                                          value: orderCount.toString(),
+                                          subtitle: '${orders.where((o) => o.status == 'Pending').length} pending fulfillment',
+                                          icon: Icons.receipt_long_outlined,
+                                          color: AdminTheme.accent,
+                                        ),
+                                        _buildMetricCard(
+                                          title: 'Active Catalog',
+                                          value: productCount.toString(),
+                                          subtitle: '$lowStockCount low stock items',
+                                          icon: Icons.inventory_2_outlined,
+                                          color: const Color(0xFFA855F7),
+                                        ),
+                                        _buildMetricCard(
+                                          title: 'Customers',
+                                          value: customerCount.toString(),
+                                          subtitle: 'Registered accounts',
+                                          icon: Icons.people_outline,
+                                          color: AdminTheme.statusInfo,
+                                        ),
+                                        _buildMetricCard(
+                                          title: 'Categories',
+                                          value: catCount.toString(),
+                                          subtitle: 'Department taxonomies',
+                                          icon: Icons.category_outlined,
+                                          color: AdminTheme.statusWarning,
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 24),
+
+                                // Low Stock Operational Alert (if any)
+                                if (lowStockCount > 0)
+                                  Container(
+                                    margin: const EdgeInsets.only(bottom: 24),
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                    decoration: BoxDecoration(
+                                      color: AdminTheme.statusWarning.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: AdminTheme.statusWarning.withValues(alpha: 0.3),
                                       ),
                                     ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => const ProductsScreen(filterLowStock: true),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.warning_amber_rounded,
+                                          color: AdminTheme.statusWarning,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            'Inventory Notice: $lowStockCount catalog products have 5 or fewer items remaining in stock.',
+                                            style: const TextStyle(
+                                              color: AdminTheme.textPrimary,
+                                              fontSize: 13,
+                                            ),
                                           ),
-                                        );
-                                      },
-                                      child: const Text('Review Inventory'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) => const ProductsScreen(filterLowStock: true),
+                                              ),
+                                            );
+                                          },
+                                          child: const Text('Review Inventory'),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ),
-                          ],
+                                  ),
+                              ],
+                            );
+                          },
                         );
                       },
                     );
@@ -208,53 +237,148 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildActionTile(
-                    title: 'Inventory',
-                    subtitle: 'Manage catalog & stock',
-                    icon: Icons.inventory_2_outlined,
-                    color: AdminTheme.accent,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ProductsScreen()),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildActionTile(
-                    title: 'Categories',
-                    subtitle: 'Taxonomies & departments',
-                    icon: Icons.category_outlined,
-                    color: AdminTheme.statusWarning,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const CategoriesScreen()),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildActionTile(
-                    title: 'Orders',
-                    subtitle: 'Fulfill & track shipments',
-                    icon: Icons.local_shipping_outlined,
-                    color: AdminTheme.statusSuccess,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const OrdersScreen()),
-                      );
-                    },
-                  ),
-                ),
-              ],
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 768;
+                if (isWide) {
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: _buildActionTile(
+                          title: 'Inventory',
+                          subtitle: 'Manage catalog & stock',
+                          icon: Icons.inventory_2_outlined,
+                          color: AdminTheme.accent,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const ProductsScreen()),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildActionTile(
+                          title: 'Categories',
+                          subtitle: 'Taxonomies & departments',
+                          icon: Icons.category_outlined,
+                          color: AdminTheme.statusWarning,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const CategoriesScreen()),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildActionTile(
+                          title: 'Orders',
+                          subtitle: 'Fulfill & track shipments',
+                          icon: Icons.local_shipping_outlined,
+                          color: AdminTheme.statusSuccess,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const OrdersScreen()),
+                            );
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildActionTile(
+                          title: 'Customers',
+                          subtitle: 'View user directory',
+                          icon: Icons.people_outline,
+                          color: AdminTheme.statusInfo,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const CustomersScreen()),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                // Mobile 2x2 grid
+                return Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildActionTile(
+                            title: 'Inventory',
+                            subtitle: 'Manage catalog',
+                            icon: Icons.inventory_2_outlined,
+                            color: AdminTheme.accent,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const ProductsScreen()),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _buildActionTile(
+                            title: 'Categories',
+                            subtitle: 'Departments',
+                            icon: Icons.category_outlined,
+                            color: AdminTheme.statusWarning,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const CategoriesScreen()),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildActionTile(
+                            title: 'Orders',
+                            subtitle: 'Track shipments',
+                            icon: Icons.local_shipping_outlined,
+                            color: AdminTheme.statusSuccess,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const OrdersScreen()),
+                              );
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: _buildActionTile(
+                            title: 'Customers',
+                            subtitle: 'User directory',
+                            icon: Icons.people_outline,
+                            color: AdminTheme.statusInfo,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => const CustomersScreen()),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
             ),
             const SizedBox(height: 28),
 

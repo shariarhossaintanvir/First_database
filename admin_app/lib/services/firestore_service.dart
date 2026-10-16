@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/category_model.dart';
 import '../models/product_model.dart';
 import '../models/order_model.dart';
+import '../models/customer_model.dart';
 
 class FirestoreService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -20,6 +21,15 @@ class FirestoreService {
         );
       }).toList();
     });
+  }
+
+  /// Check how many products are currently assigned to a category
+  Future<int> getProductCountInCategory(String categoryName) async {
+    final snapshot = await _productsCol
+        .where('category', isEqualTo: categoryName)
+        .limit(100)
+        .get();
+    return snapshot.docs.length;
   }
 
   Future<void> addCategory(CategoryModel category) async {
@@ -168,4 +178,25 @@ class FirestoreService {
       'updatedAt': FieldValue.serverTimestamp(),
     });
   }
+
+  // ---------------- CUSTOMERS ---------------- //
+
+  CollectionReference get _usersCol => _firestore.collection('users');
+
+  /// Stream customer records with query limit
+  Stream<List<CustomerModel>> getCustomersStream() {
+    return _usersCol
+        .where('role', isEqualTo: 'customer')
+        .limit(100)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs.map((doc) {
+            return CustomerModel.fromMap(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            );
+          }).toList();
+        });
+  }
 }
+

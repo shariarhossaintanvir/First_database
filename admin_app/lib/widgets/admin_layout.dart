@@ -264,6 +264,18 @@ class _AdminSidebar extends StatelessWidget {
                       }
                     },
                   ),
+                  _NavItem(
+                    icon: Icons.people_outline,
+                    label: 'Customers',
+                    route: '/customers',
+                    isSelected: currentRoute == '/customers',
+                    onTap: () {
+                      if (isDrawer) Navigator.pop(context);
+                      if (currentRoute != '/customers') {
+                        Navigator.pushReplacementNamed(context, '/customers');
+                      }
+                    },
+                  ),
                 ],
               ),
             ),

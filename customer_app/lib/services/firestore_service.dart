@@ -58,6 +58,20 @@ class FirestoreService {
         });
   }
 
+  /// Fetch a single product by ID (used for stock revalidation and reorders)
+  Future<ProductModel?> getProductById(String productId) async {
+    try {
+      final doc = await _productsCol.doc(productId).get();
+      if (!doc.exists || doc.data() == null) return null;
+      return ProductModel.fromMap(
+        doc.data() as Map<String, dynamic>,
+        doc.id,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   // ---------------- ORDERS ---------------- //
 
   CollectionReference get _ordersCol => _firestore.collection('orders');

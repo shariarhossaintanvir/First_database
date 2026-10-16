@@ -13,6 +13,7 @@ import 'screens/dashboard_screen.dart';
 import 'screens/products_screen.dart';
 import 'screens/categories_screen.dart';
 import 'screens/orders_screen.dart';
+import 'screens/customers_screen.dart';
 import 'screens/add_edit_product_screen.dart';
 
 void main() async {
@@ -70,6 +71,9 @@ class AdminEcommerceApp extends StatelessWidget {
               break;
             case '/orders':
               page = const AuthGate(destination: OrdersScreen());
+              break;
+            case '/customers':
+              page = const AuthGate(destination: CustomersScreen());
               break;
             case '/add-product':
               page = const AuthGate(destination: AddEditProductScreen());

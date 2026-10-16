@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../models/order_model.dart';
+import '../providers/cart_provider.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/status_badge.dart';
+import 'cart_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final OrderModel order;
@@ -16,6 +19,78 @@ class OrderDetailScreen extends StatefulWidget {
 
 class _OrderDetailScreenState extends State<OrderDetailScreen> {
   final FirestoreService _firestoreService = FirestoreService();
+  bool _isReordering = false;
+
+  Future<void> _handleBuyAgain(OrderModel currentOrder) async {
+    if (_isReordering) return;
+    setState(() => _isReordering = true);
+
+    final cart = Provider.of<CartProvider>(context, listen: false);
+    int addedCount = 0;
+    int unavailableCount = 0;
+
+    try {
+      for (final item in currentOrder.items) {
+        final product = await _firestoreService.getProductById(item.productId);
+        if (product != null && product.isAvailable && product.stock > 0) {
+          final inCart = cart.getProductQuantity(product.id);
+          final availableToAdd = product.stock - inCart;
+          if (availableToAdd > 0) {
+            final qtyToAdd = item.quantity.clamp(1, availableToAdd);
+            cart.addItem(product, quantity: qtyToAdd);
+            addedCount++;
+          } else {
+            unavailableCount++;
+          }
+        } else {
+          unavailableCount++;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() => _isReordering = false);
+
+      if (addedCount > 0) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              unavailableCount > 0
+                  ? 'Added $addedCount items to cart ($unavailableCount unavailable or out of stock).'
+                  : 'Added $addedCount items to your shopping cart!',
+            ),
+            backgroundColor: AppTheme.surfaceElevated,
+            action: SnackBarAction(
+              label: 'VIEW CART',
+              textColor: AppTheme.accent,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CartScreen()),
+                );
+              },
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Items from this order are currently out of stock or unavailable.'),
+            backgroundColor: AppTheme.statusError,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isReordering = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not reorder: $e'),
+            backgroundColor: AppTheme.statusError,
+          ),
+        );
+      }
+    }
+  }
 
   int _getStatusStep(String status) {
     switch (status) {
@@ -86,7 +161,45 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           appBar: AppBar(
             backgroundColor: AppTheme.bgPrimary,
             elevation: 0,
+            scrolledUnderElevation: 0,
             title: Text('Order #$shortId'),
+          ),
+          bottomNavigationBar: Container(
+            padding: const EdgeInsets.all(AppTheme.space16),
+            decoration: const BoxDecoration(
+              color: AppTheme.surfaceCard,
+              border: Border(top: BorderSide(color: AppTheme.borderSubtle)),
+            ),
+            child: SafeArea(
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 720),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _isReordering ? null : () => _handleBuyAgain(currentOrder),
+                      icon: _isReordering
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppTheme.bgPrimary),
+                            )
+                          : const Icon(Icons.replay_rounded, size: 18),
+                      label: Text(_isReordering ? 'Checking Available Stock...' : 'Buy Again / Reorder Items'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.accent,
+                        foregroundColor: AppTheme.bgPrimary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(AppTheme.space16),

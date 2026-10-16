@@ -28,7 +28,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   bool _hasPrepopulated = false;
   bool _saveAsDefaultAddress = false;
 
-  String _paymentMethod = 'Cash on Delivery';
+  final String _paymentMethod = 'Cash on Delivery';
   bool _isPlacingOrder = false;
 
   @override
@@ -70,6 +70,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _handlePlaceOrder() async {
+    // 1. Prevent duplicate concurrent submissions
     if (_isPlacingOrder) return;
     if (!_formKey.currentState!.validate()) return;
 
@@ -89,6 +90,91 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _isPlacingOrder = true);
 
     try {
+      // 2. Immediate Pre-Submission Stock Revalidation against Firestore
+      // (Note: Client-side stock revalidation checks live Firestore document before creating the order.
+      // This eliminates stale cart submissions, but full concurrency isolation would require backend Cloud Functions).
+      final stockIssues = <String>[];
+      for (final cartItem in cart.itemList) {
+        final freshProduct = await _firestoreService.getProductById(cartItem.product.id);
+        if (freshProduct == null) {
+          stockIssues.add('"${cartItem.product.title}" is no longer listed in our catalog.');
+        } else if (!freshProduct.isAvailable || freshProduct.stock <= 0) {
+          stockIssues.add('"${freshProduct.title}" is now out of stock.');
+        } else if (freshProduct.stock < cartItem.quantity) {
+          stockIssues.add('"${freshProduct.title}" only has ${freshProduct.stock} units remaining (requested: ${cartItem.quantity}).');
+        }
+      }
+
+      if (stockIssues.isNotEmpty) {
+        setState(() => _isPlacingOrder = false);
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: AppTheme.surfaceCard,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                side: const BorderSide(color: AppTheme.borderSubtle),
+              ),
+              title: const Row(
+                children: [
+                  Icon(Icons.inventory_2_outlined, color: AppTheme.accent),
+                  SizedBox(width: 8),
+                  Text('Stock Availability Alert', style: TextStyle(color: AppTheme.textPrimary, fontSize: 16)),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'The following items have updated stock in our inventory:',
+                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  ...stockIssues.map((issue) => Padding(
+                    padding: const EdgeInsets.only(bottom: 6),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('• ', style: TextStyle(color: AppTheme.accent, fontWeight: FontWeight.bold)),
+                        Expanded(
+                          child: Text(issue, style: const TextStyle(color: AppTheme.textPrimary, fontSize: 12)),
+                        ),
+                      ],
+                    ),
+                  )),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Please return to your cart to update item quantities.',
+                    style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancel', style: TextStyle(color: AppTheme.textMuted)),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.accent,
+                    foregroundColor: AppTheme.bgPrimary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusSm)),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.pop(context); // Go back to cart
+                  },
+                  child: const Text('Edit Cart'),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+
       final user = auth.currentUser!;
       final orderItems = cart.itemList.map((ci) {
         return OrderItemModel(
@@ -161,6 +247,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       appBar: AppBar(
         backgroundColor: AppTheme.bgPrimary,
         elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text('Checkout & Delivery'),
       ),
       bottomNavigationBar: Container(
@@ -181,8 +268,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     backgroundColor: AppTheme.accent,
                     foregroundColor: AppTheme.bgPrimary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                     ),
                   ),
                   child: _isPlacingOrder
@@ -217,382 +305,336 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-              // Shipping Address Section
-              Card(
-                color: AppTheme.surfaceCard,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppTheme.borderSubtle),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
+                  // Shipping Address Section
+                  Card(
+                    color: AppTheme.surfaceCard,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      side: const BorderSide(color: AppTheme.borderSubtle),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: AppTheme.accentSubtle,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Icon(Icons.location_on_outlined, color: AppTheme.accent, size: 18),
-                          ),
-                          const SizedBox(width: 10),
-                          const Text(
-                            'Shipping Details',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _nameController,
-                        style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
-                        decoration: const InputDecoration(
-                          labelText: 'Recipient Full Name *',
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Enter recipient name';
-                          }
-                          final trimmed = v.trim();
-                          if (trimmed.length < 2) {
-                            return 'Name must be at least 2 characters';
-                          }
-                          if (trimmed.length > 100) {
-                            return 'Name cannot exceed 100 characters';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      TextFormField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
-                        decoration: const InputDecoration(
-                          labelText: 'Phone Number *',
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Enter phone number';
-                          }
-                          final phone = v.trim();
-                          if (phone.length < 5 || phone.length > 30) {
-                            return 'Phone number must be between 5 and 30 characters';
-                          }
-                          final phoneRegex = RegExp(r'^[0-9+\-()\s]+$');
-                          if (!phoneRegex.hasMatch(phone)) {
-                            return 'Enter a valid phone number';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 14),
-                      TextFormField(
-                        controller: _addressController,
-                        maxLines: 2,
-                        style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
-                        decoration: const InputDecoration(
-                          labelText: 'Delivery Address in Bangladesh *',
-                        ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Enter delivery address';
-                          }
-                          final trimmed = v.trim();
-                          if (trimmed.length < 5) {
-                            return 'Address must be at least 5 characters';
-                          }
-                          if (trimmed.length > 500) {
-                            return 'Address cannot exceed 500 characters';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      CheckboxListTile(
-                        value: _saveAsDefaultAddress,
-                        onChanged: _isPlacingOrder
-                            ? null
-                            : (val) => setState(() => _saveAsDefaultAddress = val ?? false),
-                        title: const Text(
-                          'Save as default address in my profile',
-                          style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-                        ),
-                        controlAffinity: ListTileControlAffinity.leading,
-                        contentPadding: EdgeInsets.zero,
-                        activeColor: AppTheme.accent,
-                        checkColor: AppTheme.bgPrimary,
-                        dense: true,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Payment Method Section
-              Card(
-                color: AppTheme.surfaceCard,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppTheme.borderSubtle),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: AppTheme.accentSubtle,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Icon(Icons.payment_outlined, color: AppTheme.accent, size: 18),
-                          ),
-                          const SizedBox(width: 10),
-                          const Text(
-                            'Payment Method',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      _buildPaymentOption(
-                        title: 'Cash on Delivery (COD)',
-                        subtitle: 'Pay with cash upon delivery of your items',
-                        icon: Icons.payments_outlined,
-                        value: 'Cash on Delivery',
-                        isAvailable: true,
-                      ),
-                      const SizedBox(height: 10),
-                      _buildPaymentOption(
-                        title: 'bKash / Nagad / Rocket',
-                        subtitle: 'Online payment gateway not currently integrated',
-                        icon: Icons.account_balance_wallet_outlined,
-                        value: 'Mobile Banking',
-                        isAvailable: false,
-                        badgeText: 'Unavailable',
-                      ),
-                      const SizedBox(height: 10),
-                      _buildPaymentOption(
-                        title: 'Credit / Debit Card',
-                        subtitle: 'Card payment gateway not currently integrated',
-                        icon: Icons.credit_card_outlined,
-                        value: 'Credit / Debit Card',
-                        isAvailable: false,
-                        badgeText: 'Unavailable',
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 14),
-
-              // Order Summary Card
-              Card(
-                color: AppTheme.surfaceCard,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppTheme.borderSubtle),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Order Summary (${cart.itemCount} items)',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      const Divider(color: AppTheme.borderSubtle, height: 1),
-                      const SizedBox(height: 12),
-                      ...cart.itemList.map((item) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          Row(
                             children: [
-                              Expanded(
-                                child: Text(
-                                  '${item.quantity}x ${item.product.title}',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.accentSubtle,
+                                  borderRadius: BorderRadius.circular(6),
                                 ),
+                                child: const Icon(Icons.location_on_outlined, color: AppTheme.accent, size: 18),
                               ),
-                              Text(
-                                '৳ ${item.totalPrice.toStringAsFixed(0)}',
-                                style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 13),
+                              const SizedBox(width: 10),
+                              const Text(
+                                'Shipping Details',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: AppTheme.textPrimary,
+                                ),
                               ),
                             ],
                           ),
-                        );
-                      }),
-                      const SizedBox(height: 12),
-                      const Divider(color: AppTheme.borderSubtle, height: 1),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('Subtotal:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
-                          Text(
-                            '৳ ${cart.totalAmount.toStringAsFixed(0)}',
-                            style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _nameController,
+                            style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                            decoration: const InputDecoration(
+                              labelText: 'Recipient Full Name *',
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Enter recipient name';
+                              }
+                              final trimmed = v.trim();
+                              if (trimmed.length < 2) {
+                                return 'Name must be at least 2 characters';
+                              }
+                              if (trimmed.length > 100) {
+                                return 'Name cannot exceed 100 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                            decoration: const InputDecoration(
+                              labelText: 'Phone Number (e.g. 017xxxxxxxx) *',
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Enter phone number';
+                              }
+                              final phone = v.trim();
+                              if (phone.length < 5 || phone.length > 30) {
+                                return 'Phone number must be between 5 and 30 characters';
+                              }
+                              final phoneRegex = RegExp(r'^[0-9+\-()\s]+$');
+                              if (!phoneRegex.hasMatch(phone)) {
+                                return 'Enter a valid phone number';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 14),
+                          TextFormField(
+                            controller: _addressController,
+                            maxLines: 2,
+                            style: const TextStyle(color: AppTheme.textPrimary, fontSize: 14),
+                            decoration: const InputDecoration(
+                              labelText: 'Delivery Address in Bangladesh *',
+                              hintText: 'House, Road, Area, City, District',
+                            ),
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) {
+                                return 'Enter delivery address';
+                              }
+                              final trimmed = v.trim();
+                              if (trimmed.length < 5) {
+                                return 'Address must be at least 5 characters';
+                              }
+                              if (trimmed.length > 500) {
+                                return 'Address cannot exceed 500 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: 10),
+                          CheckboxListTile(
+                            value: _saveAsDefaultAddress,
+                            onChanged: _isPlacingOrder
+                                ? null
+                                : (val) => setState(() => _saveAsDefaultAddress = val ?? false),
+                            title: const Text(
+                              'Save as default address in my profile',
+                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                            ),
+                            controlAffinity: ListTileControlAffinity.leading,
+                            contentPadding: EdgeInsets.zero,
+                            activeColor: AppTheme.accent,
+                            checkColor: AppTheme.bgPrimary,
+                            dense: true,
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Payment Method Section (Cash on Delivery Only)
+                  Card(
+                    color: AppTheme.surfaceCard,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      side: const BorderSide(color: AppTheme.borderSubtle),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Total Payable:',
-                            style: TextStyle(
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.accentSubtle,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Icon(Icons.payment_outlined, color: AppTheme.accent, size: 18),
+                              ),
+                              const SizedBox(width: 10),
+                              const Text(
+                                'Payment Method',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+
+                          // Official Cash on Delivery Card
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                              border: Border.all(color: AppTheme.accent, width: 1.5),
+                              color: AppTheme.accentSubtle,
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Icon(
+                                  Icons.payments_outlined,
+                                  color: AppTheme.accent,
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            'Cash on Delivery (COD)',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              color: AppTheme.textPrimary,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.accent,
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: const Text(
+                                              'ACTIVE',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 4),
+                                      const Text(
+                                        'Pay conveniently in cash when the delivery agent hands over your order at your doorstep. Please have the exact change ready.',
+                                        style: TextStyle(
+                                          color: AppTheme.textSecondary,
+                                          fontSize: 12,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Order Summary Card
+                  Card(
+                    color: AppTheme.surfaceCard,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      side: const BorderSide(color: AppTheme.borderSubtle),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Order Summary (${cart.itemCount} items)',
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
                               color: AppTheme.textPrimary,
                             ),
                           ),
-                          Text(
-                            '৳ ${cart.totalAmount.toStringAsFixed(0)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              color: AppTheme.accent,
-                            ),
+                          const SizedBox(height: 12),
+                          const Divider(color: AppTheme.borderSubtle, height: 1),
+                          const SizedBox(height: 12),
+                          ...cart.itemList.map((item) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      '${item.quantity}x ${item.product.title}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                                    ),
+                                  ),
+                                  Text(
+                                    '৳ ${item.totalPrice.toStringAsFixed(0)}',
+                                    style: const TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.w600, fontSize: 13),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                          const SizedBox(height: 12),
+                          const Divider(color: AppTheme.borderSubtle, height: 1),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Subtotal:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
+                              Text(
+                                '৳ ${cart.totalAmount.toStringAsFixed(0)}',
+                                style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text('Delivery Fee:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
+                              const Text(
+                                'FREE',
+                                style: TextStyle(color: AppTheme.statusSuccess, fontWeight: FontWeight.w600, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total Payable (COD):',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                '৳ ${cart.totalAmount.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                  color: AppTheme.accent,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ),
-    ),
-  ),
-);
-  }
-
-  Widget _buildPaymentOption({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required String value,
-    bool isAvailable = true,
-    String? badgeText,
-  }) {
-    final isSelected = isAvailable && _paymentMethod == value;
-
-    return InkWell(
-      onTap: isAvailable ? () => setState(() => _paymentMethod = value) : null,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: isSelected
-                ? AppTheme.accent
-                : (isAvailable ? AppTheme.borderSubtle : AppTheme.borderSubtle.withValues(alpha: 0.5)),
-            width: isSelected ? 1.5 : 1,
-          ),
-          color: isSelected
-              ? AppTheme.accentSubtle
-              : (isAvailable ? AppTheme.bgSecondary : AppTheme.bgPrimary),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: isSelected
-                  ? AppTheme.accent
-                  : (isAvailable ? AppTheme.textMuted : AppTheme.textDisabled),
-              size: 22,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        title,
-                        style: TextStyle(
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          color: isAvailable ? AppTheme.textPrimary : AppTheme.textMuted,
-                          fontSize: 14,
-                        ),
-                      ),
-                      if (badgeText != null) ...[
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppTheme.bgSecondary,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: AppTheme.borderSubtle),
-                          ),
-                          child: Text(
-                            badgeText,
-                            style: const TextStyle(
-                              color: AppTheme.textMuted,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: isAvailable ? AppTheme.textMuted : AppTheme.textDisabled,
-                      fontSize: 12,
                     ),
                   ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
-            Icon(
-              isSelected
-                  ? Icons.check_circle
-                  : (isAvailable ? Icons.circle_outlined : Icons.block_outlined),
-              color: isSelected
-                  ? AppTheme.accent
-                  : (isAvailable ? AppTheme.textMuted : AppTheme.textDisabled),
-              size: 20,
-            ),
-          ],
+          ),
         ),
       ),
     );
