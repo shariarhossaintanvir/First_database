@@ -11,11 +11,11 @@ import 'package:customer_app/widgets/trust_badge_row.dart';
 
 void main() {
   group('AppTheme Design System Tokens Tests', () {
-    test('verifies core Obsidian and Champagne Gold brand colors', () {
-      expect(AppTheme.bgPrimary, const Color(0xFF0A0A0C));
-      expect(AppTheme.accent, const Color(0xFFE2B93B));
-      expect(AppTheme.surfaceCard, const Color(0xFF18181C));
-      expect(AppTheme.borderSubtle, const Color(0xFF26262D));
+    test('verifies core Light Theme brand colors', () {
+      expect(AppTheme.bgPrimary, const Color(0xFFFFFFFF));
+      expect(AppTheme.primary, const Color(0xFFFF6B35));
+      expect(AppTheme.surfaceCard, const Color(0xFFFFFFFF));
+      expect(AppTheme.borderSubtle, const Color(0xFFE5E7EB));
     });
 
     test('verifies spacing scale integrity', () {
@@ -35,12 +35,12 @@ void main() {
       expect(AppTheme.radiusFull, 999.0);
     });
 
-    test('verifies ThemeData generates with dark brightness and proper colorScheme', () {
-      final theme = AppTheme.darkTheme;
-      expect(theme.brightness, Brightness.dark);
+    test('verifies ThemeData generates with light brightness and proper colorScheme', () {
+      final theme = AppTheme.lightTheme;
+      expect(theme.brightness, Brightness.light);
       expect(theme.scaffoldBackgroundColor, AppTheme.bgPrimary);
-      expect(theme.primaryColor, AppTheme.accent);
-      expect(theme.colorScheme.primary, AppTheme.accent);
+      expect(theme.primaryColor, AppTheme.primary);
+      expect(theme.colorScheme.primary, AppTheme.primary);
       expect(theme.colorScheme.surface, AppTheme.surfaceCard);
     });
   });

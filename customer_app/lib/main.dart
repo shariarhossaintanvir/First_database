@@ -58,9 +58,9 @@ class CustomerEcommerceApp extends StatelessWidget {
       child: MaterialApp(
         title: 'ShopEase Customer Store',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
+        theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.lightTheme,
+        themeMode: ThemeMode.light,
         home: const AuthGate(),
       ),
     );

@@ -1,40 +1,43 @@
 import 'package:flutter/material.dart';
 
-/// Premium Minimal Dark Theme Tokens for Customer Storefront
+/// ShopEase Customer Storefront — Light Theme Design System
+/// Brand: Coral (#FF6B35) primary, Teal (#00D4A8) secondary
 class AppTheme {
-  // --- COLOR PALETTE ---
-  static const Color bgPrimary = Color(0xFF0A0A0C); // Deep Obsidian
-  static const Color bgSecondary = Color(0xFF121215); // Layer 2 background
-  static const Color surfaceCard = Color(0xFF18181C); // Card and container surface
-  static const Color surfaceElevated = Color(0xFF222228); // Elevated cards, modals, hovers
-  static const Color surfaceHover = Color(0xFF2A2A32); // Interactive hover state
+  // --- CORE COLOR PALETTE ---
+  static const Color primary = Color(0xFFFF6B35); // Coral – CTA, brand
+  static const Color primaryLight = Color(0xFFFFF0EB); // Coral tint background
+  static const Color primaryMedium = Color(0xFFFFD5C3); // Coral medium tint
+  static const Color secondary = Color(0xFF00D4A8); // Teal – availability
+  static const Color secondaryLight = Color(0xFFE6FBF7); // Teal tint background
 
-  static const Color borderSubtle = Color(0xFF26262D); // 1px borders & dividers
-  static const Color borderStrong = Color(0xFF383842); // Active or hover borders
+  // Background tokens
+  static const Color bgPrimary = Color(0xFFFFFFFF); // Main scaffold
+  static const Color bgSecondary = Color(0xFFF8F9FB); // Section / alt bg
+  static const Color surfaceCard = Color(0xFFFFFFFF); // Card bg
+  static const Color surfaceElevated = Color(0xFFF3F4F6); // Elevated panels
 
-  // Accent Colors (Refined Champagne Gold & Warm Metallic)
-  static const Color accent = Color(0xFFE2B93B); // Primary brand CTA & highlight
-  static const Color accentHover = Color(0xFFC9A227);
-  static const Color accentSubtle = Color(0x26E2B93B); // 15% tint for pills/badges
+  // Border tokens
+  static const Color borderSubtle = Color(0xFFE5E7EB);
+  static const Color borderStrong = Color(0xFFD1D5DB);
 
-  // Daraz Bangladesh Marketplace Accent Additions (Phase 1)
-  static const Color primaryAccent = Color(0xFF0099FF); // Electric Sky-Blue marketplace accent
-  static const Color primaryAccentHover = Color(0xFF0077CC);
-  static const Color primaryAccentSubtle = Color(0x260099FF); // 15% tint for pills/badges
-  static const Color secondaryWarm = Color(0xFFFFA726); // Warm marketplace orange
-  static const Color secondaryWarmSubtle = Color(0x26FFA726); // 15% tint
+  // Legacy aliases used in various screens (mapped to new palette)
+  static const Color accent = primary;
+  static const Color accentSubtle = primaryLight;
+  static const Color accentHover = Color(0xFFE55A24);
+  static const Color secondaryWarm = Color(0xFFD97706); // Warning orange
+  static const Color secondaryWarmSubtle = Color(0xFFFEF3C7);
 
-  // Typography Colors
-  static const Color textPrimary = Color(0xFFF8FAFC); // High contrast white
-  static const Color textSecondary = Color(0xFFCBD5E1); // Slate 300 for descriptions
-  static const Color textMuted = Color(0xFF94A3B8); // Slate 400 for metadata & hints
-  static const Color textDisabled = Color(0xFF64748B);
+  // Typography
+  static const Color textPrimary = Color(0xFF111827);
+  static const Color textSecondary = Color(0xFF4B5563);
+  static const Color textMuted = Color(0xFF6B7280);
+  static const Color textDisabled = Color(0xFF9CA3AF);
 
-  // Status Indicators
-  static const Color statusSuccess = Color(0xFF10B981); // Emerald
-  static const Color statusWarning = Color(0xFFF59E0B); // Amber
-  static const Color statusError = Color(0xFFEF4444); // Crimson
-  static const Color statusInfo = Color(0xFF38BDF8); // Sky
+  // Status colors
+  static const Color statusSuccess = Color(0xFF059669);
+  static const Color statusWarning = Color(0xFFD97706);
+  static const Color statusError = Color(0xFFDC2626);
+  static const Color statusInfo = Color(0xFF2563EB);
 
   // --- SPACING SCALE (4px base grid) ---
   static const double space2 = 2.0;
@@ -67,35 +70,47 @@ class AppTheme {
   static const BorderRadius roundedXl = BorderRadius.all(Radius.circular(radiusXl));
   static const BorderRadius roundedFull = BorderRadius.all(Radius.circular(radiusFull));
 
-  // --- SHADOW & ELEVATION TOKENS ---
+  // --- SHADOWS ---
   static const List<BoxShadow> shadowSubtle = [
     BoxShadow(
-      color: Color(0x33000000),
-      offset: Offset(0, 2),
-      blurRadius: 6,
+      color: Color(0x0A000000),
+      offset: Offset(0, 1),
+      blurRadius: 3,
+      spreadRadius: 0,
+    ),
+    BoxShadow(
+      color: Color(0x06000000),
+      offset: Offset(0, 1),
+      blurRadius: 2,
       spreadRadius: 0,
     ),
   ];
 
   static const List<BoxShadow> shadowElevated = [
     BoxShadow(
-      color: Color(0x66000000),
+      color: Color(0x14000000),
       offset: Offset(0, 4),
-      blurRadius: 16,
+      blurRadius: 12,
       spreadRadius: -2,
+    ),
+    BoxShadow(
+      color: Color(0x08000000),
+      offset: Offset(0, 2),
+      blurRadius: 4,
+      spreadRadius: -1,
     ),
   ];
 
   static const List<BoxShadow> shadowAccent = [
     BoxShadow(
-      color: Color(0x2BE2B93B),
+      color: Color(0x33FF6B35),
       offset: Offset(0, 4),
-      blurRadius: 14,
+      blurRadius: 12,
       spreadRadius: -2,
     ),
   ];
 
-  // --- ANIMATION & MOTION TOKENS ---
+  // --- ANIMATION TOKENS ---
   static const Duration durationFast = Duration(milliseconds: 150);
   static const Duration durationNormal = Duration(milliseconds: 250);
   static const Duration durationSlow = Duration(milliseconds: 400);
@@ -115,7 +130,7 @@ class AppTheme {
 
   static const TextStyle headline = TextStyle(
     fontSize: 20,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w700,
     letterSpacing: -0.3,
     color: textPrimary,
     height: 1.3,
@@ -171,13 +186,6 @@ class AppTheme {
     color: textPrimary,
   );
 
-  static const TextStyle priceOriginal = TextStyle(
-    fontSize: 13,
-    fontWeight: FontWeight.normal,
-    decoration: TextDecoration.lineThrough,
-    color: textMuted,
-  );
-
   static const TextStyle button = TextStyle(
     fontSize: 14,
     fontWeight: FontWeight.w600,
@@ -204,23 +212,24 @@ class AppTheme {
     color: textMuted,
   );
 
-  // --- FLUTTER THEMEDATA ---
-  static ThemeData get darkTheme {
+  // --- FLUTTER THEMEDATA (LIGHT) ---
+  static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: bgPrimary,
-      primaryColor: accent,
+      primaryColor: primary,
       canvasColor: bgSecondary,
-      colorScheme: const ColorScheme.dark(
-        primary: accent,
-        onPrimary: bgPrimary,
-        secondary: accent,
-        onSecondary: bgPrimary,
+      colorScheme: const ColorScheme.light(
+        primary: primary,
+        onPrimary: Colors.white,
+        secondary: secondary,
+        onSecondary: Colors.white,
         surface: surfaceCard,
         onSurface: textPrimary,
         error: statusError,
-        onError: textPrimary,
+        onError: Colors.white,
+        outline: borderSubtle,
       ),
 
       // AppBar
@@ -228,9 +237,16 @@ class AppTheme {
         backgroundColor: bgPrimary,
         foregroundColor: textPrimary,
         elevation: 0,
-        scrolledUnderElevation: 0,
+        scrolledUnderElevation: 1,
+        shadowColor: Color(0x1A000000),
+        surfaceTintColor: Colors.transparent,
         centerTitle: false,
-        titleTextStyle: headline,
+        titleTextStyle: TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.3,
+          color: textPrimary,
+        ),
         iconTheme: IconThemeData(color: textPrimary, size: 22),
       ),
 
@@ -265,7 +281,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: roundedMd,
-          borderSide: const BorderSide(color: accent, width: 1.5),
+          borderSide: const BorderSide(color: primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: roundedMd,
@@ -278,11 +294,11 @@ class AppTheme {
         errorStyle: const TextStyle(color: statusError, fontSize: 12),
       ),
 
-      // Elevated Button Theme (Primary Accent)
+      // Elevated Button Theme
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: accent,
-          foregroundColor: const Color(0xFF0A0A0C), // Dark label for maximum contrast against gold
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
           elevation: 0,
           shadowColor: Colors.transparent,
           textStyle: button,
@@ -296,8 +312,8 @@ class AppTheme {
       // Outlined Button Theme
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          foregroundColor: textPrimary,
-          side: const BorderSide(color: borderSubtle, width: 1),
+          foregroundColor: primary,
+          side: const BorderSide(color: primary, width: 1.5),
           textStyle: button,
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
           shape: RoundedRectangleBorder(
@@ -309,7 +325,7 @@ class AppTheme {
       // Text Button Theme
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: accent,
+          foregroundColor: primary,
           textStyle: button,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         ),
@@ -319,11 +335,11 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: bgSecondary,
         disabledColor: surfaceElevated,
-        selectedColor: accentSubtle,
-        secondarySelectedColor: accentSubtle,
+        selectedColor: primaryLight,
+        secondarySelectedColor: primaryLight,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         labelStyle: const TextStyle(color: textSecondary, fontSize: 13, fontWeight: FontWeight.w500),
-        secondaryLabelStyle: const TextStyle(color: accent, fontSize: 13, fontWeight: FontWeight.w600),
+        secondaryLabelStyle: const TextStyle(color: primary, fontSize: 13, fontWeight: FontWeight.w600),
         shape: RoundedRectangleBorder(
           borderRadius: roundedSm,
           side: const BorderSide(color: borderSubtle),
@@ -333,18 +349,19 @@ class AppTheme {
 
       // Navigation Bar (Bottom Mobile)
       navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: bgSecondary,
+        backgroundColor: bgPrimary,
         elevation: 0,
-        indicatorColor: accentSubtle,
+        shadowColor: const Color(0x1A000000),
+        indicatorColor: primaryLight,
         iconTheme: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const IconThemeData(color: accent, size: 22);
+            return const IconThemeData(color: primary, size: 22);
           }
           return const IconThemeData(color: textMuted, size: 22);
         }),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
-            return const TextStyle(color: accent, fontSize: 11, fontWeight: FontWeight.w600);
+            return const TextStyle(color: primary, fontSize: 11, fontWeight: FontWeight.w600);
           }
           return const TextStyle(color: textMuted, fontSize: 11, fontWeight: FontWeight.w500);
         }),
@@ -352,8 +369,10 @@ class AppTheme {
 
       // Dialog Theme
       dialogTheme: DialogThemeData(
-        backgroundColor: surfaceElevated,
+        backgroundColor: surfaceCard,
         surfaceTintColor: Colors.transparent,
+        elevation: 8,
+        shadowColor: const Color(0x1A000000),
         shape: RoundedRectangleBorder(
           borderRadius: roundedLg,
           side: const BorderSide(color: borderSubtle),
@@ -364,13 +383,13 @@ class AppTheme {
 
       // SnackBar Theme
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: surfaceElevated,
-        contentTextStyle: const TextStyle(color: textPrimary, fontSize: 14),
+        backgroundColor: const Color(0xFF1F2937),
+        contentTextStyle: const TextStyle(color: Colors.white, fontSize: 14),
         shape: RoundedRectangleBorder(
           borderRadius: roundedMd,
-          side: const BorderSide(color: borderSubtle),
         ),
         behavior: SnackBarBehavior.floating,
+        actionTextColor: primary,
       ),
 
       // Divider Theme
@@ -382,32 +401,42 @@ class AppTheme {
 
       // BottomSheet Theme
       bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: surfaceElevated,
+        backgroundColor: surfaceCard,
         surfaceTintColor: Colors.transparent,
-        modalBackgroundColor: surfaceElevated,
+        modalBackgroundColor: surfaceCard,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-          side: BorderSide(color: borderSubtle),
         ),
+        elevation: 8,
       ),
 
       // Tooltip Theme
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
-          color: surfaceElevated,
+          color: const Color(0xFF1F2937),
           borderRadius: roundedSm,
-          border: Border.all(color: borderSubtle),
         ),
-        textStyle: const TextStyle(color: textPrimary, fontSize: 12),
+        textStyle: const TextStyle(color: Colors.white, fontSize: 12),
         waitDuration: const Duration(milliseconds: 400),
       ),
 
       // Progress Indicator Theme
       progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: accent,
-        linearTrackColor: surfaceElevated,
+        color: primary,
+        linearTrackColor: primaryLight,
         circularTrackColor: Colors.transparent,
+      ),
+
+      // ListTile Theme
+      listTileTheme: const ListTileThemeData(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        tileColor: surfaceCard,
+        iconColor: textMuted,
+        textColor: textPrimary,
       ),
     );
   }
+
+  // Keep darkTheme alias pointing to lightTheme for backward compat
+  static ThemeData get darkTheme => lightTheme;
 }
