@@ -5,12 +5,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 import '../services/firestore_service.dart';
 import '../providers/cart_provider.dart';
+import '../models/cart_item_model.dart';
 import '../models/order_model.dart';
 import '../theme/app_theme.dart';
 import 'order_success_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
-  const CheckoutScreen({super.key});
+  /// When non-null, the checkout flow places an order for this single item
+  /// only. The customer's existing cart is NOT modified or cleared.
+  final CartItemModel? buyNowItem;
+
+  const CheckoutScreen({super.key, this.buyNowItem});
 
   @override
   State<CheckoutScreen> createState() => _CheckoutScreenState();
@@ -77,7 +82,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     final auth = Provider.of<AuthService>(context, listen: false);
     final cart = Provider.of<CartProvider>(context, listen: false);
 
-    if (cart.itemList.isEmpty) {
+    // Determine which items we are ordering
+    final isBuyNow = widget.buyNowItem != null;
+    final itemsToOrder = isBuyNow ? [widget.buyNowItem!] : cart.itemList;
+
+    if (itemsToOrder.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Your cart is empty!'),
@@ -94,7 +103,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       // (Note: Client-side stock revalidation checks live Firestore document before creating the order.
       // This eliminates stale cart submissions, but full concurrency isolation would require backend Cloud Functions).
       final stockIssues = <String>[];
-      for (final cartItem in cart.itemList) {
+      for (final cartItem in itemsToOrder) {
         final freshProduct = await _firestoreService.getProductById(cartItem.product.id);
         if (freshProduct == null) {
           stockIssues.add('"${cartItem.product.title}" is no longer listed in our catalog.');
@@ -146,7 +155,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   )),
                   const SizedBox(height: 8),
                   const Text(
-                    'Please return to your cart to update item quantities.',
+                    'Please return to the previous screen to update the quantity.',
                     style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
                   ),
                 ],
@@ -164,9 +173,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   ),
                   onPressed: () {
                     Navigator.pop(ctx);
-                    Navigator.pop(context); // Go back to cart
+                    Navigator.pop(context); // Go back to product/cart
                   },
-                  child: const Text('Edit Cart'),
+                  child: Text(isBuyNow ? 'Go Back' : 'Edit Cart'),
                 ),
               ],
             ),
@@ -176,7 +185,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       }
 
       final user = auth.currentUser!;
-      final orderItems = cart.itemList.map((ci) {
+      final totalAmount = itemsToOrder.fold<double>(
+        0.0,
+        (runningTotal, ci) => runningTotal + ci.totalPrice,
+      );
+      final orderItems = itemsToOrder.map((ci) {
         return OrderItemModel(
           productId: ci.product.id,
           title: ci.product.title,
@@ -195,7 +208,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         customerAddress: _addressController.text.trim(),
         paymentMethod: _paymentMethod,
         items: orderItems,
-        totalAmount: cart.totalAmount,
+        totalAmount: totalAmount,
         status: 'Pending',
         createdAt: DateTime.now(),
       );
@@ -214,8 +227,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       }
 
-      // Clear the cart
-      cart.clearCart();
+      // Clear main cart only for regular checkout — not for Buy Now
+      if (!isBuyNow) {
+        cart.clearCart();
+      }
 
       if (mounted) {
         Navigator.pushReplacement(
@@ -248,7 +263,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         backgroundColor: AppTheme.bgPrimary,
         elevation: 0,
         scrolledUnderElevation: 0,
-        title: const Text('Checkout & Delivery'),
+        title: Text(widget.buyNowItem != null ? 'Buy Now — Checkout' : 'Checkout & Delivery'),
       ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),

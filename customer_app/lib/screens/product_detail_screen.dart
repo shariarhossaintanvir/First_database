@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/cart_item_model.dart';
 import '../models/product_model.dart';
 import '../providers/cart_provider.dart';
 import '../services/firestore_service.dart';
@@ -9,6 +10,7 @@ import '../widgets/spec_attribute_row.dart';
 import '../widgets/status_badge.dart';
 import '../widgets/trust_badge_row.dart';
 import 'cart_screen.dart';
+import 'checkout_screen.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final ProductModel product;
@@ -110,6 +112,36 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
         ),
         actions: [
+          // Wishlist toggle
+          IconButton(
+            icon: Icon(
+              cart.isInWishlist(p.id)
+                  ? Icons.favorite
+                  : Icons.favorite_border,
+              color: cart.isInWishlist(p.id)
+                  ? AppTheme.statusError
+                  : AppTheme.textMuted,
+            ),
+            tooltip: cart.isInWishlist(p.id)
+                ? 'Remove from Wishlist'
+                : 'Add to Wishlist',
+            onPressed: () {
+              cart.toggleWishlist(p.id);
+              final inWishlist = cart.isInWishlist(p.id);
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    inWishlist
+                        ? 'Added to your wishlist'
+                        : 'Removed from wishlist',
+                  ),
+                  duration: const Duration(seconds: 2),
+                  backgroundColor: AppTheme.surfaceElevated,
+                ),
+              );
+            },
+          ),
           Stack(
             alignment: Alignment.center,
             children: [
@@ -262,7 +294,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                       label: Text(
                         !p.isAvailable
-                            ? 'Currently Unavailable'
+                            ? 'Unavailable'
                             : isOutOfStock
                                 ? 'Out of Stock'
                                 : 'Add to Cart',
@@ -283,6 +315,40 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       ),
                     ),
                   ),
+
+                  // Buy Now button (only when available)
+                  if (!isUnavailable) ...[
+                    const SizedBox(width: AppTheme.space10),
+                    ElevatedButton(
+                      onPressed: () {
+                        final buyNowItem = CartItemModel(
+                          product: p,
+                          quantity: _quantity,
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                CheckoutScreen(buyNowItem: buyNowItem),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 15, horizontal: AppTheme.space16),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                        ),
+                      ),
+                      child: const Text(
+                        'Buy Now',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -481,7 +547,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                   : 'In Stock (${p.stock} units available)')
                               : 'Currently Out of Stock',
                           'Unit Price': '৳ ${p.price.toStringAsFixed(0)}',
-                          'Payment Method': 'Cash on Delivery (COD)',
                         },
                       ),
 

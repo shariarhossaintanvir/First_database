@@ -93,16 +93,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
   }
 
   int _getStatusStep(String status) {
-    switch (status) {
-      case 'Pending':
+    switch (status.trim().toLowerCase()) {
+      case 'pending':
         return 0;
-      case 'Confirmed':
+      case 'confirmed':
         return 1;
-      case 'Processing':
+      case 'processing':
         return 2;
-      case 'Shipped':
+      case 'shipped':
         return 3;
-      case 'Delivered':
+      case 'delivered':
         return 4;
       default:
         return -1;
@@ -125,9 +125,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
               TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold),
         ),
         content: Text(
-          'To ensure order security, orders are managed by administrators. '
-          'To request a cancellation for Order #$shortId, '
-          'please contact support at support@shopease.com or call our fulfillment team.',
+          'To ensure order security, cancellations are processed by our '
+          'support team. To request a cancellation for Order #$shortId, '
+          'please contact our customer support team through the contact '
+          'details provided on our website or app settings.',
           style: const TextStyle(color: AppTheme.textSecondary, height: 1.5),
         ),
         actions: [
@@ -238,7 +239,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       const SizedBox(height: AppTheme.space20),
 
                       // Cancelled notice or progressive timeline
-                      if (currentStatus == 'Cancelled')
+                      if (currentStatus.trim().toLowerCase() == 'cancelled')
                         _CancelledOrderNotice(order: currentOrder)
                       else if (activeStep == -1)
                         _UnknownStatusNotice(status: currentStatus)
@@ -249,7 +250,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         ),
 
                       // Cancel request (Pending orders only)
-                      if (currentStatus == 'Pending') ...[
+                      if (currentStatus.trim().toLowerCase() == 'pending') ...[
                         const SizedBox(height: AppTheme.space16),
                         const Divider(height: 1, color: AppTheme.borderSubtle),
                         const SizedBox(height: AppTheme.space12),
