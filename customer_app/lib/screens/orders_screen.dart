@@ -134,8 +134,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 if (_selectedStatus != 'All') {
                   orders = orders
                       .where((o) =>
-                          o.status.toLowerCase() ==
-                          _selectedStatus.toLowerCase())
+                          o.status.trim().toLowerCase() ==
+                          _selectedStatus.trim().toLowerCase())
                       .toList();
                 }
 

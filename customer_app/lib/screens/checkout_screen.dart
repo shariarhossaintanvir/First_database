@@ -256,6 +256,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
+    final isBuyNow = widget.buyNowItem != null;
+    final checkoutItems = isBuyNow ? [widget.buyNowItem!] : cart.itemList;
+    final checkoutItemCount = isBuyNow
+        ? widget.buyNowItem!.quantity
+        : cart.itemCount;
+    final checkoutTotalAmount = isBuyNow
+        ? widget.buyNowItem!.totalPrice
+        : cart.totalAmount;
 
     return Scaffold(
       backgroundColor: AppTheme.bgPrimary,
@@ -298,7 +306,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           ),
                         )
                       : Text(
-                          'Place Order • ৳ ${cart.totalAmount.toStringAsFixed(0)}',
+                          'Place Order • ৳ ${checkoutTotalAmount.toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -563,7 +571,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Order Summary (${cart.itemCount} items)',
+                            'Order Summary ($checkoutItemCount ${checkoutItemCount == 1 ? 'item' : 'items'})',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 15,
@@ -573,7 +581,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           const SizedBox(height: 12),
                           const Divider(color: AppTheme.borderSubtle, height: 1),
                           const SizedBox(height: 12),
-                          ...cart.itemList.map((item) {
+                          ...checkoutItems.map((item) {
                             return Padding(
                               padding: const EdgeInsets.symmetric(vertical: 4),
                               child: Row(
@@ -603,7 +611,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             children: [
                               const Text('Subtotal:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
                               Text(
-                                '৳ ${cart.totalAmount.toStringAsFixed(0)}',
+                                '৳ ${checkoutTotalAmount.toStringAsFixed(0)}',
                                 style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
                               ),
                             ],
@@ -612,10 +620,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              const Text('Delivery Fee:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
+                              const Text('Standard Delivery:', style: TextStyle(color: AppTheme.textMuted, fontSize: 13)),
                               const Text(
-                                'FREE',
-                                style: TextStyle(color: AppTheme.statusSuccess, fontWeight: FontWeight.w600, fontSize: 13),
+                                '৳ 0 (Included)',
+                                style: TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w600, fontSize: 13),
                               ),
                             ],
                           ),
@@ -632,7 +640,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                                 ),
                               ),
                               Text(
-                                '৳ ${cart.totalAmount.toStringAsFixed(0)}',
+                                '৳ ${checkoutTotalAmount.toStringAsFixed(0)}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,

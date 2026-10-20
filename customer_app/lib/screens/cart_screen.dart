@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../widgets/product_card.dart';
 import 'checkout_screen.dart';
 import 'product_detail_screen.dart';
+import 'main_navigation_screen.dart';
 
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
@@ -191,7 +192,35 @@ class _EmptyCartBody extends StatelessWidget {
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: AppTheme.space32),
+              const SizedBox(height: AppTheme.space16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  if (Navigator.canPop(context)) {
+                    Navigator.pop(context);
+                  } else {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MainNavigationScreen(),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.explore_outlined, size: 16),
+                label: const Text('Explore Catalog'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppTheme.primary,
+                  side: const BorderSide(color: AppTheme.primary),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTheme.space20,
+                    vertical: AppTheme.space12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppTheme.space28),
 
               // ── Catalog recommendations ────────────────────────────────
               StreamBuilder<List<ProductModel>>(

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:customer_app/models/product_model.dart';
 import 'package:customer_app/models/cart_item_model.dart';
 import 'package:customer_app/providers/cart_provider.dart';
@@ -349,9 +351,73 @@ void main() {
       const status = 'Cancelled';
       expect(status.trim().toLowerCase() == 'cancelled', isTrue);
     });
+    test('Order filter matching handles leading and trailing whitespace', () {
+      bool matchesFilter(String orderStatus, String selectedFilter) {
+        if (selectedFilter == 'All') return true;
+        return orderStatus.trim().toLowerCase() == selectedFilter.trim().toLowerCase();
+      }
+
+      expect(matchesFilter(' Pending ', 'Pending'), isTrue);
+      expect(matchesFilter('pending', 'Pending'), isTrue);
+      expect(matchesFilter('PENDING', 'pending'), isTrue);
+      expect(matchesFilter(' Shipped ', 'Shipped'), isTrue);
+      expect(matchesFilter(' Delivered ', 'Delivered'), isTrue);
+      expect(matchesFilter(' Cancelled ', 'Cancelled'), isTrue);
+      expect(matchesFilter('Processing', 'All'), isTrue);
+      expect(matchesFilter('Confirmed', 'Pending'), isFalse);
+    });
   });
 
-  group('Buy Now — cart isolation', () {
+  group('Buy Now — cart isolation & checkout derivation', () {
+    Map<String, dynamic> deriveCheckoutState({
+      required CartProvider cart,
+      CartItemModel? buyNowItem,
+    }) {
+      final isBuyNow = buyNowItem != null;
+      return {
+        'items': isBuyNow ? [buyNowItem] : cart.itemList,
+        'count': isBuyNow ? buyNowItem.quantity : cart.itemCount,
+        'total': isBuyNow ? buyNowItem.totalPrice : cart.totalAmount,
+      };
+    }
+
+    test('Checkout derivation in Buy Now mode isolates from main cart', () {
+      final mainCart = CartProvider();
+      mainCart.addItem(_makeProduct(id: 'in_cart_1', price: 100.0), quantity: 2);
+      mainCart.addItem(_makeProduct(id: 'in_cart_2', price: 250.0), quantity: 1);
+      expect(mainCart.itemCount, 3);
+      expect(mainCart.totalAmount, 450.0);
+
+      final buyNowItem = CartItemModel(
+        product: _makeProduct(id: 'buy_now_item', price: 1200.0),
+        quantity: 2,
+      );
+
+      final state = deriveCheckoutState(cart: mainCart, buyNowItem: buyNowItem);
+      final checkoutItems = state['items'] as List<CartItemModel>;
+
+      expect(checkoutItems.length, 1);
+      expect(checkoutItems.first.product.id, 'buy_now_item');
+      expect(state['count'], 2);
+      expect(state['total'], 2400.0);
+
+      // Main cart untouched
+      expect(mainCart.itemCount, 3);
+      expect(mainCart.totalAmount, 450.0);
+    });
+
+    test('Checkout derivation in regular cart mode uses cart items', () {
+      final mainCart = CartProvider();
+      mainCart.addItem(_makeProduct(id: 'in_cart_1', price: 150.0), quantity: 2);
+      mainCart.addItem(_makeProduct(id: 'in_cart_2', price: 300.0), quantity: 1);
+
+      final state = deriveCheckoutState(cart: mainCart, buyNowItem: null);
+      final checkoutItems = state['items'] as List<CartItemModel>;
+
+      expect(checkoutItems.length, 2);
+      expect(state['count'], 3);
+      expect(state['total'], 600.0);
+    });
     test('Buy Now item is independent from main cart', () {
       final mainCart = CartProvider();
       final mainProduct = _makeProduct(id: 'main_p', price: 200.0);
@@ -413,6 +479,78 @@ void main() {
       simulateOrderCompletion(isBuyNow: false);
 
       expect(mainCart.itemCount, 0);
+    });
+  });
+
+  group('CartProvider — SharedPreferences Runtime Persistence', () {
+    setUp(() {
+      TestWidgetsFlutterBinding.ensureInitialized();
+    });
+
+    test('Loads pre-existing cart items from SharedPreferences correctly', () async {
+      final initialData = {
+        'prod_stored_1': {
+          'productId': 'prod_stored_1',
+          'title': 'Stored Keyboard',
+          'description': 'A mechanical keyboard',
+          'price': 2200.0,
+          'imageUrl': 'https://example.com/kbd.jpg',
+          'category': 'Electronics',
+          'stock': 8,
+          'isAvailable': true,
+          'createdAt': DateTime(2025, 1, 1).millisecondsSinceEpoch,
+          'quantity': 2,
+        },
+      };
+
+      SharedPreferences.setMockInitialValues({
+        'shopease_cart_v1': jsonEncode(initialData),
+        'shopease_wishlist_v1': ['prod_stored_1', 'prod_stored_2'],
+      });
+
+      final cart = CartProvider();
+      // Allow async _loadFromStorage to complete
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      expect(cart.isInCart('prod_stored_1'), isTrue);
+      expect(cart.getProductQuantity('prod_stored_1'), 2);
+      expect(cart.totalAmount, 4400.0);
+      expect(cart.isInWishlist('prod_stored_1'), isTrue);
+      expect(cart.isInWishlist('prod_stored_2'), isTrue);
+    });
+
+    test('Gracefully recovers from malformed/corrupt JSON without throwing', () async {
+      SharedPreferences.setMockInitialValues({
+        'shopease_cart_v1': '{{{NOT_VALID_JSON}}}',
+        'shopease_wishlist_v1': ['w1'],
+      });
+
+      final cart = CartProvider();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      // Cart starts fresh and doesn't crash
+      expect(cart.itemList, isEmpty);
+      expect(cart.itemCount, 0);
+      // Valid wishlist still loaded
+      expect(cart.isInWishlist('w1'), isTrue);
+    });
+
+    test('Clearing cart preserves wishlist in SharedPreferences', () async {
+      SharedPreferences.setMockInitialValues({
+        'shopease_wishlist_v1': ['w_item_1'],
+      });
+
+      final cart = CartProvider();
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+
+      cart.addItem(_makeProduct(id: 'c_item_1', price: 500.0));
+      expect(cart.isInCart('c_item_1'), isTrue);
+      expect(cart.isInWishlist('w_item_1'), isTrue);
+
+      cart.clearCart();
+      expect(cart.itemList, isEmpty);
+      // Wishlist is completely intact
+      expect(cart.isInWishlist('w_item_1'), isTrue);
     });
   });
 }
