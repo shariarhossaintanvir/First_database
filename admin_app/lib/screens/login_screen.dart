@@ -39,27 +39,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  Future<void> _handleQuickSetup() async {
-    setState(() => _errorMessage = null);
-    final authService = Provider.of<AuthService>(context, listen: false);
-
-    final error = await authService.setupDefaultAdmin();
-    if (error != null && mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Setup status: $error'), backgroundColor: AdminTheme.statusWarning));
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Master Admin initialized. Sign in using admin@ecommerce.com / password123',
-          ),
-          backgroundColor: AdminTheme.surfaceElevated,
-        ),
-      );
-    }
-  }
-
   void _showForgotPasswordDialog() {
     final resetEmailController = TextEditingController(
       text: _emailController.text.trim(),
@@ -262,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: const TextStyle(color: AdminTheme.textPrimary),
                         decoration: const InputDecoration(
                           labelText: 'Admin Email',
-                          hintText: 'admin@ecommerce.com',
+                          hintText: 'name@example.com',
                           prefixIcon: Icon(Icons.email_outlined),
                         ),
                         validator: (value) {
@@ -349,22 +328,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Helper Quick Setup / Seed Button
-                      OutlinedButton.icon(
-                        onPressed: authService.isLoading ? null : _handleQuickSetup,
-                        icon: const Icon(Icons.auto_fix_high, size: 16, color: AdminTheme.accent),
-                        label: const Text('Initialize Admin Account (1-Click)'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AdminTheme.accent,
-                          side: const BorderSide(color: AdminTheme.borderSubtle),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
                       ),
                       const SizedBox(height: 12),
                       const Text(

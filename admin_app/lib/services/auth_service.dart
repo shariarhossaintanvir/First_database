@@ -104,62 +104,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  /// Quick helper to provision or register the default admin account: admin@ecommerce.com / password123
-  Future<String?> setupDefaultAdmin({
-    String email = 'admin@ecommerce.com',
-    String password = 'password123',
-  }) async {
-    _setLoading(true);
-    try {
-      UserCredential cred;
-      try {
-        cred = await _auth.createUserWithEmailAndPassword(
-          email: email.trim(),
-          password: password.trim(),
-        );
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'email-already-in-use') {
-          // If already created, sign in to ensure Firestore has admin role
-          cred = await _auth.signInWithEmailAndPassword(
-            email: email.trim(),
-            password: password.trim(),
-          );
-        } else {
-          rethrow;
-        }
-      }
-
-      final uid = cred.user!.uid;
-      final docRef = _firestore.collection('users').doc(uid);
-      final docSnap = await docRef.get();
-
-      if (!docSnap.exists) {
-        await docRef.set({
-          'uid': uid,
-          'email': email.trim(),
-          'name': 'System Administrator',
-          'role': 'admin',
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        // Document exists: update role only, preserving immutable createdAt
-        final data = docSnap.data();
-        if (data?['role'] != 'admin') {
-          await docRef.update({'role': 'admin'});
-        }
-      }
-
-      _setLoading(false);
-      return null;
-    } on FirebaseAuthException catch (e) {
-      _setLoading(false);
-      return mapFirebaseAuthError(e);
-    } catch (e) {
-      _setLoading(false);
-      return e.toString();
-    }
-  }
-
   /// Send password reset email for admin
   Future<String?> sendPasswordResetEmail(String email) async {
     final trimmedEmail = email.trim();

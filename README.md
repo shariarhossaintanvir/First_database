@@ -54,7 +54,7 @@ The system solves the operational divide between customer-facing storefronts and
 - **Role-Gated Authentication**:
   - Restricted administrative sign-in verifying user UID against Firestore `users` document (`role == 'admin'`).
   - Route-level security via `AuthGate` preventing unprivileged access to administrative controls.
-  - Built-in one-click master admin provisioning helper (`setupDefaultAdmin`).
+  - Hardened authentication flow requiring pre-provisioned administrator role credentials.
 - **Real-Time Operational Dashboard**:
   - Live metric summary grid tracking total revenue (excluding cancelled orders), total orders placed, published products count, and active categories.
   - Dynamic stream listeners refreshing dashboard statistics without manual page reloads.
@@ -293,14 +293,11 @@ flutter run -d chrome --web-port=5001
 
 ---
 
-## Testing & Demo Credentials
-
-Both applications provide built-in one-click demo helpers on their login screens to facilitate rapid testing:
+## Testing & Access Controls
 
 ### Administrator Access (`admin_app`)
-- **Email**: `admin@ecommerce.com`
-- **Password**: `password123`
-- *Helper*: The Admin login screen includes an **"Initialize Admin Account (1-Click)"** button that provisions the master administrative profile in Firestore with `role: 'admin'`.
+- Store operators must be provisioned with authorized administrative credentials in Firebase Authentication and a corresponding Firestore `/users/{uid}` document with `role: 'admin'`.
+- Access is restricted exclusively to authorized administrative accounts.
 
 ### Customer Access (`customer_app`)
 - **Email**: `customer@ecommerce.com`

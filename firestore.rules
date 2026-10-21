@@ -69,10 +69,9 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // Role-based authorization: Checks bootstrap admin email, admin custom claims, or Firestore users admin role
+    // Role-based authorization: Checks admin custom claims or Firestore users admin role
     function isAdmin() {
       return isSignedIn() && (
-        request.auth.token.email == 'admin@ecommerce.com' ||
         (request.auth.token.keys().hasAny(['admin']) && request.auth.token.admin == true) ||
         (
           exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
