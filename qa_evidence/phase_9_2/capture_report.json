@@ -1,0 +1,50 @@
+[
+  {
+    "label": "customer_desktop_1440x900_home",
+    "status": "OK",
+    "size": 30613,
+    "errors": []
+  },
+  {
+    "label": "customer_mobile_390x844_home",
+    "status": "OK",
+    "size": 25456,
+    "errors": []
+  },
+  {
+    "label": "customer_tablet_768x1024_home",
+    "status": "OK",
+    "size": 4465,
+    "errors": []
+  },
+  {
+    "label": "customer_narrow_360x800_home",
+    "status": "OK",
+    "size": 2402,
+    "errors": []
+  },
+  {
+    "label": "customer_wide_1920x1080_home",
+    "status": "OK",
+    "size": 33519,
+    "errors": []
+  },
+  {
+    "label": "customer_desktop_login",
+    "status": "OK",
+    "size": 30613,
+    "errors": []
+  },
+  {
+    "label": "admin_desktop_1440x900_dashboard",
+    "status": "OK",
+    "size": 35896,
+    "errors": []
+  },
+  {
+    "label": "admin_mobile_390x844_dashboard",
+    "status": "OK",
+    "size": 30564,
+    "errors": []
+  }
+]

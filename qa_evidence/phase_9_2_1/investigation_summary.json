@@ -1,0 +1,268 @@
+{
+  "authGate": {
+    "360x800": {
+      "viewport": "360x800",
+      "snapshots": [
+        {
+          "t": 2,
+          "dom": {
+            "hasFlutterView": false,
+            "hasGlassPane": false,
+            "hasSemPlaceholder": false,
+            "canvases": 0,
+            "bodyChildTags": [
+              "script"
+            ],
+            "documentTitle": "customer_app"
+          },
+          "fileSize": 5851,
+          "file": "authgate_360x800_t2s.png"
+        },
+        {
+          "t": 5,
+          "dom": {
+            "hasFlutterView": true,
+            "hasGlassPane": true,
+            "hasSemPlaceholder": true,
+            "canvases": 0,
+            "bodyChildTags": [
+              "flt-semantics-placeholder",
+              "script",
+              "p",
+              "flt-announcement-host",
+              "flutter-view"
+            ],
+            "documentTitle": "customer_app"
+          },
+          "fileSize": 5851,
+          "file": "authgate_360x800_t5s.png"
+        }
+      ],
+      "errors": [],
+      "networkFails": [],
+      "finalFlutterReady": true
+    },
+    "768x1024": {
+      "viewport": "768x1024",
+      "snapshots": [
+        {
+          "t": 2,
+          "dom": {
+            "hasFlutterView": false,
+            "hasGlassPane": false,
+            "hasSemPlaceholder": false,
+            "canvases": 0,
+            "bodyChildTags": [
+              "script"
+            ],
+            "documentTitle": "customer_app"
+          },
+          "fileSize": 5851,
+          "file": "authgate_768x1024_t2s.png"
+        },
+        {
+          "t": 5,
+          "dom": {
+            "hasFlutterView": false,
+            "hasGlassPane": false,
+            "hasSemPlaceholder": false,
+            "canvases": 0,
+            "bodyChildTags": [
+              "script"
+            ],
+            "documentTitle": "customer_app"
+          },
+          "fileSize": 5851,
+          "file": "authgate_768x1024_t5s.png"
+        },
+        {
+          "t": 8,
+          "dom": {
+            "hasFlutterView": false,
+            "hasGlassPane": false,
+            "hasSemPlaceholder": false,
+            "canvases": 0,
+            "bodyChildTags": [
+              "script"
+            ],
+            "documentTitle": "customer_app"
+          },
+          "fileSize": 5851,
+          "file": "authgate_768x1024_t8s.png"
+        },
+        {
+          "t": 12,
+          "dom": {
+            "hasFlutterView": true,
+            "hasGlassPane": true,
+            "hasSemPlaceholder": true,
+            "canvases": 0,
+            "bodyChildTags": [
+              "flt-semantics-placeholder",
+              "script",
+              "p",
+              "flt-announcement-host",
+              "flutter-view"
+            ],
+            "documentTitle": "customer_app"
+          },
+          "fileSize": 5851,
+          "file": "authgate_768x1024_t12s.png"
+        }
+      ],
+      "errors": [],
+      "networkFails": [],
+      "finalFlutterReady": true
+    },
+    "390x844": {
+      "viewport": "390x844",
+      "snapshots": [
+        {
+          "t": 2,
+          "dom": {
+            "hasFlutterView": false,
+            "hasGlassPane": false,
+            "hasSemPlaceholder": false,
+            "canvases": 0,
+            "bodyChildTags": [
+              "script"
+            ],
+            "documentTitle": "customer_app"
+          },
+          "fileSize": 5851,
+          "file": "authgate_390x844_t2s.png"
+        },
+        {
+          "t": 5,
+          "dom": {
+            "hasFlutterView": false,
+            "hasGlassPane": false,
+            "hasSemPlaceholder": false,
+            "canvases": 0,
+            "bodyChildTags": [
+              "script"
+            ],
+            "documentTitle": "customer_app"
+          },
+          "fileSize": 5851,
+          "file": "authgate_390x844_t5s.png"
+        },
+        {
+          "t": 8,
+          "dom": {
+            "hasFlutterView": true,
+            "hasGlassPane": true,
+            "hasSemPlaceholder": true,
+            "canvases": 0,
+            "bodyChildTags": [
+              "flt-semantics-placeholder",
+              "script",
+              "p",
+              "flt-announcement-host",
+              "flutter-view"
+            ],
+            "documentTitle": "customer_app"
+          },
+          "fileSize": 5851,
+          "file": "authgate_390x844_t8s.png"
+        }
+      ],
+      "errors": [],
+      "networkFails": [],
+      "finalFlutterReady": true
+    },
+    "1440x900": {
+      "viewport": "1440x900",
+      "snapshots": [
+        {
+          "t": 2,
+          "dom": {
+            "hasFlutterView": false,
+            "hasGlassPane": false,
+            "hasSemPlaceholder": false,
+            "canvases": 0,
+            "bodyChildTags": [
+              "script"
+            ],
+            "documentTitle": "customer_app"
+          },
+          "fileSize": 5851,
+          "file": "authgate_1440x900_t2s.png"
+        },
+        {
+          "t": 5,
+          "dom": {
+            "hasFlutterView": true,
+            "hasGlassPane": true,
+            "hasSemPlaceholder": true,
+            "canvases": 0,
+            "bodyChildTags": [
+              "flt-semantics-placeholder",
+              "script",
+              "p",
+              "flt-announcement-host",
+              "flutter-view"
+            ],
+            "documentTitle": "customer_app"
+          },
+          "fileSize": 5851,
+          "file": "authgate_1440x900_t5s.png"
+        }
+      ],
+      "errors": [],
+      "networkFails": [],
+      "finalFlutterReady": true
+    }
+  },
+  "matrix": [
+    {
+      "label": "customer_360x800_login",
+      "size": 30691,
+      "ready": true,
+      "errors": 0,
+      "status": "OK"
+    },
+    {
+      "label": "customer_390x844_login",
+      "size": 30693,
+      "ready": true,
+      "errors": 0,
+      "status": "OK"
+    },
+    {
+      "label": "customer_768x1024_login",
+      "size": 30626,
+      "ready": true,
+      "errors": 0,
+      "status": "OK"
+    },
+    {
+      "label": "customer_1440x900_login",
+      "size": 30613,
+      "ready": true,
+      "errors": 0,
+      "status": "OK"
+    },
+    {
+      "label": "admin_1440x900_login",
+      "size": 35896,
+      "ready": true,
+      "errors": 0,
+      "status": "OK"
+    },
+    {
+      "label": "admin_390x844_login",
+      "size": 35737,
+      "ready": true,
+      "errors": 0,
+      "status": "OK"
+    },
+    {
+      "label": "admin_768x1024_login",
+      "size": 9282,
+      "ready": true,
+      "errors": 0,
+      "status": "OK"
+    }
+  ]
+}
