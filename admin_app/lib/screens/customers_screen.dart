@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/customer_model.dart';
 import '../services/firestore_service.dart';
 import '../theme/admin_theme.dart';
+import '../utils/url_helper.dart';
 import '../widgets/admin_layout.dart';
 import '../widgets/admin_status_badge.dart';
 
@@ -73,12 +74,18 @@ class _CustomersScreenState extends State<CustomersScreen> {
                 icon: Icons.email_outlined,
                 label: 'Email',
                 value: customer.email.isNotEmpty ? customer.email : 'No email provided',
+                onTap: customer.email.isNotEmpty
+                    ? () => UrlHelper.launchEmail(context, customer.email)
+                    : null,
               ),
               const SizedBox(height: 10),
               _buildModalRow(
                 icon: Icons.phone_outlined,
                 label: 'Phone',
                 value: customer.phone.isNotEmpty ? customer.phone : 'Not provided',
+                onTap: customer.phone.isNotEmpty
+                    ? () => UrlHelper.launchPhone(context, customer.phone)
+                    : null,
               ),
               const SizedBox(height: 10),
               _buildModalRow(
@@ -142,6 +149,7 @@ class _CustomersScreenState extends State<CustomersScreen> {
     required IconData icon,
     required String label,
     required String value,
+    VoidCallback? onTap,
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,14 +168,30 @@ class _CustomersScreenState extends State<CustomersScreen> {
           ),
         ),
         Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              color: AdminTheme.textPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          child: onTap != null
+              ? MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: onTap,
+                    child: Text(
+                      value,
+                      style: const TextStyle(
+                        color: AdminTheme.accent,
+                        decoration: TextDecoration.underline,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                )
+              : Text(
+                  value,
+                  style: const TextStyle(
+                    color: AdminTheme.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
         ),
       ],
     );

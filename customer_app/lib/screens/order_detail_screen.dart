@@ -6,6 +6,7 @@ import '../providers/cart_provider.dart';
 import '../services/firestore_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/status_badge.dart';
+import '../utils/url_helper.dart';
 import 'cart_screen.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -127,15 +128,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
         content: Text(
           'To ensure order security, cancellations are processed by our '
           'support team. To request a cancellation for Order #$shortId, '
-          'please contact our customer support team through the contact '
-          'details provided on our website or app settings.',
+          'please contact our customer support team directly at support@shopease.com.',
           style: const TextStyle(color: AppTheme.textSecondary, height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Understood',
-                style: TextStyle(color: AppTheme.accent)),
+            child: const Text('Close',
+                style: TextStyle(color: AppTheme.textMuted)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accent,
+              foregroundColor: AppTheme.bgPrimary,
+            ),
+            icon: const Icon(Icons.email_outlined, size: 16),
+            label: const Text('Email Support'),
+            onPressed: () {
+              Navigator.pop(ctx);
+              UrlHelper.launchEmail(
+                context,
+                'support@shopease.com',
+                subject: 'Cancellation Request for Order #$shortId',
+              );
+            },
           ),
         ],
       ),
@@ -288,10 +304,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                       const Divider(height: 1, color: AppTheme.borderSubtle),
                       const SizedBox(height: AppTheme.space12),
                       _DetailRow(
-                          label: 'Recipient', value: currentOrder.customerName),
+                        label: 'Recipient',
+                        value: currentOrder.customerName,
+                      ),
                       const SizedBox(height: AppTheme.space6),
                       _DetailRow(
-                          label: 'Phone', value: currentOrder.customerPhone),
+                        label: 'Phone',
+                        value: currentOrder.customerPhone,
+                        onTap: currentOrder.customerPhone.isNotEmpty
+                            ? () => UrlHelper.launchPhone(context, currentOrder.customerPhone)
+                            : null,
+                      ),
                       const SizedBox(height: AppTheme.space6),
                       _DetailRow(
                           label: 'Address',
@@ -344,6 +367,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                       const EdgeInsets.all(AppTheme.space4),
                                   child: Image.network(
                                     item.imageUrl,
+                                    cacheWidth: 150,
+                                    cacheHeight: 150,
                                     fit: BoxFit.contain,
                                     errorBuilder: (ctx, err, stack) =>
                                         const Icon(
@@ -486,8 +511,13 @@ class _SectionLabel extends StatelessWidget {
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
+  final VoidCallback? onTap;
 
-  const _DetailRow({required this.label, required this.value});
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -503,14 +533,29 @@ class _DetailRow extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              color: AppTheme.textPrimary,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
+          child: onTap != null
+              ? InkWell(
+                  onTap: onTap,
+                  borderRadius: BorderRadius.circular(4),
+                  child: Text(
+                    value,
+                    style: const TextStyle(
+                      color: AppTheme.accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      decoration: TextDecoration.underline,
+                      decorationColor: AppTheme.accent,
+                    ),
+                  ),
+                )
+              : Text(
+                  value,
+                  style: const TextStyle(
+                    color: AppTheme.textPrimary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
         ),
       ],
     );

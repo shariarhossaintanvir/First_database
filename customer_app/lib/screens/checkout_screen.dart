@@ -227,7 +227,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         }
       }
 
-      // Clear main cart only for regular checkout — not for Buy Now
+      // Clear main cart only for regular checkout; not for Buy Now
       if (!isBuyNow) {
         cart.clearCart();
       }
@@ -265,14 +265,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ? widget.buyNowItem!.totalPrice
         : cart.totalAmount;
 
-    return Scaffold(
-      backgroundColor: AppTheme.bgPrimary,
-      appBar: AppBar(
+    return Title(
+      title: widget.buyNowItem != null ? 'Buy Now: Checkout | ShopEase' : 'Checkout & Delivery | ShopEase',
+      color: AppTheme.primary,
+      child: Scaffold(
         backgroundColor: AppTheme.bgPrimary,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Text(widget.buyNowItem != null ? 'Buy Now — Checkout' : 'Checkout & Delivery'),
-      ),
+        appBar: AppBar(
+          backgroundColor: AppTheme.bgPrimary,
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          title: Text(widget.buyNowItem != null ? 'Buy Now: Checkout' : 'Checkout & Delivery'),
+        ),
       bottomNavigationBar: Container(
         padding: const EdgeInsets.all(20),
         decoration: const BoxDecoration(
@@ -659,6 +662,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

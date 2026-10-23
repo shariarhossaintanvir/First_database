@@ -1,11 +1,11 @@
 {
-    "name": "customer_app",
-    "short_name": "customer_app",
+    "name": "ShopEase Customer Store",
+    "short_name": "ShopEase",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#FF6B35",
+    "description": "ShopEase Bangladesh: Modern Online Shopping Store with Cash on Delivery and Fast Shipping",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

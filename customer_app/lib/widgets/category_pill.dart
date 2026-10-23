@@ -33,7 +33,7 @@ class CategoryPill extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: AppTheme.roundedFull,
+        borderRadius: AppTheme.roundedSm,
         child: AnimatedContainer(
           duration: AppTheme.durationFast,
           curve: AppTheme.curveDefault,
@@ -43,7 +43,7 @@ class CategoryPill extends StatelessWidget {
           ),
           decoration: BoxDecoration(
             color: isSelected ? effectiveAccent.withValues(alpha: 0.15) : AppTheme.surfaceCard,
-            borderRadius: AppTheme.roundedFull,
+            borderRadius: AppTheme.roundedSm,
             border: Border.all(
               color: isSelected ? effectiveAccent : AppTheme.borderSubtle,
               width: isSelected ? 1.5 : 1.0,
@@ -78,7 +78,7 @@ class CategoryPill extends StatelessWidget {
                     color: isSelected
                         ? effectiveAccent.withValues(alpha: 0.2)
                         : AppTheme.surfaceElevated,
-                    borderRadius: AppTheme.roundedFull,
+                    borderRadius: AppTheme.roundedXs,
                   ),
                   child: Text(
                     count.toString(),

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// ShopEase Customer Storefront — Light Theme Design System
+/// ShopEase Customer Storefront: Light Theme Design System
 /// Brand: Coral (#FF6B35) primary, Teal (#00D4A8) secondary
 class AppTheme {
   // --- CORE COLOR PALETTE ---

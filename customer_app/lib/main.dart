@@ -9,7 +9,9 @@ import 'services/auth_service.dart';
 import 'providers/cart_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/login_screen.dart';
+import 'screens/register_screen.dart';
 import 'screens/main_navigation_screen.dart';
+import 'screens/not_found_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -61,14 +63,66 @@ class CustomerEcommerceApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.lightTheme,
         themeMode: ThemeMode.light,
-        home: const AuthGate(),
+        initialRoute: '/',
+        onGenerateRoute: (settings) {
+          Widget page;
+          switch (settings.name) {
+            case '/':
+              page = const AuthGate();
+              break;
+            case '/home':
+              page = const AuthGate(
+                destination: MainNavigationScreen(initialIndex: 0),
+              );
+              break;
+            case '/categories':
+              page = const AuthGate(
+                destination: MainNavigationScreen(initialIndex: 1),
+              );
+              break;
+            case '/cart':
+              page = const AuthGate(
+                destination: MainNavigationScreen(initialIndex: 2),
+              );
+              break;
+            case '/orders':
+              page = const AuthGate(
+                destination: MainNavigationScreen(initialIndex: 3),
+              );
+              break;
+            case '/profile':
+              page = const AuthGate(
+                destination: MainNavigationScreen(initialIndex: 4),
+              );
+              break;
+            case '/login':
+              page = const LoginScreen();
+              break;
+            case '/register':
+              page = const RegisterScreen();
+              break;
+            default:
+              page = NotFoundScreen(route: settings.name);
+              break;
+          }
+          return MaterialPageRoute(
+            builder: (_) => page,
+            settings: settings,
+          );
+        },
+        onUnknownRoute: (settings) => MaterialPageRoute(
+          settings: settings,
+          builder: (_) => NotFoundScreen(route: settings.name),
+        ),
       ),
     );
   }
 }
 
 class AuthGate extends StatelessWidget {
-  const AuthGate({super.key});
+  final Widget? destination;
+
+  const AuthGate({super.key, this.destination});
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +138,7 @@ class AuthGate extends StatelessWidget {
         }
 
         if (snapshot.hasData && snapshot.data != null) {
-          return const MainNavigationScreen();
+          return destination ?? const MainNavigationScreen();
         }
 
         return const LoginScreen();

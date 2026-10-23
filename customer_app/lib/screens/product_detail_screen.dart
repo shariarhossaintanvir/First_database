@@ -99,8 +99,11 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     final isOutOfStock = p.stock <= 0;
     final isUnavailable = !p.isAvailable || isOutOfStock;
 
-    return Scaffold(
-      backgroundColor: AppTheme.bgPrimary,
+    return Title(
+      title: '${p.title} | ShopEase',
+      color: AppTheme.primary,
+      child: Scaffold(
+        backgroundColor: AppTheme.bgPrimary,
       appBar: AppBar(
         backgroundColor: AppTheme.bgPrimary,
         elevation: 0,
@@ -376,6 +379,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                         padding: const EdgeInsets.all(AppTheme.space24),
                         child: Image.network(
                           p.imageUrl,
+                          cacheWidth: 800,
                           fit: BoxFit.contain,
                           errorBuilder: (ctx, err, stack) => const Center(
                             child: Column(
@@ -621,8 +625,9 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 /// Compact stepper icon button used in the quantity control

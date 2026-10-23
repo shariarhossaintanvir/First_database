@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/order_model.dart';
 import '../services/firestore_service.dart';
 import '../theme/admin_theme.dart';
+import '../utils/url_helper.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final OrderModel order;
@@ -163,14 +164,17 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     ).format(widget.order.createdAt);
     final shortId = widget.order.id.length > 8 ? widget.order.id.substring(0, 8) : widget.order.id;
 
-    return Scaffold(
-      backgroundColor: AdminTheme.bgWorkspace,
-      appBar: AppBar(
-        backgroundColor: AdminTheme.bgSidebar,
-        elevation: 0,
-        title: Text('Order #$shortId Details'),
-      ),
-      body: SingleChildScrollView(
+    return Title(
+      title: 'Order #$shortId Details | ShopEase Admin',
+      color: AdminTheme.accent,
+      child: Scaffold(
+        backgroundColor: AdminTheme.bgWorkspace,
+        appBar: AppBar(
+          backgroundColor: AdminTheme.bgSidebar,
+          elevation: 0,
+          title: Text('Order #$shortId Details'),
+        ),
+        body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -306,12 +310,22 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     const SizedBox(height: 14),
                     _buildInfoRow(Icons.person_outline, 'Customer Name', widget.order.customerName),
                     const SizedBox(height: 10),
-                    _buildInfoRow(Icons.email_outlined, 'Email Address', widget.order.customerEmail),
+                    _buildInfoRow(
+                      Icons.email_outlined,
+                      'Email Address',
+                      widget.order.customerEmail,
+                      onTap: widget.order.customerEmail.isNotEmpty
+                          ? () => UrlHelper.launchEmail(context, widget.order.customerEmail)
+                          : null,
+                    ),
                     const SizedBox(height: 10),
                     _buildInfoRow(
                       Icons.phone_outlined,
                       'Contact Phone',
                       widget.order.customerPhone.isNotEmpty ? widget.order.customerPhone : 'Not provided',
+                      onTap: widget.order.customerPhone.isNotEmpty
+                          ? () => UrlHelper.launchPhone(context, widget.order.customerPhone)
+                          : null,
                     ),
                     const SizedBox(height: 10),
                     _buildInfoRow(Icons.location_on_outlined, 'Delivery Address', widget.order.customerAddress),
@@ -365,6 +379,8 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                 padding: const EdgeInsets.all(4),
                                 child: Image.network(
                                   item.imageUrl,
+                                  cacheWidth: 104,
+                                  cacheHeight: 104,
                                   fit: BoxFit.contain,
                                   errorBuilder: (ctx, err, stack) => const Icon(
                                     Icons.image_not_supported_outlined,
@@ -441,10 +457,11 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ],
         ),
       ),
+      ),
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(IconData icon, String label, String value, {VoidCallback? onTap}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -462,14 +479,30 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
           ),
         ),
         Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w500,
-              color: AdminTheme.textPrimary,
-              fontSize: 13,
-            ),
-          ),
+          child: onTap != null
+              ? MouseRegion(
+                  cursor: SystemMouseCursors.click,
+                  child: GestureDetector(
+                    onTap: onTap,
+                    child: Text(
+                      value,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: AdminTheme.accent,
+                        decoration: TextDecoration.underline,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                )
+              : Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: AdminTheme.textPrimary,
+                    fontSize: 13,
+                  ),
+                ),
         ),
       ],
     );

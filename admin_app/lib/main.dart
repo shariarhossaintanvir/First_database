@@ -15,6 +15,7 @@ import 'screens/categories_screen.dart';
 import 'screens/orders_screen.dart';
 import 'screens/customers_screen.dart';
 import 'screens/add_edit_product_screen.dart';
+import 'screens/not_found_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -83,8 +84,10 @@ class AdminEcommerceApp extends StatelessWidget {
               break;
             case '/':
             case '/dashboard':
-            default:
               page = const AuthGate(destination: DashboardScreen());
+              break;
+            default:
+              page = AdminNotFoundScreen(route: settings.name);
               break;
           }
           return MaterialPageRoute(
@@ -92,6 +95,10 @@ class AdminEcommerceApp extends StatelessWidget {
             settings: settings,
           );
         },
+        onUnknownRoute: (settings) => MaterialPageRoute(
+          settings: settings,
+          builder: (_) => AdminNotFoundScreen(route: settings.name),
+        ),
       ),
     );
   }

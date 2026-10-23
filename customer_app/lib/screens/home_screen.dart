@@ -11,10 +11,13 @@ import '../widgets/loading_shimmer.dart';
 import '../widgets/empty_state_view.dart';
 import '../widgets/error_state_view.dart';
 import '../widgets/category_pill.dart';
+import '../widgets/storefront_footer.dart';
 import 'cart_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final void Function(int tabIndex)? onNavigateTab;
+
+  const HomeScreen({super.key, this.onNavigateTab});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -22,6 +25,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final FirestoreService _firestoreService = FirestoreService();
+  final ScrollController _scrollController = ScrollController();
 
   late final TextEditingController _searchController;
   Timer? _debounceTimer;
@@ -45,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _debounceTimer?.cancel();
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -194,7 +199,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: AppTheme.space12),
-                        child: Text('—', style: TextStyle(color: AppTheme.textMuted, fontSize: 16)),
+                        child: Text('to', style: TextStyle(color: AppTheme.textMuted, fontSize: 14)),
                       ),
                       Expanded(
                         child: TextField(
@@ -281,89 +286,117 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
+    final isDesktop = MediaQuery.of(context).size.width >= 840;
 
     return Scaffold(
       backgroundColor: AppTheme.bgPrimary,
-      appBar: AppBar(
-        backgroundColor: AppTheme.bgPrimary,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(7),
-              decoration: BoxDecoration(
-                color: AppTheme.accentSubtle,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.accent.withValues(alpha: 0.3)),
+      appBar: isDesktop
+          ? null
+          : AppBar(
+              backgroundColor: AppTheme.bgPrimary,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              leading: IconButton(
+                icon: const Icon(Icons.menu, color: AppTheme.textPrimary),
+                tooltip: 'Open Navigation Menu',
+                onPressed: () => Scaffold.of(context).openDrawer(),
               ),
-              child: const Icon(
-                Icons.shopping_bag_outlined,
-                color: AppTheme.accent,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              'ShopEase',
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 20,
-                letterSpacing: -0.5,
-                color: AppTheme.textPrimary,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.textPrimary),
-                tooltip: 'Shopping Cart',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CartScreen()),
-                  );
-                },
-              ),
-              if (cart.itemCount > 0)
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppTheme.accent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                    child: Text(
-                      '${cart.itemCount}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: AppTheme.bgPrimary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+              title: Semantics(
+                label: 'ShopEase Home Logo',
+                button: true,
+                child: InkWell(
+                  onTap: () {
+                    _resetAllFilters();
+                    if (_scrollController.hasClients) {
+                      _scrollController.animateTo(
+                        0,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentSubtle,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppTheme.accent.withValues(alpha: 0.3)),
+                        ),
+                        child: const Icon(
+                          Icons.shopping_bag_outlined,
+                          color: AppTheme.accent,
+                          size: 20,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        'ShopEase',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 20,
+                          letterSpacing: -0.5,
+                          color: AppTheme.textPrimary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+              ),
+              actions: [
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.shopping_cart_outlined, color: AppTheme.textPrimary),
+                      tooltip: 'Shopping Cart',
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const CartScreen()),
+                        );
+                      },
+                    ),
+                    if (cart.itemCount > 0)
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: AppTheme.accent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                          child: Text(
+                            '${cart.itemCount}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: AppTheme.bgPrimary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
           final int crossAxisCount = width > 1200
               ? 5
-              : (width > 900 ? 4 : (width > 600 ? 3 : 2));
+              : (width > 900 ? 4 : (width > 600 ? 3 : (width < 340 ? 1 : 2)));
+          final double childAspectRatio = width < 360 ? 0.68 : 0.72;
 
           return CustomScrollView(
+            controller: _scrollController,
             slivers: [
               // ── Search & Filter Row ─────────────────────────────────────────
               SliverToBoxAdapter(
@@ -622,7 +655,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       sliver: SliverGrid(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: crossAxisCount,
-                          childAspectRatio: 0.72,
+                          childAspectRatio: childAspectRatio,
                           crossAxisSpacing: AppTheme.space12,
                           mainAxisSpacing: AppTheme.space12,
                         ),
@@ -825,7 +858,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         sliver: SliverGrid(
                           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: crossAxisCount,
-                            childAspectRatio: 0.72,
+                            childAspectRatio: childAspectRatio,
                             crossAxisSpacing: AppTheme.space12,
                             mainAxisSpacing: AppTheme.space12,
                           ),
@@ -840,7 +873,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
               ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: AppTheme.space40)),
+              // Responsive Storefront Footer
+              SliverToBoxAdapter(
+                child: StorefrontFooter(
+                  onNavigateTab: widget.onNavigateTab,
+                ),
+              ),
             ],
           );
         },

@@ -87,7 +87,7 @@ class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
           return StreamBuilder<List<ProductModel>>(
             stream: _firestoreService.getProductsByCategory(widget.category.name),
             builder: (context, snapshot) {
-              // Loading state — shimmer skeleton grid
+              // Loading state: shimmer skeleton grid
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return GridView.builder(
                   padding: const EdgeInsets.all(AppTheme.space16),
@@ -179,7 +179,7 @@ class _CategoryProductsScreenState extends State<CategoryProductsScreen> {
                               color: _inStockOnly ? AppTheme.accent : AppTheme.borderSubtle,
                             ),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                             ),
                           ),
                           const Spacer(),

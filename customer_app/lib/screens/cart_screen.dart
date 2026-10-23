@@ -162,9 +162,9 @@ class _EmptyCartBody extends StatelessWidget {
               Container(
                 width: 80,
                 height: 80,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppTheme.accentSubtle,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                  shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.shopping_bag_outlined,
@@ -480,6 +480,8 @@ class _CartItemCard extends StatelessWidget {
                   padding: const EdgeInsets.all(AppTheme.space8),
                   child: Image.network(
                     p.imageUrl,
+                    cacheWidth: 184,
+                    cacheHeight: 184,
                     fit: BoxFit.contain,
                     errorBuilder: (ctx, error, stackTrace) => const Icon(
                       Icons.image_not_supported_outlined,
@@ -801,7 +803,7 @@ class _CheckoutBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Hide bottom bar on desktop — summary card handles checkout CTA
+        // Hide bottom bar on desktop: summary card handles checkout CTA
         if (constraints.maxWidth >= 900) return const SizedBox.shrink();
 
         return Container(

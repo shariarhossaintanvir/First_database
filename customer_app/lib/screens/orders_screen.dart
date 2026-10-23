@@ -81,7 +81,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                 ? AppTheme.accentSubtle
                                 : AppTheme.bgSecondary,
                             borderRadius:
-                                BorderRadius.circular(AppTheme.radiusFull),
+                                BorderRadius.circular(AppTheme.radiusSm),
                             border: Border.all(
                               color: isSelected
                                   ? AppTheme.accent

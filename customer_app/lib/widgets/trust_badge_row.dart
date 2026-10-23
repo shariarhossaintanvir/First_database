@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../utils/url_helper.dart';
 
 /// Individual trust badge descriptor
 class TrustBadgeData {
@@ -77,7 +78,7 @@ class TrustBadgeRow extends StatelessWidget {
                       margin: const EdgeInsets.symmetric(horizontal: AppTheme.space8),
                     ),
                   Expanded(
-                    child: _buildBadgeItem(badgeItems[i]),
+                    child: _buildBadgeItem(badgeItems[i], context),
                   ),
                 ],
               ],
@@ -92,7 +93,7 @@ class TrustBadgeRow extends StatelessWidget {
               for (final item in badgeItems)
                 SizedBox(
                   width: (constraints.maxWidth - AppTheme.space16) / 2,
-                  child: _buildBadgeItem(item),
+                  child: _buildBadgeItem(item, context),
                 ),
             ],
           );
@@ -101,7 +102,9 @@ class TrustBadgeRow extends StatelessWidget {
     );
   }
 
-  Widget _buildBadgeItem(TrustBadgeData item) {
+  Widget _buildBadgeItem(TrustBadgeData item, BuildContext context) {
+    final isEmail = item.subtitle.contains('@');
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -137,16 +140,37 @@ class TrustBadgeRow extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                item.subtitle,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: AppTheme.textMuted,
-                  fontSize: 10,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
+              isEmail
+                  ? InkWell(
+                      onTap: () => UrlHelper.launchEmail(
+                        context,
+                        item.subtitle,
+                        subject: 'ShopEase Customer Care Inquiry',
+                      ),
+                      borderRadius: BorderRadius.circular(2),
+                      child: Text(
+                        item.subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: AppTheme.accent,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                          decorationColor: AppTheme.accent,
+                        ),
+                      ),
+                    )
+                  : Text(
+                      item.subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppTheme.textMuted,
+                        fontSize: 10,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
             ],
           ),
         ),

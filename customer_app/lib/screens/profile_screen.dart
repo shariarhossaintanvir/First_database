@@ -3,11 +3,101 @@ import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
+import '../utils/url_helper.dart';
 import 'orders_screen.dart';
 import 'cart_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  void _showAccountSecurityDialog(BuildContext context, String email) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppTheme.surfaceCard,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: AppTheme.borderSubtle),
+        ),
+        title: const Row(
+          children: [
+            Icon(Icons.security, color: AppTheme.accent),
+            SizedBox(width: 8),
+            Text('Account Security', style: TextStyle(color: AppTheme.textPrimary, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Your account is secured with Firebase Authentication email and password credentials.',
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 13, height: 1.5),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppTheme.bgSecondary,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppTheme.borderSubtle),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.email_outlined, size: 18, color: AppTheme.accent),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      email,
+                      style: const TextStyle(fontWeight: FontWeight.w600, color: AppTheme.textPrimary, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Need to change your password? We will send a secure password reset link to your registered email address.',
+              style: TextStyle(color: AppTheme.textMuted, fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close', style: TextStyle(color: AppTheme.textMuted)),
+          ),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.accent,
+              foregroundColor: AppTheme.bgPrimary,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final auth = Provider.of<AuthService>(context, listen: false);
+              final err = await auth.sendPasswordResetEmail(email);
+              if (context.mounted) {
+                if (err == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Password reset link sent to $email. Please check your inbox.'),
+                      backgroundColor: AppTheme.surfaceElevated,
+                    ),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(err), backgroundColor: AppTheme.statusError),
+                  );
+                }
+              }
+            },
+            icon: const Icon(Icons.lock_reset, size: 16),
+            label: const Text('Send Reset Link'),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showEditProfileDialog(
     BuildContext context,
@@ -220,20 +310,39 @@ class ProfileScreen extends StatelessWidget {
                                         ),
                                       ),
                                       const SizedBox(height: 4),
-                                      Text(
-                                        email,
-                                        style: const TextStyle(
-                                          color: AppTheme.textMuted,
-                                          fontSize: 13,
+                                      InkWell(
+                                        onTap: () => UrlHelper.launchEmail(context, email, subject: 'ShopEase Customer Profile Inquiry'),
+                                        borderRadius: BorderRadius.circular(4),
+                                        child: Text(
+                                          email,
+                                          style: const TextStyle(
+                                            color: AppTheme.accent,
+                                            fontSize: 13,
+                                            decoration: TextDecoration.underline,
+                                            decorationColor: AppTheme.accent,
+                                          ),
                                         ),
                                       ),
                                       if (phone.isNotEmpty) ...[
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          phone,
-                                          style: const TextStyle(
-                                            color: AppTheme.textMuted,
-                                            fontSize: 12,
+                                        const SizedBox(height: 4),
+                                        InkWell(
+                                          onTap: () => UrlHelper.launchPhone(context, phone),
+                                          borderRadius: BorderRadius.circular(4),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(Icons.phone_outlined, size: 12, color: AppTheme.accent),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                phone,
+                                                style: const TextStyle(
+                                                  color: AppTheme.textPrimary,
+                                                  fontSize: 12,
+                                                  decoration: TextDecoration.underline,
+                                                  decorationColor: AppTheme.accent,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
@@ -392,6 +501,7 @@ class ProfileScreen extends StatelessWidget {
                             title: const Text('Account Security', style: TextStyle(color: AppTheme.textPrimary)),
                             subtitle: const Text('Email & password authentication via Firebase', style: TextStyle(color: AppTheme.textMuted, fontSize: 12)),
                             trailing: const Icon(Icons.chevron_right, color: AppTheme.textMuted),
+                            onTap: () => _showAccountSecurityDialog(context, email),
                           ),
                         ],
                       ),

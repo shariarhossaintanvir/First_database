@@ -52,6 +52,8 @@ class ProductCard extends StatelessWidget {
                       padding: const EdgeInsets.all(AppTheme.space10),
                       child: Image.network(
                         product.imageUrl,
+                        cacheWidth: 350,
+                        cacheHeight: 350,
                         fit: BoxFit.contain,
                         errorBuilder: (ctx, err, stack) => Center(
                           child: Column(

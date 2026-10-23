@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../theme/admin_theme.dart';
+import '../utils/url_helper.dart';
 import 'admin_status_badge.dart';
 
 class AdminLayout extends StatelessWidget {
@@ -140,50 +141,59 @@ class _AdminSidebar extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Brand Logo Header
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              decoration: const BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: AdminTheme.borderSubtle, width: 1),
+            // Brand Logo Header (Clickable navigation to Dashboard)
+            InkWell(
+              onTap: () {
+                if (isDrawer) Navigator.pop(context);
+                if (currentRoute != '/dashboard' && currentRoute != '/') {
+                  Navigator.pushReplacementNamed(context, '/dashboard');
+                }
+              },
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: AdminTheme.borderSubtle, width: 1),
+                  ),
                 ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AdminTheme.accentSubtle,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AdminTheme.accent.withValues(alpha: 0.3)),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AdminTheme.accentSubtle,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AdminTheme.accent.withValues(alpha: 0.3)),
+                      ),
+                      child: const Icon(Icons.storefront_outlined, color: AdminTheme.accent, size: 20),
                     ),
-                    child: const Icon(Icons.storefront_outlined, color: AdminTheme.accent, size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'ShopEase',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AdminTheme.textPrimary,
-                            letterSpacing: -0.3,
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'ShopEase',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AdminTheme.textPrimary,
+                              letterSpacing: -0.3,
+                            ),
                           ),
-                        ),
-                        Text(
-                          'Operations Console',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: AdminTheme.textMuted,
+                          Text(
+                            'Operations Console',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AdminTheme.textMuted,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
@@ -303,14 +313,27 @@ class _AdminSidebar extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              user?.email ?? 'admin@ecommerce.com',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: AdminTheme.textPrimary,
+                            InkWell(
+                              onTap: () {
+                                final email = user?.email ?? 'admin@ecommerce.com';
+                                UrlHelper.launchEmail(
+                                  context,
+                                  email,
+                                  subject: 'ShopEase Admin Inquiry',
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(4),
+                              child: Text(
+                                user?.email ?? 'admin@ecommerce.com',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AdminTheme.textPrimary,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: AdminTheme.accent,
+                                ),
                               ),
                             ),
                             const Text(

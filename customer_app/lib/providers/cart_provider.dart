@@ -8,7 +8,7 @@ import '../models/product_model.dart';
 ///
 /// Cart data is stored in the browser's localStorage (via shared_preferences)
 /// so it survives page refreshes on Flutter Web. It is NOT synchronised across
-/// different devices or browsers — it is strictly local to the current browser
+/// different devices or browsers; it is strictly local to the current browser
 /// session / user agent storage.
 class CartProvider extends ChangeNotifier {
   static const String _cartStorageKey = 'shopease_cart_v1';
@@ -65,7 +65,7 @@ class CartProvider extends ChangeNotifier {
   }
 
   /// Decrements quantity by 1. If quantity reaches 1, this method does
-  /// NOT auto-remove the item — the caller (UI) must explicitly call
+  /// NOT auto-remove the item; the caller (UI) must explicitly call
   /// [removeItem] after confirming with the user.
   void decrementQuantity(String productId) {
     if (_items.containsKey(productId)) {
@@ -141,7 +141,7 @@ class CartProvider extends ChangeNotifier {
         }
       }
     } catch (e) {
-      // Stored data is corrupt or outdated — silently discard and start fresh.
+      // Stored data is corrupt or outdated; silently discard and start fresh.
       debugPrint('CartProvider: discarding malformed cart data. ($e)');
       prefs.remove(_cartStorageKey);
     }
