@@ -12,6 +12,8 @@ import 'screens/login_screen.dart';
 import 'screens/register_screen.dart';
 import 'screens/main_navigation_screen.dart';
 import 'screens/not_found_screen.dart';
+import 'screens/privacy_policy_screen.dart';
+import 'screens/terms_conditions_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -100,6 +102,14 @@ class CustomerEcommerceApp extends StatelessWidget {
               break;
             case '/register':
               page = const RegisterScreen();
+              break;
+            case '/privacy':
+            case '/privacy-policy':
+              page = const PrivacyPolicyScreen();
+              break;
+            case '/terms':
+            case '/terms-and-conditions':
+              page = const TermsConditionsScreen();
               break;
             default:
               page = NotFoundScreen(route: settings.name);
