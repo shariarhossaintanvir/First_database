@@ -141,18 +141,7 @@ class StorefrontFooter extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       InkWell(
-                        onTap: () => _showPolicyDialog(
-                          context,
-                          title: 'Terms of Service',
-                          content:
-                              'Welcome to ShopEase Bangladesh.\n\n'
-                              '1. Ordering & Inventory:\n'
-                              'All orders are subject to stock availability and real-time inventory verification.\n\n'
-                              '2. Delivery & Cash on Delivery:\n'
-                              'Cash on delivery is offered nationwide across Bangladesh. Customers must verify goods upon receipt before paying the courier representative.\n\n'
-                              '3. Account Security:\n'
-                              'Users are responsible for maintaining the confidentiality of their credentials via Firebase Authentication.',
-                        ),
+                        onTap: () => Navigator.pushNamed(context, '/terms-and-conditions'),
                         child: const Text(
                           'Terms of Service',
                           style: TextStyle(
@@ -164,15 +153,7 @@ class StorefrontFooter extends StatelessWidget {
                       ),
                       const SizedBox(width: 14),
                       InkWell(
-                        onTap: () => _showPolicyDialog(
-                          context,
-                          title: 'Privacy & Security Policy',
-                          content:
-                              'ShopEase Bangladesh respects your personal privacy.\n\n'
-                              '• Information Collected: Name, contact telephone, delivery address, and order records.\n'
-                              '• Cloud Infrastructure: Backed by Google Cloud Firestore with role-based access control and security rules.\n'
-                              '• Payment Security: Payment details are not permanently stored; cash on delivery transactions require no sensitive financial credential entry.',
-                        ),
+                        onTap: () => Navigator.pushNamed(context, '/privacy-policy'),
                         child: const Text(
                           'Privacy Policy',
                           style: TextStyle(

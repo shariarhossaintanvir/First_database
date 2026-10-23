@@ -434,6 +434,37 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                       _navigateToTab(4);
                     },
                   ),
+                  const Divider(color: AppTheme.borderSubtle, height: 24),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: Text(
+                      'LEGAL & POLICIES',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.8,
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                  ),
+                  _DrawerNavItem(
+                    icon: Icons.privacy_tip_outlined,
+                    label: 'Privacy Policy',
+                    isSelected: false,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/privacy-policy');
+                    },
+                  ),
+                  _DrawerNavItem(
+                    icon: Icons.description_outlined,
+                    label: 'Terms & Conditions',
+                    isSelected: false,
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/terms-and-conditions');
+                    },
+                  ),
                 ],
               ),
             ),
